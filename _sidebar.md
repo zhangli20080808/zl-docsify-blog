@@ -10,12 +10,15 @@
   * [JS基础-原型和原型链](/javascript/base_2.md)
   * [JS基础-作用域闭包](/javascript/base_3.md)
   * [JS基础-异步](/javascript/base_4.md)
-  * [JS-Web-Api-Dom](/javascript/s.md)
-  * [JS-Web-Api-Bom](/javascript/s.md)
-  * [JS-Web-Api-Ajax](/javascript/s.md)
-  * [JS-Web-Api-存储](/javascript/s.md)
-  * [运行环境](/javascript/s.md)
+  * [JS-Web-Api-Dom](/javascript/base_5.md)
+  * [JS-Web-Api-Bom](/javascript/base_6.md)
+  * [JS-Web-Api-Ajax](/javascript/base_7.md)
+  * [JS-Web-Api-存储](/javascript/base_7.md)
+  * [运行环境](/javascript/base_8.md)
 * TypeScript 
+  * [TypeScript](/typescript/1.md)
+
+
 
 * Vue
   * [vue源码分析](/vue/vueAnalysis.md)
@@ -26,6 +29,8 @@
   * [HOC](/react/hoc.md)
   * [hooks]()
   * [合成事件](/react/composeEvent.md)
+  * [基础使用](/react/baseUse/1.md)
+  * [高级使用](/react/advanceUse/1.md)
 
 * Node
   * [浑仪系统后端技术栈回顾总结](/node/hyxt.md)
@@ -78,6 +83,7 @@
   * [tcp三次握手四次挥手]()
   * [软件版本号扫盲](/networkBase/version.md)
 
-* 算法
+* Linux
+    * [常用命令](/linux/1.md)
 
 <!-- * 最佳实践 -->

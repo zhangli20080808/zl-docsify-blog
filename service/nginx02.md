@@ -35,8 +35,8 @@ http {
   upstream nodejs {
     least_conn;   #  优先分配最少连接数的服务器
     #ip_hash;   # 保持会话，保证同一客户端始终访问一台服务器
-    server 127.0.0.1:3000;
-    server 127.0.0.1:3001;
+    server 127.0.0.1:3011;
+    server 127.0.0.1:3012;
     server 127.0.0.1:3001 backup; # 标记为备份服务器，当主服务器不可用时，将传递与备份服务器的连接
     keepalive 32;
   }

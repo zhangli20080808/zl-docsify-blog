@@ -9,6 +9,8 @@
 执行顺序：先执行plugins再执行presets，plugins里的插件是从前往后执行，presets预设是从后往前执行。
 >预设（presets）是多个插件（plugins）的组合
 
+@babel-/core  @babel/preset-env babel-loader -D
+
 下面是一份工作中的配置，加了点配置，解释见注释：
 ```js
 {
@@ -16,6 +18,7 @@
     /**
     *  babel-preset-env: 对js最新的语法糖进行编译，默认并不负责转译js新增的api和全局对象，但是如果配置了 useBuiltIns 为 "usage" 则会启用 polyfill 功能 （不需要单独引入 babel-polyfill 插件了）
     */
+    // ["@babel-preset-env"]
     ["env", {
       "targets": {
         "browsers": ["last 10 versions", "ie >= 9"]  // 指定需要兼容的浏览器类型和版本，通过指定更高的浏览器版可减少插件和 polyfill 的代码量
