@@ -22,6 +22,8 @@
 
 * Vue
   * [vue源码分析](/vue/vueAnalysis.md)
+  * [MVVM理解](/vue/1.md)
+  * 
 
 * [**React**](/react/index.md)
   * [react原理解析](/react/reactAnalysis.md)
