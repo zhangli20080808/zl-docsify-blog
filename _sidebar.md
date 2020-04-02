@@ -21,6 +21,7 @@
 
 
 * Vue
+  * [高级使用总结](/vue/2.md)
   * [vue源码分析](/vue/vueAnalysis.md)
   * [MVVM理解](/vue/1.md)
   * 
