@@ -26,6 +26,7 @@ brew install nginx
 ```
 nginx 配置文件位置：/usr/local/etc/nginx/nginx.conf  
 nginx 程序安装的目录位置：/usr/local/Cellar/nginx
+nginx 静态欢迎页面的目录位置：/usr/local/var/www
 
 2、启动  
 终端直接运行：nginx，浏览器输入 localhost 如果看下提示，说明已经启动成功了。
@@ -38,6 +39,15 @@ nginx 程序安装的目录位置：/usr/local/Cellar/nginx
 终端运行：sudo nginx -h  
 
 ![nginx](../static/img/nginx01_02.png)
+
+常用命令
+
+查看端口  lsof -i tcp:3000 kill -9 87918
+
+重启配置文件 nginx -c /usr/local/nginx/conf/nginx.conf
+
+检测文件正确性路径 /usr/local/nginx/sbin  nginx -t　　　
+
 
 sudo nginx -s reload　　　// 修改配置后重启生效  
 （也可以用程序安装路径 sudo /usr/local/Cellar/nginx/1.17.1/bin/nginx -s reload）  
