@@ -64,8 +64,8 @@ sleep(10000);
 
 - Promise
   Promise 新建后就会立即执行。
-  macro-task(宏任务)：整体代码 script，setTimeout，setInterval
-  micro-task(微任务)： Promise
+  1. macro-task(宏任务)：整体代码 script，setTimeout，setInterval
+  2. micro-task(微任务)： Promise
   注：在事件循环中，永远先执行可执行的微任务
   ![](../static/img/js-event2.jpg)
 

@@ -3,6 +3,8 @@
 * HTML
 
 * CSS
+  * [css-技巧总结](/css/1.md)
+
 
 * JavaScript
 
@@ -18,6 +20,15 @@
 * TypeScript 
   * [TypeScript](/typescript/1.md)
 
+* Node
+  * [node基础](/node/1.md)
+  * [koa2](/node/koa2.md)
+  * [浑仪系统后端技术栈回顾总结](/node/hyxt.md)
+  * [网络编程](/node/4.md)
+  * [HTTP协议详解](/node/http.md)
+  * [持久化](/node/5.md)
+  * [鉴权](/node/auth.md)
+  * [egg](/node/6.md)
 
 
 * Vue
@@ -36,10 +47,6 @@
   * [基础使用](/react/baseUse/1.md)
   * [高级使用](/react/advanceUse/1.md)
 
-* Node
-  * [node基础](/node/1.md)
-  * [koa2](/node/koa2.md)
-  * [浑仪系统后端技术栈回顾总结](/node/hyxt.md)
 
 * 数据库
 
@@ -85,6 +92,7 @@
   * [docker](/cicd/docker.md)
 
 * 计算机网络基础
+  * [浏览器工作原理与实践](/node/browser.md)
   * [tcp三次握手四次挥手]()
   * [软件版本号扫盲](/networkBase/version.md)
 
@@ -93,5 +101,19 @@
 
 * 混合开发
     * [常用命令](/app/1.md)
+
+* ES6技巧
+    * [常用命令](/es6/1.md)
+
+* 链接总结
+   * [better-scroll](/es6/2.md)
+
+
+* 代码优化书写
+   * [write](/es6/3.md)
+
+
+
+
 
 <!-- * 最佳实践 -->

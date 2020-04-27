@@ -66,3 +66,5 @@ sudo kill -TERM [进程号]　　// 快速停止
 sudo pkill -9 nginx　　　　// 强制停止  
 
 ![nginx](../static/img/nginx01_03.png)
+
+<!-- https://www.cnblogs.com/hhyf/p/11518919.html -->

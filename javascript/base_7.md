@@ -32,7 +32,7 @@ onreadystatechange ->0 未初始化 还没调用send方法  ->1 载入 已调用
 # 状态码
 
 1. 2xx 请求成功
-2. 3xx 需求重定向，浏览器直接跳转 301(永远重定向 ) 302(临时重定向) 304(资源为改变)
+2. 3xx 需求重定向，浏览器直接跳转 301(永远重定向 ) 302(临时重定向) 304(资源未改变)
 3. 4xx 403 没权限 404
 4. 5xx 服务端报错
 
@@ -54,12 +54,13 @@ script 可以实现 jsonp
 跨域解决方案 1. jsonp 2.cors
 
 ```
-页面事先声明好了 callBack 函数 再洗加载到 js 返回值的时候 会自动调用 callBack 得到数据
-window.callBack = function(data){
+页面事先声明好了 callBack 函数abc 再洗加载到 js 返回值的时候 会自动调用 callBack abc 得到数据
+window.abc = function(data){
   // 这个使我们跨域得到的数据
   console.log(data);
 }
 <script src='https://www.baidu.com/getData.js?username=xxx& callback=abc'></script>
+// 后台会返回一个abc包裹一段方法
 //将返回 callBack({x:100,y:200})
 ```
 

@@ -83,9 +83,37 @@ const fn2 = fn1.bind({ x: 300 });
 fn2(); // { x: 300 }
 ```
 
-注意 bind 也可以改变 this 的指向 只不过会返回一个新的函数取执行 call 不一样 bind 不会立即调用,其他两个会立即调用
+注意 bind 也可以改变 this 的指向 只不过会返回一个新的函数去执行，要手动调用 call 不一样，直接调用就执行了 bind 不会立即调用,其他两个会立即调用
 
 箭头函数的 this 永远取他上级的 this
+
+```
+const zhangsan = {
+  // 这个 setTimeout 的执行是 setTimeout 本身触发的执行 不是张三 zhagnsan.wait 这种方式执行
+  wait() {
+    setTimeout(function () {
+      // window
+      console.log(this);
+    });
+  },
+};
+
+const zhangsan = {
+  sayHigh(){
+    // 当前对象
+    console.log(this)
+  }
+  wait() {
+  // 这个地方箭头函数是被  setTimeout 触发的 this 永远取他上级的 this
+    setTimeout(() => {
+      // 指向当前对象  
+      console.log(this);
+    });
+  },
+};
+
+我们构造函数的这个this 指向的就是当前这个实例
+```
 
 相同点
 
@@ -147,7 +175,6 @@ var args = [...arguments];
    绑定函数被调用时只传入第二个参数及之后的参数
 3. 如何显式绑定 this ?
    如果调用者函数，被某一个对象所拥有，那么该函数在调用时，内部的 this 指向该对象。
-   ··
 
 - [手写 call 实现 1](https://www.cnblogs.com/web-chuan/p/11592261.html)
 - [手写 call 实现 2](https://cloud.tencent.com/developer/article/1475924)
