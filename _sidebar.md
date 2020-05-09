@@ -5,6 +5,8 @@
 * CSS
   * [css-技巧总结](/css/1.md)
 
+* 浏览器相关知识
+  * [浏览器相关总结](/browser/1.md)
 
 * JavaScript
 
@@ -113,6 +115,8 @@
    * [write](/es6/3.md)
 
 
+* 设计模式
+   * [组件设计](/design/1.md)
 
 
 

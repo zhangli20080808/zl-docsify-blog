@@ -16,8 +16,11 @@
 
 所有的自由变量的查找，是在函数定的地方，向上级作用域查找，不是在执行的地方
 
+如果按照我的理解 JavaScript 里面所有的函数都是闭包，因为有全局环境，所有的函数都可以访问全局变量。
+
 ```
 function create(){
+  //a 就是 用 ES5 实现私有变量
   let a = 100
   return function(){
     console.log(a)
@@ -106,7 +109,7 @@ const zhangsan = {
   wait() {
   // 这个地方箭头函数是被  setTimeout 触发的 this 永远取他上级的 this
     setTimeout(() => {
-      // 指向当前对象  
+      // 指向当前对象
       console.log(this);
     });
   },

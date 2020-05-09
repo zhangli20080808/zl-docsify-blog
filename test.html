@@ -4,16 +4,95 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="./test.css" />
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+    <style>
+      .fade-enter,
+      .fade-leave-to {
+        opacity: 0;
+      }
+      .fade-enter-active,
+      .fade-leave-active {
+        transition: opacity 3s;
+      }
+      /* .v-enter,
+      .v-leave-to {
+        opacity: 0;
+      }
+      .v-enter-active,
+      .v-leave-active {
+        transition: opacity 3s;
+      } */
+    </style>
   </head>
   <body>
     <!-- <input type="text" id="input1"> -->
-    <div id="div1" draggable="true">可拖拽</div>
-    <div>哈数test</div>
-    <button id="btn1">hash改变</button>
+    <!-- <div id="div1" draggable="true">可拖拽</div> -->
+    <!-- <div>哈数test</div> -->
+    <!-- <button id="btn1">hash改变</button> -->
+    <!-- <canvas id="rect"></canvas>  -->
     <!-- <form action="/api/save" method="post">
       <input type="text" name="abc" value="123" />
       <input type="submit" value="save" />
     </form> -->
+    <!-- <div class="parent">
+    <div class="left">Left</div>
+    <div class="main">Main</div>
+    <div class="right">Right</div>
+  </div> -->
+    <div id="app">
+      <fade :show="show">
+        <div>hello world</div>
+      </fade>
+      <div @click="toggle">toggle</div>
+    </div>
+    <!-- <transition
+      name="fade"
+      :duration="{enter:5000,leave:10000}"
+      appear
+      enter-active-class="animated swig fade-enter-active"
+      leave-active-class="animated snake fade-leave-active"
+      appear-active-class="animated swing"
+    >
+    </transition> -->
   </body>
-  <script src="./a.js"></script>
+
+  <!-- <script src="./a.js"></script> -->
+  <script>
+    Vue.component('fade', {
+      props: ['show'],
+      template: `
+      <transition 
+      @before-enter='handleEnter'
+      @enter='handleEnter'
+      >
+        <slot v-if='show'></slot>
+        </transition>
+      `,
+      methods: {
+        handleEnter(el) {
+          console.log(el);
+          
+          el.style.color = 'red';
+        },
+        handleEnter(el, done) {
+          setTimeout(() => {
+            el.style.color = 'green';
+            done()
+          }, 2000);
+        },
+      },
+    });
+    var vm = new Vue({
+      el: '#app',
+      data: {
+        show: false,
+      },
+      methods: {
+        toggle() {
+          this.show = !this.show;
+        },
+      },
+    });
+  </script>
 </html>

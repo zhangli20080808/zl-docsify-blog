@@ -88,14 +88,18 @@ img.src = img.getAttribute('data-trueUrl');
 
 ```
 防抖 用户在输入结束 或 暂停的时候我们开始请求 频繁操作，频繁输入最后触发
+触发高频事件后n秒内函数只会执行一次，如果n秒内高频事件再次被触发，则重新计算时间
+思路 每次触发事件时都取消之前的延时调用方法
 const input1 = document.getElementById('input1');
 function debounce(fn, delay = 500) {
   let timer = null; // 此时timer是在闭包中的
   // 返回函数
   return function(...args) {
     if (timer) {
+      // 每当用户输入的时候把前一个 setTimeout clear 掉
       clearTimeout(timer);
     }
+    //然后又创建一个新的 setTimeout, 这样就能保证输入字符后的 interval 间隔内如果还有字符输入的话，就不会执行 fn 函数
     timer = setTimeout(() => {
       // fn() 这个函数可能会接受一些参数
       fn.apply(this, args);
@@ -114,6 +118,8 @@ input1.addEventListener(
 ```
 
 2. 节流 保持一个频率连续触发
+   高频事件触发，但在 n 秒内只会执行一次，所以节流会稀释函数的执行频率
+   思路？ 每次触发事件时都判断当前是否有等待执行的延时函数
 
 ```
 节流场景
@@ -125,17 +131,19 @@ const div1 = document.getElementById('div1');
 div1.addEventListener(
   'drag',
   throttle(function(e) {
+    //加上 apply 确保 在 sayHi 函数里的 this 指向的是 input对象(不然就指向 window 了，不是我们想要的)。
     console.log(e.offsetX, e.offsetY);
   }, 100)
 );
 
 function throttle(fn, delay = 100) {
-  let timer; // 被拖拽的时候 timer 就有值了
+  let timer; // 被拖拽的时候 timer 就有值了   通过闭包保存一个标记
   return function(...args) {
     if (timer) {
       return;
     }
-    timer = setTimeout(() => {ƒ
+    timer = setTimeout(() => {
+      //关键在第一个参数，为了确保上下文环境为当前的this，所以不能直接用fn
       fn.apply(this, args);
       timer = null;
     }, delay);

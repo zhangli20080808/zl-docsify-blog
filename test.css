@@ -1,0 +1,16 @@
+.parent {
+  display: table;
+  width: 100%;
+}
+.parent > div {
+  display: table-cell;
+  height: 200px;
+  border: 1px solid red;
+  box-sizing: border-box;
+}
+.left {
+  width: 100px;
+}
+.right {
+  width: 200px;
+}
