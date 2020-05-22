@@ -2,11 +2,28 @@
 <!-- [HTML](/) -->
 * HTML
 
-* CSS
-  * [css-技巧总结](/css/1.md)
+* Vue
+* [基本使用](/vue/3.md)
+* [高级使用总结](/vue/2.md)
+* [vue源码分析](/vue/vueAnalysis.md)
+* [MVVM理解](/vue/1.md)
+* 
 
-* 浏览器相关知识
-  * [浏览器相关总结](/browser/1.md)
+* [**React**](/react/index.md)
+  * [react原理解析](/react/reactAnalysis.md)
+  * [从redux到react-redux再到dva](/react/reduxFlows.md)
+  * [HOC](/react/hoc.md)
+  * [hooks]()
+  * [合成事件](/react/composeEvent.md)
+  * [基础使用](/react/baseUse/1.md)
+  * [高级使用](/react/advanceUse/1.md)
+
+* JavaScript基础
+  * [盒子模型和盒子偏移量](/javascript/base9.md)
+
+
+* 移动端
+  * [移动端总结](/mobile/base1.md)
 
 * JavaScript
 
@@ -18,10 +35,12 @@
   * [JS-Web-Api-Bom](/javascript/base_6.md)
   * [JS-Web-Api-Ajax](/javascript/base_7.md)
   * [JS-Web-Api-存储](/javascript/base_7.md)
-  * [运行环境](/javascript/base_8.md)
 * TypeScript 
   * [TypeScript](/typescript/1.md)
 
+* 性能优化
+  * [性能优化](/javascript/base_8.md)
+  
 * Node
   * [node基础](/node/1.md)
   * [koa2](/node/koa2.md)
@@ -31,23 +50,6 @@
   * [持久化](/node/5.md)
   * [鉴权](/node/auth.md)
   * [egg](/node/6.md)
-
-
-* Vue
-  * [基本使用](/vue/3.md)
-  * [高级使用总结](/vue/2.md)
-  * [vue源码分析](/vue/vueAnalysis.md)
-  * [MVVM理解](/vue/1.md)
-  * 
-
-* [**React**](/react/index.md)
-  * [react原理解析](/react/reactAnalysis.md)
-  * [从redux到react-redux再到dva](/react/reduxFlows.md)
-  * [HOC](/react/hoc.md)
-  * [hooks]()
-  * [合成事件](/react/composeEvent.md)
-  * [基础使用](/react/baseUse/1.md)
-  * [高级使用](/react/advanceUse/1.md)
 
 
 * 数据库
@@ -75,7 +77,7 @@
   * [git使用规范](/git/useStandard.md)
   * [commit规范](/git/commitStandard.md)
 
-* 性能优化
+
 
 * 前端架构
   * [业务分析之登录态](/前端架构/loginStatus.md)
@@ -119,5 +121,10 @@
    * [组件设计](/design/1.md)
 
 
+* CSS
+  * [css-技巧总结](/css/1.md)
+
+* 浏览器相关知识
+  * [浏览器相关总结](/browser/1.md)
 
 <!-- * 最佳实践 -->
