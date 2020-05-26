@@ -337,6 +337,9 @@ var utils = (function () {
 
     //->hasClass:验证当前元素中是否包含className这个样式类名
     function hasClass(curEle, className) {
+        // -> 'bg'  / +bg +/
+        // -> 'box'  /^box +/
+        // -> 'border'  / +bg$/
         var reg = new RegExp("(^| +)" + className + "( +|$)");
         return reg.test(curEle.className);
     }
@@ -347,12 +350,13 @@ var utils = (function () {
         for (var i = 0, len = ary.length; i < len; i++) {
             var curName = ary[i];
             if (!this.hasClass(curEle, curName)) {
+                // 原理
                 curEle.className += " " + curName;
             }
         }
     }
 
-    //->removeClass:给元素移除样式类名
+    //->removeClass:给元素移除样式类名    "box bg border".replace(/(^| +)bg( +|$)/g, " ")
     function removeClass(curEle, className) {
         var ary = className.replace(/(^ +| +$)/g, "").split(/ +/g);
         for (var i = 0, len = ary.length; i < len; i++) {
@@ -364,7 +368,7 @@ var utils = (function () {
         }
     }
 
-    //->getElementsByClass:通过元素的样式类名获取一组元素集合
+    //->getElementsByClass:通过元素的样式类名获取一组元素集合 只要包含
     function getElementsByClass(strClass, context) {
         context = context || document;
         if (flag) {
@@ -419,3 +423,4 @@ var utils = (function () {
     }
 })();
 ```
+
