@@ -84,6 +84,7 @@ console.log(5);  // 1 3 5 4 2
 # JS 事件循环
 
 [微任务和宏任务](https://segmentfault.com/a/1190000014940904?utm_source=tag-newest)
+[基础](https://www.cnblogs.com/leftJS/p/11070104.html)
 
 - 事件循环中分为宏任务队列和微任务队列
 - JS 是单线程语言：顺序执行
