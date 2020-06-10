@@ -41,7 +41,9 @@ http 请求由三部分组成，分别是：请求行、消息报头、请求正
 
 1. 请求行以一个方法符号开头，以空格分开，后面跟着请求的 URI 和协议的版本，格式如下：
    Method Request-URI HTTP-Version CRLF
-   其中 Method 表示请求方法；Request-URI 是一个统一资源标识符；HTTP-Version 表示请求的 HTTP 协议版本；
+   其中 Method 表示请求方法；
+   Request-URI 是一个统一资源标识符；
+   HTTP-Version 表示请求的 HTTP 协议版本；
    CRLF 表示回车和换行（除了作为结尾的 CRLF 外，不允许出现单独的 CR 或 LF 字符）。
    请求方法（所有方法全为大写）有多种，各个方法的解释如下：
 
@@ -60,9 +62,9 @@ GET /form.html HTTP/1.1 (CRLF)
 POST方法要求被请求服务器接受附在请求后面的数据，常用于提交表单。e
 POST /reg HTTP/ (CRLF)
 Accept:image/gif,image/x-xbit,... (CRLF)
- ... HOST:www.guet.edu.cn (CRLF)
+ ... HOST:www.guet.edu.cn (CRLF) // 请求域名
  Content-Length:22 (CRLF)
- Connection:Keep-Alive (CRLF)
+ Connection:Keep-Alive (CRLF) // 一次tcp连接重复使用
 Cache-Control:no-cache (CRLF)
 (CRLF) //该CRLF表示消息报头已经结束，在此之前为消息报头
 user=jeffrey&pwd=1234 //此行以下为提交的数据
@@ -87,7 +89,7 @@ HTTP 响应也是由三个部分组成，分别是：状态行、消息报头、
 
 - 1xx：指示信息--表示请求已接收，继续处理
 - 2xx：成功--表示请求已被成功接收、理解、接受
-- 3xx：重定向--要完成请求必须进行更进一步的操作
+- 3xx：重定向--要完成请求必须进行更进一步的操作 (301所有请求页面转到url  302 所有请求转移到临时重定向)
 - 4xx：客户端错误--请求有语法错误或请求无法实现
 - 5xx：服务器端错误--服务器未能实现合法的请求
   常见状态代码、状态描述、说明：
@@ -131,14 +133,15 @@ HTTP 消息报头包括普通报头、请求报头、响应报头、实体报头
    请求报头允许客户端向服务器端传递请求的附加信息以及客户端自身的信息。
    常用的请求报头
    - Accept
-     Accept 请求报头域用于指定客户端接受哪些类型的信息。eg：Accept：image/gif，表明客户端希望接受 GIF 图象格
+     Accept 请求报头域用于指定客户端接受哪些类型的信息(可接受的数据格式)。eg：Accept：image/gif，表明客户端希望接受 GIF 图象格
      式的资源；Accept：text/html，表明客户端希望接受 html 文本。
      Accept-Charset
      Accept-Charset 请求报头域用于指定客户端接受的字符集。eg：Accept-Charset:iso-8859-1,gb2312.如果在请求消
      息中没有设置这个域，缺省是任何字符集都可以接受。
      Accept-Encoding
-     Accept-Encoding 请求报头域类似于 Accept，但是它是用于指定可接受的内容编码。eg：AcceptEncoding:gzip.deflate.如果请求消息中没有设置这个域服务器假定客户端对各种内容编码都可以接受。
+     Accept-Encoding 请求报头域类似于 Accept，但是它是用于指定可接受的内容编码(浏览器可接受的压缩算法)。eg：AcceptEncoding:gzip.deflate.如果请求消息中没有设置这个域服务器假定客户端对各种内容编码都可以接受。
      Accept-Language
+
 
 Accept-Language 请求报头域类似于 Accept，但是它是用于指定一种自然语言。eg：Accept-Language:zh-cn.如果
 请求消息中没有设置这个报头域，服务器假定客户端对各种语言都可以接受。
@@ -153,7 +156,7 @@ Accept-Language 请求报头域类似于 Accept，但是它是用于指定一种
   Host：www.kaikeba.com
   此处使用缺省端口号 80，若指定了端口号，则变成：Host：www.kaikeba.com:指定端口号
 
-- User-Agent
+- User-Agent (ua 浏览器信息)
   我们上网登陆论坛的时候，往往会看到一些欢迎信息，其中列出了你的操作系统的名称和版本，你所使用的浏览器
   的名称和版本，这往往让很多人感到很神奇，实际上，服务器应用程序就是从 User-Agent 这个请求报头域中获取到
   这些信息。User-Agent 请求报头域允许客户端将它的操作系统、浏览器和其它属性告诉服务器。不过，这个报头域
@@ -178,6 +181,10 @@ GET /form.html HTTP/1.1 (CRLF)
    源进行下一步访问的信息。
    常用的响应报头
 
+   - Content-type 返回数据格式 
+   - ContentL-length 返回数据大小 多少字节
+   - Content-Encoding 告诉你用什么方法压缩的 gzip
+   - set-cookie
    - Location
      Location 响应报头域用于重定向接受者到一个新的位置。Location 响应报头域常用在更换域名的时候。
    - Server
@@ -206,7 +213,8 @@ GET /form.html HTTP/1.1 (CRLF)
 - Content-Length
 - Content-Length 实体报头域用于指明实体正文的长度，以字节方式存储的十进制数字来表示。
 - Content-Type
-  Content-Type 实体报头域用语指明发送给接收者的实体正文的媒体类型。eg：
+  Content-Type 发送数据的格式     实体报头域用语指明发送给接收者的实体正文的媒体类型。
+  eg：
   Content-Type:text/html;charset=UTF-8
   Content-Type:application/json;charset=UTF-8
 - Last-Modified
@@ -218,3 +226,9 @@ GET /form.html HTTP/1.1 (CRLF)
   eg：Expires：Thu，15 Sep 2006 16:23:12 GMT
   HTTP1.1 的客户端和缓存必须将其他非法的日期格式（包括 0）看作已经过期。eg：为了让浏览器不要缓存页面，
   我们也可以利用 Expires 实体报头域，设置为 0，jsp 中程序如下：response.setDateHeader("Expires","0");
+
+
+http这一块，其实是一个非常复杂的体系，要深挖的东西特别多。
+http进行非对称加密，得到https，这个过程是怎么样的？什么是CA证书？整个网站进行验证的流程是什么？
+http各个版本的区别是什么？解决了哪些问题？比如头部缩减的优化，那你了解这个优化的具体策略吗？缩减了什么？又增加了什么？要深挖细节。
+http的底层协议？tcp/ip协议的三次握手，四次挥手，具体是怎么通信的？什么叫满启动？甚至延伸到整个网络协议的领域，什么是socket？udp是干什么的？dns解析？ftp？以及不常用的其他协议？

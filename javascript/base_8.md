@@ -30,7 +30,27 @@
    - 文本 体积小 矢量图
    - 渲染成本 学习成本
 
+# http 缓存
+
+1. 缓存介绍
+   把没有必要重新获取的东西，再获取一遍(本地，服务端，存一份)，让页面加载更快，因为网络的不稳定性
+   哪些资源可以被缓存？(静态资源 js css img 上线后不会再修改 webpack hash，不是说必须要缓存)
+2. http缓存策略(强缓存，协商缓存)，
+   初次请求，服务端觉得资源可以被缓存  会加一个 Cache-control 在 res header 中， 返回资源和资源标识，控制强制缓存的逻辑
+   客户端再次请求 没过期，本地缓存返回资源 缓存失效，再次请求服务端
+3. 刷新操作方式，对缓存的影响
+
+![](../static/img/last.png)
+![](../static/img/cache2.png)
+![](../static/img/etag.png)
+![](../static/img/example.png)
+![](../static/img/http-cache.png)
+
 # 浏览器缓存机制
+缓存相关的headers  
+
+Cache-control Expires Last-Modified If-Modified-Since
+Etag If-None-Match
 
 缓存策略基本上都是有浏览器自动发起的 基本都是服务端配置的 用 node 可以设置 res header 控制缓存
 
@@ -40,21 +60,25 @@
 - Expires 和 Cache-Control 两个 header 来控制强缓存
 
 ```
-expires: Wed, 11 Mar 2019 16:12:18 GMT  //后端返回  在这个时间之前都可以使用强缓存
-cache-control: max-age=31536000 // 1.1 精准 优先级⾼ 前端访问
+expires: Wed, 11 Mar 2019 16:12:18 GMT  //后端返回  在这个时间之前都可以使用强缓存 (expires被cache-control代替了)
+cache-control: max-age=31536000 // 1.1 精准 优先级⾼ 前端访问 max-age no-cache(不用本地缓存，正常向服务端请求) no-store(不用本地缓存，也不用服务端的一些缓存措施) 
 ```
 
-- 如果命中抢缓存，就不会和服务器交互了，直接⽤缓存
+- 如果命中强缓存，就不会和服务器交互了，直接⽤缓存
   如果强缓存失效了，需要执⾏协商缓存
 
-* 服务器⼩⽼弟。浏览器⼤佬需要 main.js 这个⽂件上次修改 会使用下面的 header 问一下后台 从这个时间点开始这个文件有没有被修改
+协商缓存- 服务端缓存策略 服务端来判断资源是不是能用缓存的内容 (服务端可以告诉我这个资源没有动，你可以用本地缓存)，服务端判断客户端资源很服务器资源是否一样，一致返回304，否则200和最新资源
+
+资源标识 在res header中  Last-Modified资源最后修改时间  etag(资源唯一标识，一个字符串，类似指纹)
+
+* 服务器⼩⽼弟。浏览器⼤佬需要 main.js 这个⽂件上次修改 会使用下面的 header 问一下后台 从这个时间点开始这个文件有没有被修改 请求头带上 If-Modified-Since
 
 ```
 If-Modified-Since: Fri, 27 Oct 2017 06:35:57 GMT
 ```
 
 - 服务器： ⼩⽼弟，没改过，直接⽤缓存把，这次请求返回 304 not Modified
-  如果有 etag 类似⽂件的指纹，这个优先级更⾼ 因为更准确 // etag 去算文件 hash
+  两者共存，如果有 etag 类似⽂件的指纹，这个优先级更⾼ 因为更准确，如果资源被重复生成而内容不变，etag更精确 // etag 去算文件 hash
 
 ```
 ETag: W/"2aaa-129892f459"
@@ -373,3 +397,6 @@ window.addEventListener('scroll', lazyload, false);
 favicon.ico 要⼩⽽且可缓存
 保持单个内容⼩于 25K
 打包组件成复合⽂本
+
+# 浏览器渲染
+![流程图](../static/img/render4.png)

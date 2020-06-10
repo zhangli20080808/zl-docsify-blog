@@ -12,32 +12,29 @@ redux 设计思想很简单，就两句
 和 vuex 有什么区别呢 在我们的 react 中 其实是没有 vuex 中的那个 action 的 react 中的 reducer 相当 vuex 中的 mutation，是用来
 改状态的函数 从思想上来说的话，遵循一个函数式编程的思想 就是说我们 reducer 中做操作的时候，不应该去改之前的值，而是返回一个修改
 后的全新的值
-我们只有一个提交 aciton 的方式去告诉 reducer 执行
+我们只有一个提交 aciton 的方式去告诉 reducer 去执行，直接改状态了 我们 dispatch 一个 action 相当于 vuex 中的 commit 操作
 
 我们 vuex 中和 react 中都是提交 action 但是 行为是不同的
 
+vuex 设计思想
 
+思考？ 一般我们用传参的方式 去接受新的数据 这个地方我们用 vuex 以一种可预测的方式发生变化 集中式管理组件的所有状态
+设计思想
+vuex 设计思想
+所有组件的状态和数据放到同一个内存空间去管理，我们称之为 state states 上面的数据可以方便的映射到我们的组件上
+来渲染组件 当组件的一些数据发生变化 可以 dispatch 一个 action action 可以进行一些异步操作 之后 commit 一个 mutations 这里也可
+直接 commit 一个 mutations 他是唯一一个可以修改 state 的途径 其他任何方式去修改这个 state 都是非法的
+设计目的
+让 state 状态的修改可以预测 修改后呢 又可以反应到我们的组件上 实现了一个闭环
+平常
+修改组件的数据 数据的变化会直接映射到 dom 上 但 vuex 里我们是不能直接修改这个数据的 必须通过 dispatch--action
+commit->mutations 来修改数据 确实会让我们的修改路径变长
 
-vuex  设计思想
-
- 思考？ 一般我们用传参的方式 去接受新的数据 这个地方我们用 vuex  以一种可预测的方式发生变化 集中式管理组件的所有状态
-  设计思想
-  vuex 设计思想
-  所有组件的状态和数据放到同一个内存空间去管理，我们称之为state states上面的数据可以方便的映射到我们的组件上
-  来渲染组件 当组件的一些数据发生变化  可以dispatch一个action action可以进行一些异步操作 之后commit一个mutations 这里也可
-  直接commit 一个mutations 他是唯一一个可以修改state的途径 其他任何方式去修改这个state都是非法的
-  设计目的
-  让state状态的修改可以预测 修改后呢  又可以反应到我们的组件上  实现了一个闭环
-  平常
-  修改组件的数据 数据的变化会直接映射到dom上  但vuex里我们是不能直接修改这个数据的 必须通过 dispatch--action
-  commit->mutations来修改数据 确实会让我们的修改路径变长
-
- 使用场景
+使用场景
 
     1.多个组件的状态数据共享 如果应用比较复杂，有些数据是共享的 这些组件如果是一些兄弟组件 或者 关联度很低的组件 这个时候我们共享数据就会比较困难 eventbus 都是很费劲的
 
     2.路由间的复杂数据传递 我们遇到一些路由跳转场景  到传递的参数很复杂的时候 用vuex会是一个很好的方案 简单的数据不需要vuex
-
 
 其工作流程：
 
@@ -47,7 +44,7 @@ vuex  设计思想
 - reducer 初始化 修改状态函数
 - getState 获取最新值
 - dispatch 提交更新
-- subscribe 变革订阅
+- subscribe 变更订阅
   以一个计数器例子分析：
 
 ```js
@@ -475,9 +472,9 @@ export function compose(...funcs) {
 
 ```
 
-#  实现 react-redux
+# 实现 react-redux
 
-1. 实现高阶函数工厂 connect 可以根据传入状态映射规则函数  和派发映射规则函数映射需要的属性 可以处理变更检测
+1. 实现高阶函数工厂 connect 可以根据传入状态映射规则函数 和派发映射规则函数映射需要的属性 可以处理变更检测
 2. 实现一个 Provider 组件可以传递 store
 
 ```

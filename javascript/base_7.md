@@ -32,9 +32,19 @@ onreadystatechange ->0 未初始化 还没调用send方法  ->1 载入 已调用
 # 状态码
 
 1. 2xx 请求成功
-2. 3xx 需求重定向，浏览器直接跳转 301(永远重定向 ) 302(临时重定向) 304(资源未改变)
-3. 4xx 403 没权限 404
-4. 5xx 服务端报错
+2. 3xx 需求重定向，浏览器直接跳转 301(永远重定向 配合location，浏览器自动处理 浏览器会记住，我下次访问的时候直接取访问新的网址，比如域名到期了，或者我想换域名了，老的域名就能返回一个301的状态，location一个新的域名，让浏览器记住了这件事情，不会再去访问老的域名了) 302(临时重定向 配合location，浏览器自动处理 比如 下次访问还是会去访问老的地址 ) 304(资源未改变，刚才的资源请求过了，服务端有可能返回给你一个304，没有过期，你可以接着使用缓存，资源在本地还有效) // 服务端告诉你你来这不行，你需要去别的地方  比如我们百度的搜索引擎
+3. 4xx 客户端错误 403 没权限 404
+4. 5xx 服务端报错  504网关超时(比如能访问到第一台服务器，但在连接其他服务器的时候，超时了)
+6. 1xx 服务器收到请求
+
+# Restful api
+传统的Api设计，把每个url当一个功能
+Restful Api设计，把每个url当成一个资源（标识 id）
+
+如何设计成一个资源呢？
+1. 尽量不用url参数
+ 传统？/api/getList?pageIndex=2
+ restful Api  /api/getList/2  
 
 # 跨域 同源策略 跨域解决方案
 
@@ -54,21 +64,21 @@ script 可以实现 jsonp
 跨域解决方案 1. jsonp 2.cors
 
 ```
-页面事先声明好了 callBack 函数abc 再洗加载到 js 返回值的时候 会自动调用 callBack abc 得到数据
+页面事先声明好了 callBack 函数abc 再次加载到 js 返回值的时候 会自动调用 callBack abc 得到数据
 window.abc = function(data){
   // 这个使我们跨域得到的数据
   console.log(data);
 }
 <script src='https://www.baidu.com/getData.js?username=xxx& callback=abc'></script>
 // 后台会返回一个abc包裹一段方法
-//将返回 callBack({x:100,y:200})
+//将返回 abc({x:100,y:200})
 ```
 
 3. cors 服务器设置 http header
 
 ```
 // 第二个参数填写允许跨域的名称
-response.setHeader('Access-Control-Allow-Orgin', 'http://localhost:8001');
+response.setHeader('Access-Control-Allow-Origin', 'http://localhost:8001');
 response.setHeader('Access-Control-Allow-Headers', 'X-Request-With');
 response.setHeader(
   'Access-Control-Allow-Methods',

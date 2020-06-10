@@ -1,3 +1,147 @@
+# 客户端存储总结
+
+1. cookie
+
+- cookie 是 http 协议下，服务端或者脚本可以维护客户端信息的一种方式。
+
+- koa 中 cookie 的使用
+
+  - 储存 cookie 的值；
+
+  ```js
+  ctx.cookies.set(name, value, [options]);
+  ```
+
+  - 获取 cookie 的值
+
+  ```js
+  ctx.cookies.get(name, [options]);
+  ```
+
+  - options 常用设置
+
+    - `maxAge` 一个数字表示从 Date.now() 得到的毫秒数
+    - `expires` cookie 过期的 `Date`
+    - `path` cookie 路径, 默认是`'/'`
+    - `domain` cookie 域名
+    - `secure` 安全 cookie 设置后只能通过 https 来传递 cookie
+    - `httpOnly` 服务器可访问 cookie, 默认是 **true**
+    - `overwrite` 一个布尔值，表示是否覆盖以前设置的同名的 cookie (默认是 **false**). 如果是 true, 在同一个请求中设置相同名称的所有 Cookie
+
+    - 客户端 cookie 使用方式；
+
+  - 设置
+
+    ```js
+    document.cookie = 'key=value';
+    ```
+
+    - key 和 value 是包含在一个字符串中
+
+      - key 包含字段
+        - [name] 这个 name 为自己取的 cookie 名称，同名的值会覆盖
+        - domain 所属域名
+        - path 所属路径
+        - Expires/Max-Age 到期时间/持续时间 (单位是秒)
+        - http-only 是否只作为 http 时使用，如果为 true，那么客户端能够在 http 请求和响应中进行传输，但时客户端浏览器不能使用 js 去读取或修改
+
+    - 多个 key=value 使用 ; （分号）分隔
+
+* 获取
+
+  ```js
+  document.cookie;
+  ```
+
+  返回值是当前域名下的所有 cookie，并按照某种格式组织的字符串 ：key=value;key1=value1;......keyn=valuen
+
+* 封装
+
+  - 设置 cookie 封装
+
+  ```js
+  //设置cookie
+  function setCookie(name, value, options = {}) {
+    let cookieData = `${name}=${value};`;
+    for (let key in options) {
+      let str = `${key}=${options[key]};`;
+      cookieData += str;
+    }
+    document.cookie = cookieData;
+  }
+  ```
+
+  - 获取 cookie
+
+  ```js
+  //获取Cookie
+  function getCookie(name) {
+    let arr = document.cookie.split('; ');
+    for (let i = 0; i < arr.length; i++) {
+      let items = arr[i].split('=');
+      if (items[0] == name) {
+        return items[1];
+      }
+    }
+    return '';
+  }
+  ```
+
+### 本地缓存 Storage
+
+- localStorage 及 sessionStorage 使用
+
+  - 设置
+
+    setItem(key, value) 添加或更新（如果数据项中已存在该 key）数据项中指定 key 的 value
+
+  - 获取
+
+    getItem(key) 获取数据项中指定 key 对应的 value
+
+  - 移出指定数据
+
+    removeItem(key) 删除数据项中指定 key 的 value
+
+  - 清空所有数据
+
+    clear() 清空所有数据项
+
+###本地存储异同
+
+- 共同点
+
+- localStorage 和 sessionStorage 和 cookie 共同点
+
+  - 同域（同源策略）限制：同源策略：请求与响应的 协议、域名、端口都相同 则时同源，否则为 跨源/跨域
+  - 存储的内容都会转为字符串格式
+  - 都有存储大小限制
+
+- localStorage 和 sessionStorage 共同点
+
+  - API 相同
+  - 存储大小限制一样基本类似
+  - 无个数限制
+
+* 不同点
+* localStorage
+  - 没有有效期，除非删除，否则一直存在
+  - 同域下页面共享
+  - 支持 storage 事件
+* sessionStorage
+
+  - 浏览器关闭，自动销毁
+  - 页面私有
+  - 不支持 storage 事件
+
+* cookie
+  - 浏览器也会在每次请求的时候主动组织所有域下的 cookie 到请求头 cookie 中，发送给服务器端
+  - 浏览器会主动存储接收到的 set-cookie 头信息的值
+  - 可以设置 http-only 属性为 true 来禁止客户端代码（js）修改该值
+  - 可以设置有效期 (默认浏览器关闭自动销毁)(不同浏览器有所不同)
+  - 同域下个数有限制，最好不要超过 50 个(不同浏览器有所不同)
+  - 单个 cookie 内容大小有限制，最好不要超过 4000 字节(不同浏览器有所不同)
+
 # 鉴权
 
 常见的三种鉴权方式
@@ -520,4 +664,3 @@ app.listen(8011);
 # 单点登录 SSO
 
 [原理](![](../static/img/sso.png)
- 

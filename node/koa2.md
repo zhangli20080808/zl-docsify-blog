@@ -1,4 +1,9 @@
 # koa2
+思考？原生http的不足，令人困惑的request和response，res.end 流是个什么东西 
+对复杂业务的描述（流程描述，切面aop描述） 没有给出一些解决方法，所以才引出了koa
+
+对于 request和response 他提供了一种上下文环境 context
+对于 对复杂业务的描述 他引入了 中间件的机制
 
 概述：Koa 是一个新的 web 框架， 致力于成为 web 应用和 API 开发领域中的一个更小、更富有表现力、更
 健壮的基石
@@ -127,7 +132,7 @@ function compose(middleware) {
 
 # 源码解读
 
-基础 getter setter
+context 上下文  基础 getter setter  Object.create 对象继承
 
 ```
 const zhangli = {
@@ -266,6 +271,7 @@ module.exports = KKB;
 
 # 常见 koa 中间件的实现
 
+函数式编程 compose 异步 compose js中间件对比学习 express koa redux 中间件重要原理static router
 1. koa 中间件的规范
 
 - 一个 async 函数
