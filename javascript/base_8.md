@@ -5,6 +5,11 @@
 针对这些过程做一些优化 下载速度 渲染速度 js 加载执行速度 让页面显示更快
 保证代码在浏览器中 稳定高效
 
+# 原则方向
+
+- 原则：多使用内存缓存，减少计算，减少网络请求
+- 方向：加载页面，页面渲染，页面操作流畅度
+
 # DNS
 
 1. 查看 dns 缓存
@@ -32,25 +37,72 @@
 
 # http 缓存
 
-1. 缓存介绍
+- 请求 headers
+  - Accept 可接受的数据格式
+  - Accept-Encoding 请求报头域类似于 Accept，但是它是用于指定可接受的内容编码(浏览器可接受的压缩算法)
+  - Accept-Language: 浏览器可接受的语言
+  - connect keep-alive 一次 Tcp 连接的重复使用
+  - cookie
+  - host 请求域名
+  - User-Agent (ua 浏览器信息)
+  - Authorization 请求报头域主要用于证明客户端有权查看某个资源
+  - Content-Type 发送数据的格式 application/json
+- 响应 headers
+  - Content-type 返回数据格式
+  - ContentL-length 返回数据大小 多少字节
+  - Content-Encoding 告诉你用什么方法压缩的 gzip
+  - set-cookie
+  - Location
+- 自定义 header
+
+  - headers :{'x':'a'} //比如说有些 api 接口需要 headers 里面加一些秘钥或者特定的值，才能给你通过请求，不然认为你是非法的
+
+- 缓存相关的 headers
+
+  - Cache-control
+  - Expires
+  - Last-Modified
+  - If-Modified-Since
+  - Etag
+  - If-None-Match
+
+1. 缓存介绍,什么是缓存？
+
    把没有必要重新获取的东西，再获取一遍(本地，服务端，存一份)，让页面加载更快，因为网络的不稳定性
    哪些资源可以被缓存？(静态资源 js css img 上线后不会再修改 webpack hash，不是说必须要缓存)
-2. http缓存策略(强缓存，协商缓存)，
-   初次请求，服务端觉得资源可以被缓存  会加一个 Cache-control 在 res header 中， 返回资源和资源标识，控制强制缓存的逻辑
-   客户端再次请求 没过期，本地缓存返回资源 缓存失效，再次请求服务端
-3. 刷新操作方式，对缓存的影响
+   网络请求相对于 cpu 的计算是非常慢的，如果做性能优化，肯定是针对网络请求去做，尽量减少其体积和数量，
+   让整个加载和渲染的过程更快一点
+
+2. http 缓存策略(强缓存，协商缓存)，
+   初次请求，服务端觉得资源可以被缓存 会加一个 Cache-control 在 res header 中，返回资源和资源标识(Last-Modified/etag)，控制强制缓存的逻辑
+   eg: cache-control: max-age=3153600
+   客户端再次请求(会带着资源标识,If-Modified-Since:值是 Last-Modified) 之前有 cache-control 会判断时间 若时间没过期，浏览器回去本地缓存中找，找到了就返回资源 如果时间过期，缓存失效，再次请求服务端，服务端返回资源和 cache-control
+
+   协商缓存- 服务端缓存策略/对比缓存
+
+   - 服务端来判断资源是不是能用缓存的内容 (服务端可以告诉我这个资源没有动，你可以用本地缓存)
+   - 服务端判断客户端资源和服务器资源是否一样，一致返回 304，否则返回 200 和最新资源(新的资源标识)
+     怎么判断资源是不是一样呢？
+
+   资源标识？在 res headers 中 有两种
+
+   1. Last-Modified 资源最后修改时间
+   2. Etag(资源唯一标识，一个字符串，类似指纹)
+
+3) 刷新操作方式，对缓存的影响
+
+- 正常操作: 地址栏输入 url 链接跳转 前进后退 强制缓存有效 协商缓存有效
+- 手动刷新 强制缓存无效 协商缓存有效
+  F5 就是告诉浏览器，别偷懒，好歹去服务器看看这个文件是否有过期了。于是浏览器就胆胆襟襟的发送一个请求带上 If-Modify-since
+- 强制刷新 shift cmd r 都失效 给最新结果
+  告诉浏览器，你先把你缓存中的这个文件给我删了，然后再去服务器请求个完整的资源文件下来。于是客户端就完成了强行更新的操作
 
 ![](../static/img/last.png)
-![](../static/img/cache2.png)
 ![](../static/img/etag.png)
 ![](../static/img/example.png)
 ![](../static/img/http-cache.png)
 
 # 浏览器缓存机制
-缓存相关的headers  
-
-Cache-control Expires Last-Modified If-Modified-Since
-Etag If-None-Match
 
 缓存策略基本上都是有浏览器自动发起的 基本都是服务端配置的 用 node 可以设置 res header 控制缓存
 
@@ -60,25 +112,28 @@ Etag If-None-Match
 - Expires 和 Cache-Control 两个 header 来控制强缓存
 
 ```
-expires: Wed, 11 Mar 2019 16:12:18 GMT  //后端返回  在这个时间之前都可以使用强缓存 (expires被cache-control代替了)
-cache-control: max-age=31536000 // 1.1 精准 优先级⾼ 前端访问 max-age no-cache(不用本地缓存，正常向服务端请求) no-store(不用本地缓存，也不用服务端的一些缓存措施) 
+expires: Wed, 11 Mar 2019 16:12:18 GMT  //后端返回，在这个时间之前都可以使用强缓存 (expires被cache-control代替了，兼容两种写法)
+cache-control
+max-age=31536000 // 1.1 精准 优先级⾼ 前端访问 max-age
+no-cache(不用本地缓存，正常向服务端请求)
+no-store(不用本地缓存，也不用服务端的一些缓存措施)
+private 是最终用户做一些缓存
+public可以允许中间代理做一些缓存
 ```
 
 - 如果命中强缓存，就不会和服务器交互了，直接⽤缓存
   如果强缓存失效了，需要执⾏协商缓存
 
-协商缓存- 服务端缓存策略 服务端来判断资源是不是能用缓存的内容 (服务端可以告诉我这个资源没有动，你可以用本地缓存)，服务端判断客户端资源很服务器资源是否一样，一致返回304，否则200和最新资源
+资源标识 在 res header 中 Last-Modified 资源最后修改时间 Etag(资源唯一标识，一个字符串，类似指纹)
 
-资源标识 在res header中  Last-Modified资源最后修改时间  etag(资源唯一标识，一个字符串，类似指纹)
-
-* 服务器⼩⽼弟。浏览器⼤佬需要 main.js 这个⽂件上次修改 会使用下面的 header 问一下后台 从这个时间点开始这个文件有没有被修改 请求头带上 If-Modified-Since
+- 服务器⼩⽼弟。浏览器⼤佬需要 main.js 这个⽂件上次修改 会使用下面的 header 问一下后台 从这个时间点开始这个文件有没有被修改 请求头带上 If-Modified-Since
 
 ```
 If-Modified-Since: Fri, 27 Oct 2017 06:35:57 GMT
 ```
 
 - 服务器： ⼩⽼弟，没改过，直接⽤缓存把，这次请求返回 304 not Modified
-  两者共存，如果有 etag 类似⽂件的指纹，这个优先级更⾼ 因为更准确，如果资源被重复生成而内容不变，etag更精确 // etag 去算文件 hash
+  两者共存，如果有 etag 类似⽂件的指纹，这个优先级更⾼ 因为更准确，如果资源被重复生成而内容不变，etag 更精确 // etag 去算文件 hash
 
 ```
 ETag: W/"2aaa-129892f459"
@@ -103,6 +158,14 @@ console.error("注册失败")
 
 4. push cache
    http2 的缓存
+
+# 缓存场景
+
+对于大部分的场景都可以使用强缓存配合协商缓存解决，但是在一些特殊的地方可能需要选择特殊的缓存策略
+1. 对于某些不需要缓存的资源，可以使用 Cache-control: no-store ，表示该资源不需要缓存
+2. 对于频繁变动的资源，可以使用 Cache-Control: no-cache 并配合 ETag 使用，表示该资源已被缓存，但是每次都会发送请求询问资源是否更新
+3. 对于代码文件来说，通常使用 Cache-Control: max-age=31536000 并配合策略缓存使用，然后对文件进行指纹处理，一旦文件名变动就会立刻下载新的文件
+
 
 # 前端部署最佳实践(缓存)
 
@@ -228,11 +291,11 @@ CDN=更智能的镜像+缓存+流量导流
 
  扩展:数据的异步加载,开始只把前两屏的数据加载绑定出来,后面的数据不进行处理,当页面滚动到对应区域的时候在从新请求数据然后绑定渲染数据
 
-  .banner img 
+  .banner img
     display: none; /*在开始的时候IMG的SRC属性没有地址,这样的话在IE浏览器中容器中会显示一张碎图,不美观,所以我们让其默认是隐藏的,当真实的图片加载完成后在显示*/
     width: 100%;
     height: 100%;
-    
+
   window.setTimeout(function () {
     //imgFir.src = imgFir.getAttribute("trueImg");
     //imgFir.style.display = "block";
@@ -399,4 +462,5 @@ favicon.ico 要⼩⽽且可缓存
 打包组件成复合⽂本
 
 # 浏览器渲染
+
 ![流程图](../static/img/render4.png)

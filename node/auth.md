@@ -2,7 +2,7 @@
 
 1. cookie
 
-- cookie 是 http 协议下，服务端或者脚本可以维护客户端信息的一种方式。
+- cookie 是 http 协议下，服务端或者脚本可以维护客户端信息的一种方式。本身用来浏览器和server通信，被借用到本地存储来
 
 - koa 中 cookie 的使用
 
@@ -120,7 +120,7 @@
 - localStorage 和 sessionStorage 共同点
 
   - API 相同
-  - 存储大小限制一样基本类似
+  - 存储大小限制一样基本类似 5M
   - 无个数限制
 
 * 不同点

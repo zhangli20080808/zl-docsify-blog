@@ -1,8 +1,9 @@
 # koa2
-思考？原生http的不足，令人困惑的request和response，res.end 流是个什么东西 
-对复杂业务的描述（流程描述，切面aop描述） 没有给出一些解决方法，所以才引出了koa
 
-对于 request和response 他提供了一种上下文环境 context
+思考？原生 http 的不足，令人困惑的 request 和 response，res.end 流是个什么东西
+对复杂业务的描述（流程描述，切面 aop 描述） 没有给出一些解决方法，所以才引出了 koa
+
+对于 request 和 response 他提供了一种上下文环境 context
 对于 对复杂业务的描述 他引入了 中间件的机制
 
 概述：Koa 是一个新的 web 框架， 致力于成为 web 应用和 API 开发领域中的一个更小、更富有表现力、更
@@ -132,9 +133,10 @@ function compose(middleware) {
 
 # 源码解读
 
-context 上下文  基础 getter setter  Object.create 对象继承
+context 上下文 基础 getter setter Object.create 对象继承
 
 ```
+// 测试代码，test-getter-setter.js
 const zhangli = {
   info: { a: '1231' },
   get name() {
@@ -239,7 +241,7 @@ class KKB {
     this.middlewares.push(middleware);
   }
   // 构建上下文, 把res和req都挂载到ctx之上，并且在ctx.req和ctx.request.req同时保存
-  createContext(req, res) {
+  createContext(req, res) {  //http中的req,res
     const ctx = Object.create(context);
     ctx.request = Object.create(request);
     ctx.response = Object.create(response);
@@ -269,9 +271,97 @@ class KKB {
 module.exports = KKB;
 ```
 
+# 高阶函数思想
+
+1. 函数组合
+
+```
+const add = (x, y) => x + y
+const square = z => z * z
+const fn = (x, y) => square(add(x, y))
+console.log(fn(1, 2))
+
+```
+
+上⾯就算是两次函数组合调⽤，我们可以把他合并成⼀个函数
+
+```
+const compose = (fn1, fn2) => (...args) => fn2(fn1(...args));
+const fn = compose(add, square);
+
+```
+
+多个函数组合：中间件的数⽬是不固定的，我们可以⽤数组来模拟
+
+```
+const compose = (...[first, ...other]) => (...args) => {
+  let ret = first(...args);
+  other.forEach((fn) => {
+    ret = fn(ret);
+  });
+  return ret;
+};
+const fn = compose(add, square);
+console.log(fn(1, 2));
+
+```
+
+异步中间件：上⾯的函数都是同步的，挨个遍历执⾏即可，如果是异步的函数呢，是⼀个
+promise，我们要⽀持 async + await 的中间件，所以我们要等异步结束后，再执⾏下⼀个中间件。
+
+```
+function compose(middlewares) {
+  return function () {
+    return dispatch(0);
+    // 执⾏第0个
+    function dispatch(i) {
+      let fn = middlewares[i];
+      if (!fn) {
+        return Promise.resolve();
+      }
+      return Promise.resolve(
+        // 执行fn 这个结果的过程中 我们要把下一个传进去
+        fn(function next() {
+          // promise完成后，再执⾏下⼀个
+          return dispatch(i + 1);
+        })
+      );
+    }
+  };
+}
+
+async function fn1(next) {
+  console.log('fn1');
+  await next();
+  console.log('end fn1');
+}
+async function fn2(next) {
+  console.log('fn2');
+  await delay();
+  await next();
+  console.log('end fn2');
+}
+function fn3(next) {
+  console.log('fn3');
+}
+function delay() {
+  return new Promise((reslove, reject) => {
+    setTimeout(() => {
+      reslove();
+    }, 2000);
+  });
+}
+
+const middlewares = [fn1, fn2, fn3];
+const finalFn = compose(middlewares);
+finalFn();
+
+```
+
 # 常见 koa 中间件的实现
 
-函数式编程 compose 异步 compose js中间件对比学习 express koa redux 中间件重要原理static router
+函数式编程 compose 异步 compose js 中间件对比学习 express koa redux 中间件重要原理 static router
+
 1. koa 中间件的规范
 
 - 一个 async 函数

@@ -740,9 +740,11 @@ diff，最后再汇总所有的 diff，力求做最少的 dom 操作，毕竟 js
 
 写数据的时候，则会触发 setter 方法，通知 Dep 类去调用 notify 来触发所有 watcher 对象的 update 方法更新对应视图
 
-思考？ vue1.0 为什么不能做大项目呢 就是因为 watcher 太多了 所以在 2.0 里面做了改进 粒度变细了
-一个组件一个 watcher 但是不知道哪个属性发生变化了 那怎办呢？ 只要属性变就去通知组件 组件只有一个办法，那就是做一下 diff 组件中的两个树的对比，才需要 vnode
-才需要 vnode 为什么 2.0 需要 1.0 不需要呢
+vnode 为什么 2.0 需要 1.0 不需要呢？
+
+思考？ vue1.0 为什么不能做大项目呢 就是因为 watcher 太多了，太大就甭了 所以在 2.0 里面做了改进 粒度变细了
+一个组件对应一个 watcher 将来不管哪个属性发生变化了 我都通知这一个 watcher 去做更新，执行更新的过程中怎么知道哪一个发生变化了呢？所以不得不引入 vnode 的因素 ，根据最新的值计算出来一个 vnode 和老的作比对，得到改变后的地方(一个组件有一个 vnode 和其对应)
+
 ![dep](../static/img/dep2.png)
 
 # 源码解读总结
@@ -752,119 +754,143 @@ diff，最后再汇总所有的 diff，力求做最少的 dom 操作，毕竟 js
 3. 理解虚拟 dom
 4. 理解模板编译原理
 
-
 # 总体把握
 
-1. 入口
+0. 入口
 
    - commonjs -- main -> require vue.runtime.common.js
-   - esm -> 现代打包方式 vue.runtime.esm.js
+   - esm -> 现代打包方式 ES 模块，用于 webpack2+ vue.runtime.esm.js
    - umd -- 浏览器端 umd 默认包含运行时和编译器 vue.js
      runtime -- 仅包含 运行时版本 核心代码 没有模板编译器 vue.runtime.js
-     src\platforms\web\entry-runtime-with-compiler.js
-     扩展\$mount
-     扩展默认\$mount 方法：能够编译 template 或 el 指定的模板 在浏览器中
+
+1. core/instance/index.js
+   实现 Vue 构造函数，实现若干实例方法和属性
+
+```
+  function Vue (options) {
+    this._init(options); // 构造函数仅执行了_init
+  }
+  initMixin(Vue); // 实现init函数
+  stateMixin(Vue); // 状态相关api $data,$props,$set,$delete,$watch
+  eventsMixin(Vue); // 事件相关api $on,$once,$off,$emit
+  lifecycleMixin(Vue); // 生命周期api _update,$forceUpdate,$destroy
+  renderMixin(Vue);// 渲染api _render,$nextTick
+```
+
+2. src\platforms\web\entry-runtime-with-compiler.js
+   扩展\$mount
+   扩展默认\$mount 方法：能够编译 template 或 el 指定的模板 在浏览器中
 
    compile vs runtime
    带 compile 版本支持 template 选项，可以实时编译模板
    仅 runtime 不支持 template 体积小 需要借助 webpack 把 template 编译成 render 函数
 
-2) src\platforms\web\runtime\index.js
+3. src\platforms\web\runtime\index.js
    实现\$mount，核心就一个 mountComponent；定义一个**patch**方法 这个 patch 就是将来真正做 dom 操作的
    mountComponent
-3) mountComponent
+
+4. mountComponent
    定义更新函数，创建一个 watcher，它会执行一次更新函数，完成挂载(浏览器中 把我们传进去的 el 直接开始编译打包，把结果挂载到 el 上)
-4) core/instance/index.js
-   实现 Vue 构造函数，实现若干实例方法和属性
-
-```
-function Vue (options) {
-  if (!(this instanceof Vue)
-  ) {
-    warn('Vue is a constructor and should be called with the `new` keyword');
-  }
-  this._init(options);
-}
-
-initMixin(Vue); // _init()
-stateMixin(Vue);
-eventsMixin(Vue);
-lifecycleMixin(Vue);
-renderMixin(Vue);
-```
 
 5. initMixin
    实现 vue 初始化函数\_init
 
 ```
-  initLifecycle(vm);
-  initEvents(vm);
-  initRender(vm);
+  initLifecycle(vm); // $parent,$root,$children,$refs 的声明
+  initEvents(vm); // 处理父组件传递的事件和回调
+  initRender(vm);  //和渲染相关的一些事情 vnode
   callHook(vm, 'beforeCreate');
-  initInjections(vm); // resolve injections before data/props 给组件注入数据呀
-  initState(vm);
-  initProvide(vm); // resolve provide after data/props
+  initInjections(vm); // 给组件注入数据呀
+  initState(vm);   // 初始化props，methods，data，computed，watch
+  initProvide(vm) // 提供数据注入
   callHook(vm, 'created');
 ```
 
+- mountComponent core/instance/lifecycle.js
+
+  执行挂载，获取 vdom 并转换为 dom
+
+- render() src\core\instance\render.js
+
+  渲染组件，获取 vdom
+
+- update() src\core\instance\lifecycle.js
+
+  执行更新，将传入 vdom 转换为 dom，初始化时执行的是 dom 创建操作
+
+  总体流程
+  new Vue -> init -> \$mount -> render -> update
+  调用 init、初始化各种属性、调用 mountComponent 声明 updateComponent 创建 watcher render 获取虚拟 dom
+  update 把 vnode 转化成正式 dom
+
 6. stateMixin
+
    组件状态相关 api 如$set,$delete,\$watch 实现
+
 7. eventsMixin
+
    事件相关 api 如$on,$emit,$off,$once 实现
+
 8. lifecycleMixin
+
    组件声明周期 api 如\_update,$forceUpdate,$destroy 实现
-   _update是组件更新周期的关键方法 组件触发更新函数就会调用 执行vnode的diff和patch等操作 从vnode->真实dom 打补丁
-   init render !prevnode &&  vm.$el = vm.__patch__(vm.$el,vnode,hydrating,false)
-   update  vm.$el = vm.__patch__(prevnode,vnode)
- ```
-  Vue.prototype._update = function (vnode, hydrating) {}
-  Vue.prototype.$forceUpdate = function (vnode, hydrating) {}
-  Vue.prototype.$destroy = function (vnode, hydrating) {}
- ```
+   \_update 是组件更新周期的关键方法 组件触发更新函数就会调用 执行 vnode 的 diff 和 patch 等操作 从 vnode->真实 dom 打补丁
+   init render !prevnode && vm.$el = vm.__patch__(vm.$el,vnode,hydrating,false)
+   update vm.\$el = vm.**patch**(prevnode,vnode)
+
+```
+ Vue.prototype._update = function (vnode, hydrating) {}
+ Vue.prototype.$forceUpdate = function (vnode, hydrating) {}
+ Vue.prototype.$destroy = function (vnode, hydrating) {}
+```
 
 9. renderMixin(Vue)
    实现组件渲染函数\_render, \$nextTick
 
-   ```
-   Vue.prototype.$nextTick = function (fn) {
-    return nextTick(fn, this)
+```
+  Vue.prototype.$nextTick = function (fn) {
+   return nextTick(fn, this)
   };
 
-  Vue.prototype._render = function () {
-    var vm = this;
-    // render 就是我们传入的那个 也有可能是编译器
-    const { render, _parentVnode } = vm.$options;
+Vue.prototype.\_render = function () {
+var vm = this;
+// render 就是我们传入的那个 也有可能是编译器
+const { render, \_parentVnode } = vm.\$options;
 
-    if (_parentVnode) {
-      vm.$scopedSlots = normalizeScopedSlots(
-        _parentVnode.data.scopedSlots,
-        vm.$slots,
-        vm.$scopedSlots
-      );
-    }
-    // set parent
-    vnode.parent = _parentVnode;
-    return vnode
-   ```
+   if (_parentVnode) {
+     vm.$scopedSlots = normalizeScopedSlots(
+       _parentVnode.data.scopedSlots,
+       vm.$slots,
+       vm.$scopedSlots
+     );
+   }
+   // set parent
+   vnode.parent = _parentVnode;
+   return vnode
 
+```
 
 # 初始化过程
 
 # initLifecycle
 
 initLifecycle src\core\instance\lifecycle.js
-把组件实例里面用到的常用属性初始化，比如$parent/$root/\$children
+把组件实例里面用到的常用属性初始化，比如$parent/$root/\$children 的声明
+组件创建顺序 从上到下 挂载顺序 自下而上
 
 ```
-  let parent = options.parent
-  vm.$parent = parent
-  vm.$root = parent ? parent.$root : vm
-  vm.$children = []
-  vm.$refs = {}
-  vm._watcher = null
+let parent = options.parent;
+vm.$parent = parent;
+vm.$root = parent ? parent.$root : vm;
+vm.$children = [];
+vm.$refs = {};
+vm._watcher = null;
+
 ```
 
 # initEvents
+
+核心：处理父组件传入的事件进行监听
 
 父组件中定义的需要子组件处理的事件
 <comp @someEvent='abc'></comp> 我们一般认为这个 abc 是老爹去处理 因为 abc 在老爹里面声明
@@ -874,37 +900,51 @@ initLifecycle src\core\instance\lifecycle.js
 吧 vnode 创建成组件的时候 要处理这些 on 吧 说白了 在老爹里面发现的这些监听者执行者 其实是儿子
 
 ```
-  vm._events = Object.create(null);
- vm._hasHookEvent = false;
- // init parent attached events
- var listeners = vm.$options._parentListeners;
- if (listeners) {
-   updateComponentListeners(vm, listeners);
- }
+vm._events = Object.create(null);
+vm._hasHookEvent = false;
+var listeners = vm.$options._parentListeners; //把老爹里面的监听拿出来，给儿子去执行，事件是是派发，谁监听
+if (listeners) {
+updateComponentListeners(vm, listeners)
 ```
 
 # initRenders
+
+核心：主要是 slot 的初始化 和 vnode 的创建
 
 - $slots $scopedSlots 初始化 很关心一些数据 以为这些数据就是在老爹里面拿到的
 - \$createElement 函数声明
 - $attrs和$listeners 响应化
 
 ```
-vm._vnode = null // the root of the child tree vm._staticTrees = null // v-once cached trees const options = vm.$options const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree const renderContext = parentVnode && parentVnode.context vm.$slots = resolveSlots(options._renderChildren, renderContext) vm.$scopedSlots = emptyObject // 把createElement函数挂载到当前组件上，编译器需要用到 vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false) // 用户编写渲染函数使用这个render functions. vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true) // $attrs & $listeners are exposed for easier HOC creation. // they need to be reactive so that HOCs using them ar
+
+vm._vnode = null;
+vm._staticTrees = null;
+const options = $options;
+const parentVnode = (vm.$vnode = options._parentVnode);
+const renderContext = parentVnode && parentVnode.context;
+vm.$slots = resolveSlots(options._renderChildren, renderContext);
+vm.$scopedSlots = emptyObject;
+// 把 createElement 函数挂载到当前组件上，编译器需要用到
+vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false);
+// 用户编写渲染函数使用这个 render functions. 这个 createElement 就是 render(h)
+vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true);
+
+
 ```
 
 - initInjections
-  注入内容的响应化
+  注入数据 注入的数据是不会做响应化的 转义一下 有可能传递给别人
 
 ```
- const result = resolveInject(vm.$options.inject, vm)
- if (result) {
-   toggleObserving(false)
-   Object.keys(result).forEach(key => {
-      defineReactive(vm, key, result[key])
-   })
-   toggleObserving(true)
- }
+const result = resolveInject(vm.$options.inject, vm);
+if (result) {
+  toggleObserving(false);
+  Object.keys(result).forEach((key) => {
+    defineReactive(vm, key, result[key]);
+  });
+  toggleObserving(true);
+}
+
 ```
 
 # initState
@@ -912,22 +952,23 @@ vm._vnode = null // the root of the child tree vm._staticTrees = null // v-once 
 执行各种数据状态初始化地方，包括数据响应化等等
 
 ```
-  vm._watchers = []
-  const opts = vm.$options
-  //初始化所有属性
-  if (opts.props) initProps(vm, opts.props)
-  // 初始化回调函数
-  if (opts.methods) initMethods(vm, opts.methods)
-  // 数据响应化
-  if (opts.data) {
-    initData(vm)
-  } else {
-    observe(vm._data = {}, true /* asRootData */)
-  }
-  if (opts.computed) initComputed(vm, opts.computed)
-  if (opts.watch && opts.watch !== nativeWatch) {
-    initWatch(vm, opts.watch)
-  }
+
+vm._watchers = [];
+const opts = vm.$options;
+//初始化所有属性
+if (opts.props) initProps(vm, opts.props);
+// 初始化回调函数
+if (opts.methods) initMethods(vm, opts.methods);
+// 数据响应化
+if (opts.data) {
+  initData(vm);
+} else {
+  observe((vm._data = {}), true);
+}
+if (opts.computed) initComputed(vm, opts.computed);
+if (opts.watch && opts.watch !== nativeWatch) {
+  initWatch(vm, opts.watch);
+}
 ```
 
 # initProvide
@@ -940,17 +981,19 @@ vm._vnode = null // the root of the child tree vm._staticTrees = null // v-once 
 设置 Vue 全局 API 如 set/delete/nextTick
 
 ```
+
 import { set, del } from '../observer/index'
 export function initGlobalAPI (Vue: GlobalAPI) {
-  Vue.set = set
-  Vue.delete = del
-  Vue.nextTick = nextTick
+Vue.set = set
+Vue.delete = del
+Vue.nextTick = nextTick
 
-  initUse(Vue)  // 实现Vue.use函数
-  initMixin(Vue)   // 实现Vue.mixin函数
-  initExtend(Vue)  // 实现Vue.extend函数
-  initAssetRegisters(Vue)  // 注册实现Vue.component/directive/filter
+initUse(Vue) // 实现 Vue.use 函数
+initMixin(Vue) // 实现 Vue.mixin 函数
+initExtend(Vue) // 实现 Vue.extend 函数
+initAssetRegisters(Vue) // 注册实现 Vue.component/directive/filter
 }
+
 ```
 
 # vue 数据响应式
@@ -963,8 +1006,11 @@ src\core\instance\state.jsinitData 核心代码是将 data 数据响应化
 observe 方法返回一个 Observer 实例，core/observer/index.js
 
 ```
-function observe (value, asRootData) {  // value: 待响应化数据对象
-  var ob; // 观察者 ob
+
+// 已经存在 直接返回 负责创建新的实例
+function observe(value, asRootData) {
+  // value: 待响应化数据对象
+  var ob; // 观察者 ob 将来数据变了，负责通知更新
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__;
   } else if (
@@ -980,89 +1026,126 @@ function observe (value, asRootData) {  // value: 待响应化数据对象
   if (asRootData && ob) {
     ob.vmCount++;
   }
-  return ob
+  return ob;
 }
+
 ```
 
 Observer 对象根据数据类型执行对应的响应化操作，core/observer/index.js
+每一个响应书的对象都会有一个 ob
 
 ```
 class Observer {
-  constructor (value) {
+  constructor(value) {
     this.value = value;
-    // 保存数组类型数据的依赖
+    // 保存数组类型数据的依赖  什么要在 Observer 设置 dep？  比如给对象新增了属性，如何去通知页面做更新呢？
+    // 1.如果 obj有新增或者删除属性
+    // 2.arr中有变更方法   通过obj上面挂载的这个dep去通知，obj变了，我们让这个组件对应的watcher去做更新
     this.dep = new Dep();
     this.vmCount = 0;
-    def(value, '__ob__', this);  // 在getter中可以通过__ob__可获取ob实例
-    if (Array.isArray(value)) { // 数组响应化
+    // 设置一个__ob__属性引用当前 Observer 实例
+    def(value, '__ob__', this);
+    // 在 getter 中可以通过__ob__可获取 ob 实例
+    if (Array.isArray(value)) {
+      // 数组响应化
       this.observeArray(value);
     } else {
-      this.walk(value);  // 对象响应化
+      this.walk(value); // 对象响应化
     }
   }
-  /*** 遍历对象所有属性并转换为getter/setters */
-    walk (obj) {
+  /**遍历对象所有属性并转换为 getter/setters **/
+  walk(obj) {
     const keys = Object.keys(obj);
     for (let i = 0; i < keys.length; i++) {
-      defineReactive$$1(obj, keys[i]);
+      defineReactive(obj, keys[i]);
     }
   }
-  /*** 对数组每一项执行响应化 */
-  observeArray (items) {
+  //对数组每一项执行响应化
+  observeArray(items) {
     for (let i = 0, l = items.length; i < l; i++) {
       observe(items[i]);
     }
   }
 }
+
 ```
 
 - defineReactive
   defineReactive 定义对象属性的 getter/setter，getter 负责添加依赖，setter 负责通知更新
 
 ```
-export function defineReactive (
+
+export function defineReactive(
   obj: Object,
   key: string,
   val: any,
   customSetter?: ?Function,
   shallow?: boolean
 ) {
-  const dep = new Dep() // 一个key一个Dep实例
-  const getter = property && property.get
-  const setter = property && property.set
-  if ((!getter || setter) && arguments.length === 2) {
-    val = obj[key]
-  }
-  // 递归执行子对象响应化  一个对象会有一个观察者 哪怕是对象的嵌套也会生成子观察者
-  let childOb = !shallow && observe(val)
-  // 定义当前对象getter/setter
+  const dep = new Dep();
+  // 一个 key 一个 Dep 实例
+  const getter = property && property.get;
+  const setter = property && property.set;
+  // 递归执行子对象响应化 一个对象会有一个观察者 哪怕是对象的嵌套也会生成子观察者 只要是对象类型都会返回 childOb
+  let childOb = !shallow && observe(val);
+  // 定义当前对象 getter/setter
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
-    get: function reactiveGetter () {
-      const value = getter ? getter.call(obj) : val
-      // getter被调用时若存在依赖则追加    如果有watcher存在 我就让watcher和当前的dep产生相互关系 dep中可以有多个watcher watcher也可以存在多个dep中 多对对关系
-      if (Dep.target) {  
-        dep.depend()
-        // 若存在子observer，则依赖也追加到子ob
+    get: function reactiveGetter() {
+      // 获取key的值
+      const value = getter ? getter.call(obj) : val;
+      // getter 被调用时若存在依赖则追加 如果有 watcher 存在 我就让 watcher 和当前的 dep 产生相互关系 dep 中可以有多个 watcher watcher 也可以存在多个 dep 中 多对对关系
+      // 如果存在依赖
+      if (Dep.target) {
+        //依赖收集
+        dep.depend();
+        // 若存在子 observer，则依赖也追加到子 ob
         if (childOb) {
-          childOb.dep.depend() // 嵌套租对象的处理
+          childOb.dep.depend(); // 嵌套对象的处理
           if (Array.isArray(value)) {
-            dependArray(value) // 数组需特殊处理
+            dependArray(value); // 数组需特殊处理
           }
         }
       }
-      return value
+      return value;
     },
-    set: function reactiveSetter (newVal) {
-      const value = getter ? getter.call(obj) : val
-      if (getter && !setter) return
-      val = newVal  // 更新值
-      childOb = !shallow && observe(newVal) // 递归更新子对象
-      dep.notify()  // 通知更新
+    set: function reactiveSetter(newVal) {
+      const value = getter ? getter.call(obj) : val;
+      if (getter && !setter) return;
+      val = newVal; // 更新值
+      childOb = !shallow && observe(newVal); // 递归更新子对象 如果新值是对象，也要做响应化处理
+      dep.notify(); // 通知更新
+    },
+  });
+}
+
+```
+
+# 数量理解
+
+```
+  /*
+  * 思考？
+  * 有几个 Observer
+  * 有几个 Dep
+  * 有几个 Watcher
+  * 一个对象一个Observer  data本身是个对象 obj是个对象  所以有两个
+  * 因为key 两个 所以 dep 是两个
+  * 一个组件一个watcher  这个地方 obj foo对应的watcher都是根组件
+  * */
+
+  const app = new KVue({
+    el:'#app',
+    data: {
+      obj: {foo:'foo'},
+    },
+    methods: {
+      add() {
+        this.counter++
+      }
     }
   })
-}
 ```
 
 # Dep
@@ -1071,32 +1154,32 @@ export function defineReactive (
 
 ```
 export default class Dep {
-  static target: ?Watcher; // 依赖收集时的wacher引用
+  static target: ?Watcher; // 依赖收集时的 wacher 引用
   id: number;
-  subs: Array<Watcher>;   // watcher数组
+  subs: Array<Watcher>; // watcher 数组
 
-  constructor () {
-    this.id = uid++
-    this.subs = []
+  constructor() {
+    this.id = uid++;
+    this.subs = [];
   }
-  //添加watcher实例
-  addSub (sub: Watcher) {
-    this.subs.push(sub)
+  //添加 watcher 实例
+  addSub(sub: Watcher) {
+    this.subs.push(sub);
   }
-  //删除watcher实例
-  removeSub (sub: Watcher) {
-    remove(this.subs, sub)
+  //删除 watcher 实例
+  removeSub(sub: Watcher) {
+    remove(this.subs, sub);
   }
-  //watcher和dep相互保存引用  将当前watcher的dep方法做了一个调用
-  depend () {
+  //watcher 和 dep 相互保存引用 将当前 watcher 的 dep 方法做了一个调用
+  depend() {
     if (Dep.target) {
-      Dep.target.addDep(this)
+      Dep.target.addDep(this);
     }
   }
-  notify () {
-    const subs = this.subs.slice()
+  notify() {
+    const subs = this.subs.slice();
     for (let i = 0, l = subs.length; i < l; i++) {
-      subs[i].update()
+      subs[i].update();
     }
   }
 }
@@ -1107,96 +1190,94 @@ export default class Dep {
 Watcher 解析一个表达式并收集依赖，当数值变化时触发回调函数，常用于\$watch API 和指令中。
 每个组件也会有对应的 Watcher，数值变化会触发其 update 函数导致重新渲染
 什么时候会创建一个新的 watcher？
-每当我有一个组价生成的时候 就会创建一个 watcher 或者我们手动的创建 通过 this.$watch这种方式也会创建 watcher
+每当我有一个组价生成的时候 就会创建一个 watcher 或者我们手动的创建 通过 this.\$watch 这种方式也会创建 watcher
 
-页面初始化的时候  首次会创建一个明文的 watcher $mount的时候创建 相当于是给根组件创建了一个watcher
+页面初始化的时候 首次会创建一个明文的 watcher \$mount 的时候创建 相当于是给根组件创建了一个 watcher
 如果页面中又出现了自定义的组件 这个时候就又会生成 watcher 这就是一个组件 一个 watcher
 
 ```
+
 export default class Watcher {
-  constructor (
+  constructor(
     vm: Component,
     expOrFn: string | Function,
     cb: Function,
     options?: ?Object,
     isRenderWatcher?: boolean
   ) {
-    this.vm = vm
-    // 组件保存render watcher
+    this.vm = vm;
+    // 组件保存 render watcher
     if (isRenderWatcher) {
-      vm._watcher = this
+      vm._watcher = this;
     }
-    // 组件保存非render watcher
-    vm._watchers.push(this)
+    // 组件保存非 render watcher
+    vm._watchers.push(this);
     // options
-    // 将表达式解析为getter函数
-    // 那些和组件实例对应的Watcher创建时会传递组件更新函数进来
+    // 将表达式解析为 getter 函数
+    // 那些和组件实例对应的 Watcher 创建时会传递组件更新函数进来
     if (typeof expOrFn === 'function') {
-      this.getter = expOrFn
+      this.getter = expOrFn;
     } else {
-      // 这种是$watch传递进来的表达式，它们需要解析为函数
-      this.getter = parsePath(expOrFn)
+      // 这种是\$watch 传递进来的表达式，它们需要解析为函数
+      this.getter = parsePath(expOrFn);
       if (!this.getter) {
-        this.getter = noop
+        this.getter = noop;
       }
     }
-    // 若非延迟watcher，立即调用getter
-    this.value = this.lazy
-      ? undefined
-      : this.get()
+    // 若非延迟 watcher，立即调用 getter
+    this.value = this.lazy ? undefined : this.get();
   }
-  /*** 模拟getter, 重新收集依赖re-collect dependencies. */
-  get () {
+  // 模拟 getter, 重新收集依赖 re-collect dependencies
+  get() {
     // Dep.target = this
-    pushTarget(this)
-    let value
-    const vm = this.vm
+    pushTarget(this);
+    let value;
+    const vm = this.vm;
     try {
-      // 从组件中获取到value同时触发依赖收集
-      value = this.getter.call(vm, vm)
+      // 从组件中获取到 value 同时触发依赖收集
+      value = this.getter.call(vm, vm);
     } catch (e) {
     } finally {
       // deep watching，递归触发深层属性
       if (this.deep) {
-        traverse(value)
+        traverse(value);
       }
-      popTarget()
-      this.cleanupDeps()
+      popTarget();
+      this.cleanupDeps();
     }
-   return value
+    return value;
   }
 
-   addDep (dep: Dep) {
-    const id = dep.id
+  addDep(dep: Dep) {
+    const id = dep.id;
     if (!this.newDepIds.has(id)) {
-      // watcher保存dep引用
-      this.newDepIds.add(id)
-      this.newDeps.push(dep)
-      // dep添加watcher
+      // watcher 保存 dep 引用
+      this.newDepIds.add(id);
+      this.newDeps.push(dep);
+      // dep 添加 watcher
       if (!this.depIds.has(id)) {
-        dep.addSub(this)
+        dep.addSub(this);
       }
     }
   }
-  /**
- * 对于 更新操作的理解
- * 入队操作 queneWatcher 我们做更新的时候 不会立刻去执行dom操作 而是让我当前的 $emit
- * 进入队列中做异步的批量更新 也就是说我们 vue 在做数据更新的时候，尤其是dom操作的时候，我们是批量的异步的操作
- * 怎么实现的呢？ 首先我们会有一个异步队列 把我们的所有的watcher push到这个队列里面，然后等到每个循环周期到的时候
- * 我们统一的去执行队列里面所有watcher的更新，这样执行效率就比较高了
- */
-update () {
-  // 更新逻辑
-  if (this.lazy) {
-    this.dirty = true
-  } else if (this.sync) {
-    this.run()
-  } else {
-    //默认lazy和sync都是false，所以会走该逻辑 做更新的时候不是立刻去执行dom操作 而是让我当前的watcher进入到队列中，做异步的批量更新
-    queueWatcher(this)
+  // - 对于 更新操作的理解
+  // - 入队操作 queneWatcher 我们做更新的时候 不会立刻去执行 dom 操作 而是让我当前的 \$emit
+  // - 进入队列中做异步的批量更新 也就是说我们 vue 在做数据更新的时候，尤其是 dom 操作的时候，我们是批量的异步的操作
+  // - 怎么实现的呢？ 首先我们会有一个异步队列 把我们的所有的 watcher push 到这个队列里面，然后等到每个循环周期到的时候
+  // - 我们统一的去执行队列里面所有 watcher 的更新，这样执行效率就比较高了
+  update() {
+    // 更新逻辑
+    if (this.lazy) {
+      this.dirty = true;
+    } else if (this.sync) {
+      this.run();
+    } else {
+      //默认 lazy 和 sync 都是 false，所以会走该逻辑 做更新的时候不是立刻去执行 dom 操作 而是让我当前的 watcher 进入到队列中，做异步的批量更新
+      queueWatcher(this);
+    }
   }
 }
-}
+
 ```
 
 # 数组响应化
@@ -1206,9 +1287,9 @@ update () {
 
 ```
 // 数组原型
-const arrayProto = Array.prototype
+const arrayProto = Array.prototype;
 // 修改后的原型
-export const arrayMethods = Object.create(arrayProto)
+export const arrayMethods = Object.create(arrayProto);
 const methodsToPatch = [
   'push',
   'pop',
@@ -1216,65 +1297,74 @@ const methodsToPatch = [
   'unshift',
   'splice',
   'sort',
-  'reverse'
-]
-/*** 拦截这些方法，额外发送变更通知 */
+  'reverse',
+];
+//拦截这些方法，额外发送变更通知
 methodsToPatch.forEach(function (method) {
   // 缓存原始数组方法
-  const original = arrayProto[method]
-  // 修改这些方法的descriptor
-  def(arrayMethods, method, function mutator (...args) {
+  const original = arrayProto[method];
+  // 修改这些方法的 descriptor
+  def(arrayMethods, method, function mutator(...args) {
     // 原始操作 Array.prototype.call(this,...args)
-    const result = original.apply(this, args)
-    // 获取ob实例用于发送通知
-    const ob = this.__ob__
-    let inserted
+    const result = original.apply(this, args);
+    // 获取 ob 实例用于发送通知
+    const ob = this.__ob__;
+    let inserted;
     // 三个能新增元素的方法特殊处理
     switch (method) {
       case 'push':
       case 'unshift':
-        inserted = args
-        break
+        inserted = args;
+        break;
       case 'splice':
-        inserted = args.slice(2)
-        break
+        inserted = args.slice(2);
+        break;
     }
-    // 若有新增则做响应处理
-    if (inserted) ob.observeArray(inserted)
+    // 若有新增则做额外响应处理
+    if (inserted) ob.observeArray(inserted);
     // 通知更新
-    ob.dep.notify()
-    return result
-  })
-})
-Observer中覆盖数组原型
+    ob.dep.notify();
+    return result;
+  });
+});
+// Observer 中覆盖数组原型
 if (Array.isArray(value)) {
   // 替换数组原型
-  protoAugment(value, arrayMethods) // value.__proto__ = arrayMethods
-  this.observeArray(value)
+  protoAugment(value, arrayMethods); // value.**proto** = arrayMethods
+  this.observeArray(value);
 }
 
-defineReactive中数组的特殊处理：
-// getter处理中
+// defineReactive 中数组的特殊处理：
+// getter 处理中
 if (Array.isArray(value)) {
-  dependArray(value)
+  dependArray(value);
 }
 
-// 数组中所有项添加依赖，将来数组里面就可以通过__ob__.dep发送通知
-function dependArray (value: Array<any>) {
+// 数组中所有项添加依赖，将来数组里面就可以通过**ob**.dep 发送通知
+function dependArray(value) {
   for (let e, i = 0, l = value.length; i < l; i++) {
-    e = value[i]
-    e && e.__ob__ && e.__ob__.dep.depend()
+    e = value[i];
+    e && e.__ob__ && e.__ob__.dep.depend();
     if (Array.isArray(e)) {
-      dependArray(e)
+      dependArray(e);
     }
   }
 }
+
+obj = {foo:'foo'}
+Vue.$set(obj,'bar','123')  //ok
+
+item = [4,5,6]
+Vue.$set(item,0,'123') //ok
+vue2
+缺点： 递归遍历，性能受影响  api不统一，针对数组和对象
+
 ```
 
 # vue 中的数据响应式使用了观察者模式
 
 - definedReactive 中的 getter 和 setter 对应着订阅(依赖收集)和发布行为(通知)
-- Dep 的角色相当于主题 Subject 维护订阅者(就是我们这个watcher) 通知观察者更新
+- Dep 的角色相当于主题 Subject 维护订阅者(就是我们这个 watcher) 通知观察者更新
 - Watcher 的角色相当于观察者 Observer 执行更新
 - 但是 vue 中的 Observer 不是上面说的观察者 它和 data 中的对象一一对应 有内嵌的对象 就会有 child Observer 与之对应
 
@@ -1292,113 +1382,121 @@ function dependArray (value: Array<any>) {
 * queueWatcher
   执行 watcher 入队操作，若存在重复 id 则跳过
 
-  ```
-  const queue: Array<Watcher> = []
-  const activatedChildren: Array<Component> = []
-  let has: { [key: number]: ?true } = {}
-  let circular: { [key: number]: number } = {}
-  let waiting = false
-  let flushing = false 刷新
-  let index = 0
+```
+const queue: Array<Watcher> = []
+const activatedChildren: Array<Component> = []
+let has: { [key: number]: ?true } = {}
+let circular: { [key: number]: number } = {}
+let waiting = false
+let flushing = false 刷新
+let index = 0
 
-  // watcher入队
-  export function queueWatcher (watcher: Watcher) {
-  const id = watcher.id
-  if (has[id] == null) {  // id不存在才会入队
-    has[id] = true
-    if (!flushing) {  // 没有在执行刷新则进入队尾
-      queue.push(watcher)
+// watcher 入队
+export function queueWatcher(watcher: Watcher) {
+  const id = watcher.id;
+  if (has[id] == null) {
+    // id 不存在才会入队
+    has[id] = true;
+    if (!flushing) {
+      // 没有在执行刷新则进入队尾
+      queue.push(watcher);
     } else {
-      // 若已刷新, 按id顺序插入到队列
+      // 若已刷新, 按 id 顺序插入到队列
       //若已经过了, 则下次刷新立即执行
-      let i = queue.length - 1
+      let i = queue.length - 1;
       while (i > index && queue[i].id > watcher.id) {
-        i--
+        i--;
       }
-      queue.splice(i + 1, 0, watcher)
+      queue.splice(i + 1, 0, watcher);
     }
-    // queue the flush  刷新队列
+    // queue the flush 刷新队列
     if (!waiting) {
-      waiting = true
-      nextTick(flushSchedulerQueue)
+      waiting = true;
+      nextTick(flushSchedulerQueue);
     }
   }
-  }
-  ```
+}
 
-* nextTick(flushSchedulerQueue)
+
+```
+
+- nextTick(flushSchedulerQueue)
   nextTick 按照特定异步策略执行队列刷新操作
 
 ```
-// nextTick异步执行策略，src\core\util\next-tick.js
-const callbacks = []
-export function nextTick (cb?: Function, ctx?: Object) {
-  let _resolve
+// nextTick 异步执行策略，src\core\util\next-tick.js
+const callbacks = [];
+export function nextTick(cb?: Function, ctx?: Object) {
+  let _resolve;
   callbacks.push(() => {
     if (cb) {
       try {
-        cb.call(ctx)  // 真正执行cb
+        cb.call(ctx); // 真正执行 cb
       } catch (e) {
-        handleError(e, ctx, 'nextTick')
+        handleError(e, ctx, 'nextTick');
       }
     } else if (_resolve) {
-      _resolve(ctx)
+      _resolve(ctx);
     }
-  })
+  });
   // 没有处在挂起状态则开始异步执行过程
   if (!pending) {
-    pending = true
-    timerFunc()
+    pending = true;
+    timerFunc();
   }
-  // $flow-disable-line
+  // \$flow-disable-line
   if (!cb && typeof Promise !== 'undefined') {
-    return new Promise(resolve => {
-      _resolve = resolve
-    })
+    return new Promise((resolve) => {
+      _resolve = resolve;
+    });
   }
 }
 
-let timerFunc
+let timerFunc;
 
-// nextTick异步行为利用微任务队列，可通过Promise或MutationObserver交互
-// 首选Promise，次选MutationObserver
+// nextTick 异步行为利用微任务队列，可通过 Promise 或 MutationObserver 交互
+// 首选 Promise，次选 MutationObserver
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
-  const p = Promise.resolve()
+  const p = Promise.resolve();
   timerFunc = () => {
-    p.then(flushCallbacks)
+    p.then(flushCallbacks);
     // IOS hack
-    if (isIOS) setTimeout(noop)
-  }
-  isUsingMicroTask = true
-} else if (!isIE && typeof MutationObserver !== 'undefined' && (
-  isNative(MutationObserver) ||
-  // PhantomJS and iOS 7.x
-  MutationObserver.toString() === '[object MutationObserverConstructor]'
-)) {
+    if (isIOS) setTimeout(noop);
+  };
+  isUsingMicroTask = true;
+} else if (
+  !isIE &&
+  typeof MutationObserver !== 'undefined' &&
+  (isNative(MutationObserver) ||
+    // PhantomJS and iOS 7.x
+    MutationObserver.toString() === '[object MutationObserverConstructor]')
+) {
   // Use MutationObserver where native Promise is not available,
-  // e.g. PhantomJS, iOS7, Android 4.4  不能用Promise时：PhantomJS, iOS7, Android 4.4
-  let counter = 1
-  const observer = new MutationObserver(flushCallbacks)
-  const textNode = document.createTextNode(String(counter))
+  // e.g. PhantomJS, iOS7, Android 4.4 不能用 Promise 时：PhantomJS, iOS7, Android 4.4
+  let counter = 1;
+  const observer = new MutationObserver(flushCallbacks);
+  const textNode = document.createTextNode(String(counter));
   observer.observe(textNode, {
-    characterData: true
-  })
+    characterData: true,
+  });
   timerFunc = () => {
-    counter = (counter + 1) % 2
-    textNode.data = String(counter)
-  }
-  isUsingMicroTask = true
+    counter = (counter + 1) % 2;
+    textNode.data = String(counter);
+  };
+  isUsingMicroTask = true;
 } else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
-  // Fallback to setImmediate.   回退到setImmediate.它利用的是宏任务队列
+  // Fallback to setImmediate. 回退到 setImmediate.它利用的是宏任务队列
   // Technically it leverages the (macro) task queue,
   // but it is still a better choice than setTimeout.
   timerFunc = () => {
-    setImmediate(flushCallbacks)
-  }
+    setImmediate(flushCallbacks);
+  };
 } else {
-  // Fallback to setTimeout. 最后选择setTimeout.
+  // Fallback to setTimeout. 最后选择 setTimeout.
   timerFunc = () => {
-    setTimeout(flushCallbacks, 0)
-  }
+    setTimeout(flushCallbacks, 0);
+  };
 }
+
+
 ```

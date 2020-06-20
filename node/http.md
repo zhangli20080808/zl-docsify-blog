@@ -140,7 +140,7 @@ HTTP 消息报头包括普通报头、请求报头、响应报头、实体报头
      息中没有设置这个域，缺省是任何字符集都可以接受。
      Accept-Encoding
      Accept-Encoding 请求报头域类似于 Accept，但是它是用于指定可接受的内容编码(浏览器可接受的压缩算法)。eg：AcceptEncoding:gzip.deflate.如果请求消息中没有设置这个域服务器假定客户端对各种内容编码都可以接受。
-     Accept-Language
+     Accept-Language: 浏览器可接受的语言
 
 
 Accept-Language 请求报头域类似于 Accept，但是它是用于指定一种自然语言。eg：Accept-Language:zh-cn.如果

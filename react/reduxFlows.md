@@ -2,7 +2,8 @@
 
 ## redux
 
-目标 实现 redux react-redux 中间件 原理(react 中为什么会用 react-redux 因为原生的 redux 是一个通用库，放在 react 中不方便)
+目标 实现 redux react-redux 中间件 原理(react 中为什么会用 react-redux 因为原生的 redux 是一个通用库，放在 react 中不方便) 如果要实现的话，其实react没有响应式的实现，其实是用了一个发布订阅模式，告诉你状态发生变更了，不用
+react-redux我们还要做一些额外的事情，1，常见一个上下文，把store从最顶层导下去2.还要顶层的位置给我们的store加上一个订阅，这样我们才能发现他变化了，真的变化了，我们还要主动去激活它的重新渲染，不管是组件的强制更新还是react-dom的render重新渲染，都手动，挺不方便的
 
 redux 设计思想很简单，就两句
 
@@ -35,6 +36,10 @@ commit->mutations 来修改数据 确实会让我们的修改路径变长
     1.多个组件的状态数据共享 如果应用比较复杂，有些数据是共享的 这些组件如果是一些兄弟组件 或者 关联度很低的组件 这个时候我们共享数据就会比较困难 eventbus 都是很费劲的
 
     2.路由间的复杂数据传递 我们遇到一些路由跳转场景  到传递的参数很复杂的时候 用vuex会是一个很好的方案 简单的数据不需要vuex
+
+redux和vuex截然不同
+
+同样是dispatch一个action尝试去改变状态，那么这个状态发生变更之后，其实在这个底层会有更新函数会做订阅，其实是用了一个发布订阅模式，然后会把这个更新函数直接订阅，通过订阅的方式，传给redux，只要redux中的数据发生变化，就把刚才订阅的所有回调函数执行一遍，这点上 数据变更通知的方式 是截然不同的，相比vuex
 
 其工作流程：
 
@@ -114,8 +119,11 @@ const store = createStore(reducers);
 
 **redux-thunk 中间件**
 
+
 reducer 计算 state 是同步，如何实现异步操作呢？这就需要用到 redux-thunk redux-logger 中间件，该中间件的功能是让 dispatch() 可以接受函数作为 action。
 先执行中间件函数 然后再去执行我们的 reducer
+
+thunk增加了处理函数型action的能力
 
 ```
 // 异步的返回的是函数
@@ -125,6 +133,17 @@ export const asyncAdd = (dispatch, getState) => (dispatch) => {
     dispatch({ type: 'add' });
   }, 1000);
 };
+
+
+thunk实现
+const thunk = ({dispatch,getState}) => dispatch => action => {
+    // thunk逻辑：处理函数action
+	if (typeof action == 'function') {
+		return action(dispatch, getState)
+    }
+    // 不是函数直接跳过
+	return dispatch(action)
+}
 ```
 
 ```js
@@ -402,11 +421,11 @@ export default class Counter extends Component {
  * */
 
 export function createStore(reducer, enhancer) {
-  // 如果存在enhancer
+  // 如果存在enhancer  enhancer实现中间件机制的核心 高阶函数
   if (enhancer) {
     return enhancer(createStore)(reducer);
   }
-
+  // 保存状态
   let currentState = undefined;
   const currentListeners = []; // 回调函数数组
 
@@ -417,10 +436,11 @@ export function createStore(reducer, enhancer) {
   function dispatch(action) {
     // 修改
     currentState = reducer(currentState, action);
-    // 变更通知
+    // 变更通知  
     currentListeners.forEach(v => v());
     return action;
   }
+  // subscribe 我们的render函数
   function subscribe(cb) {
     currentListeners.push(cb);
   }
@@ -434,7 +454,7 @@ export function createStore(reducer, enhancer) {
     subscribe
   };
 }
-
+// 目的  先去执行我们的 中间件 再去执行我们的 reducer 强化 dispatch
 export function applyMiddleware(...middlewares) {
   return createStore => (...args) => {
     // 完成之前createStore工作
@@ -443,13 +463,13 @@ export function applyMiddleware(...middlewares) {
     let dispatch = store.dispatch;
     // 传递给中间件函数的参数
     const midApi = {
-      getState: store.getState,
-      dispatch: (...args) => dispatch(...args)
+      getState: store.getState, 
+      dispatch: (...args) => dispatch(...args)  // args action
     };
-    // 将来中间件函数签名如下： funtion ({}) {}
+    // 将来中间件函数签名如下： funtion ({}) {}   使中间件可以获取状态值派发action
     //[fn1(dispatch),fn2(dispatch)] => fn(diaptch)
     const chain = middlewares.map(mw => mw(midApi));
-    // 强化dispatch,让他可以按顺序执行中间件函数
+    // 强化dispatch,让他可以按顺序执行中间件函数  最终还是要执行dispatch compose可以chain函数数组合成一个函数
     dispatch = compose(...chain)(store.dispatch);
     // 返回全新store，仅更新强化过的dispatch函数
     return {
@@ -469,7 +489,18 @@ export function compose(...funcs) {
   // 聚合函数数组为一个函数 [fn1,fn2] => fn2(fn1())
   return funcs.reduce((left, right) => (...args) => right(left(...args)));
 }
+1. 能结构出  dispatch,getState 
+function logger({dispatch,getState}) {
+  
+  // 返回真正中间件任务执行函数
+  return dispatch => action => {
+    // 执行中间件任务
+    console.log(action.type + "执行了！！！");
 
+    // 执行下一个中间件 dispatch(action）返回的还是一个action
+    return dispatch(action);
+  };
+}
 ```
 
 # 实现 react-redux
@@ -486,6 +517,8 @@ export const connect = (
   mapDispatchToProps = {}
 ) => (WrapComponent) => {
   return class ConnectComponent extends React.Component {
+    // class组件中声明静态 contextTypes 可以获取上下文 context 一定是从上级组件中传递下来的上下文
+    <!-- 如果是类组件的话 会作为 构造函数的第二个参数 通过this.context访问 -->
     static contextTypes = { store: PropTypes.object };
     constructor(props, context) {
       super(props, context);
@@ -498,7 +531,9 @@ export const connect = (
     }
     update() {
       const { store } = this.context;
+      // state=>({num:state.counter})  mapStateToProps相当于去执行我们前面传进来的这个 把state穿进去了
       const stateProps = mapStateToProps(store.getState());
+      // 返回一个action add:()=> ({type:'add'})
       const dispatchProps = bindActionCreators(
         mapDispatchToProps,
         store.dispatch
@@ -528,13 +563,15 @@ export class Provider extends React.Component {
     return this.props.children;
   }
 }
-
 // 添加一个bindActionCreators能转换actionCreator为派发函数，redux.js
-// function bindActionCreator(creator, dispatch) {
-//   return (...args) => dispatch(creator(...args));
-// }
+function bindActionCreator(creator, dispatch) {
+  // ()=>({type:'add'}) -- creator
+  return (...args) => dispatch(creator(...args));
+}
 
 export function bindActionCreators(creators, dispatch) {
+  // {add:()=>({type:'add'})}  从上面变下面
+  // {add:(...args) => dispatch(creator(...args))} //执行dispatch {type:'add'}
   return Object.keys(creators).reduce((ret, item) => {
     ret[item] = bindActionCreator(creators[item], dispatch);
     return ret;
