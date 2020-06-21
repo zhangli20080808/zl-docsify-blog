@@ -51,8 +51,8 @@
   - Content-type 返回数据格式
   - ContentL-length 返回数据大小 多少字节
   - Content-Encoding 告诉你用什么方法压缩的 gzip
-  - set-cookie
-  - Location
+  - set-cookie 服务端设置cookie
+  - Location 重定向的地址
 - 自定义 header
 
   - headers :{'x':'a'} //比如说有些 api 接口需要 headers 里面加一些秘钥或者特定的值，才能给你通过请求，不然认为你是非法的

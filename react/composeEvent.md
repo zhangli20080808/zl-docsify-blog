@@ -1,5 +1,8 @@
 # 合成事件
 react 合成事件：定义在JSX组件上的事件。
+1. 所有事件都挂载到document上
+2. event不是原生的，SyntheticEvent 是合成事件对象
+3. dispatchEvent
 
 ## 设计目的
 设计目的：
