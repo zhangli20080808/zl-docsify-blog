@@ -112,7 +112,7 @@ export {a as default}
 
 下面是编译流程的代码实现：
 
-```js
+```
 const fs = require('fs');
 const path = require('path');
 const parser = require('@babel/parser');

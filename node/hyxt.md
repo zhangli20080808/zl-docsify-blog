@@ -37,7 +37,7 @@ npm i -D sequelize-cli    // devDependencies
 
 **1、新建 .sequelizerc 配置文件**  
 在 egg 项目中，我们希望将所有数据库 Migrations 相关的内容都放在 database 目录下，所以我们在项目根目录下新建一个 .sequelizerc 配置文件：
-```js
+```
 'use strict';
 
 const path = require('path');
@@ -56,7 +56,7 @@ npx sequelize init:config
 npx sequelize init:migrations
 ```
 执行完后会生成 database/config.json 文件和 database/migrations 目录，我们修改一下 database/config.json 中的内容，将其改成我们项目中使用的数据库配置：
-```js
+```
 development: {
   username: 'xxx',
   password: 'xxx',
@@ -82,14 +82,14 @@ production: {
 
 **3、修改配置文件**
 * 在 config/plugin.js 中引入 egg-sequelize 插件
-```js
+```
 exports.sequelize = {
   enable: true,
   package: 'egg-sequelize',
 };
 ```
 * 在 config/config.{env}.js 中编写 sequelize 配置
-```js
+```
 const databaseConf = require('../database/config');
 module.exports = () => {
   const config = exports = {};
@@ -125,7 +125,7 @@ npx sequelize db:migrate  # 不指定 env， 默认取 development 的配置
 
 **1、创建 model**  
 首先在 app/model/ 目录下编写 user 这个 Model：
-```js
+```
 module.exports = app => {
   const { STRING, DATE } = app.Sequelize;
 
@@ -175,7 +175,7 @@ module.exports = app => {
 
 **2、创建路由 router**  
 Router 主要用来描述请求 URL 和具体承担执行动作的 Controller 的对应关系，框架约定了 app/router.js 文件用于统一所有路由规则。由于本项目路由比较多，所以根据不同模块拆分成不同路由文件，最后统一遍历路由文件。
-```js
+```
 // app/router.js
 const path = require('path');
 const Promise = require('bluebird');
@@ -207,7 +207,7 @@ module.exports = app => {
 
 **3、创建控制器 controller**  
 Controller 负责解析用户的输入，处理后返回相应的结果。框架推荐 Controller 层主要对用户的请求参数进行处理（校验、转换），然后调用对应的 service 方法处理业务，得到业务结果后封装并返回。
-```js
+```
 // app/controller/user.js
 const { Controller } = require('egg');
 class UserController extends Controller {
@@ -227,7 +227,7 @@ class UserController extends Controller {
 
 **4、创建服务 service**  
 Service 就是在复杂业务场景下用于做业务逻辑封装的一个抽象层。
-```js
+```
 // app/service/user.js
 const { Service } = require('egg');
 class User extends Service {
@@ -298,7 +298,7 @@ class Logs extends Service {
 
 **5、定时任务**  
 定时任务不是必须的，根据自己项目实际需要来。所有的定时任务都统一存放在 app/schedule 目录下，每一个文件都是一个独立的定时任务，可以配置定时任务的属性和要执行的方法。上面提到的定时任务如下：
-```js
+```
 // app/schedule/daily_log_user.js
 const { Subscription } = require('egg');
 
@@ -321,7 +321,7 @@ class LoggerUser extends Subscription {
 module.exports = LoggerUser;
 ```
 可以看到定时任务会定时执行 user service 中的 getlogsByDay 方法：
-```js
+```
 class User extends Service {
   async getlogsByDay(day = 1) {
     // 拉取日志
@@ -382,7 +382,7 @@ class User extends Service {
 前面获取日志时有用到 `app.alicloudLog.getLogs`，那么 alicloudLog 对象是如何绑定到 app 上的呢？答案就是通过插件，
 插件使用和配置看[这里](https://eggjs.org/zh-cn/basics/plugin.html)，插件开发看[这里](https://eggjs.org/zh-cn/advanced/plugin.html)。   
 日志服务 alicloudLog 全局实例插件开发，是通过 @alicloud/log 包进行封装的：
-```js
+```
 // lib/plugin/egg-alicloud-log/lib/index.js
 const AlicloudLog = require('@alicloud/log');
 
@@ -404,7 +404,7 @@ module.exports = app => {
 };
 ```
 然后在 config/plugin.js 配置使用插件：
-```js
+```
 // config/plugin.js
 alicloudLog: {
   enable: true,

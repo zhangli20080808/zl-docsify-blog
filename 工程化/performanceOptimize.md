@@ -7,7 +7,7 @@
 下面介绍了五种，其中热更新和 DllPlugin 不要在生产环境使用。
 ### 优化 babel-loader
 开启缓存，es6 代码没有改的地方不会重新编译，直接启用缓存，具体方法如下：
-```js
+```
 {
   test: /\.js$/,
   use: ['babel-loader?cacheDirectory'], // 开启缓存
@@ -16,7 +16,7 @@
 ```
 ### IgnorePlugin
 IgnorePlugin 可以忽略无用的文件，下面以 moment 插件为例，这个插件支持很多国家，而项目中往往支持中国就行，其他的可以忽略，从而减小打包体积。
-```js
+```
 // webpack 配置
 plugins: [
   // 忽略 moment 下的 /local 目录，这样所有语言包都没了，需项目中手动引入中文包
@@ -30,7 +30,7 @@ moment.local('zh-cn');
 ```
 ### happyPack
 开启多进程打包，dev 和 prod 都可用，有一点要注意：项目大打包慢，开启多进程提高速度，反之可能会降低速度，因为开启多进程也会消耗性能，所以按需使用。
-```js
+```
 const HappyPack = require('happypack');
 
 module: {
@@ -55,7 +55,7 @@ plugins: [
 ```
 ### 热更新
 用 devServer 开启是一种简单的方式：
-```js
+```
 plugins: [
   new webpack.HotModuleReplacementPlugin()
 ],
@@ -73,7 +73,7 @@ devServer: {
 - 项目的模板 html 文件手动引入生成的 dll.js 文件
 - webpack.dev.js 通过配置 DllReferencePlugin 来使用 dll 文件
 
-```js
+```
 // webpack.dll.js
 const path = require('path')
 const webpack = require('webpack')

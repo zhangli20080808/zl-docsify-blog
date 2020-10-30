@@ -12,7 +12,7 @@
 @babel-/core  @babel/preset-env babel-loader -D
 
 下面是一份工作中的配置，加了点配置，解释见注释：
-```js
+```
 {
   "presets": [
     /**

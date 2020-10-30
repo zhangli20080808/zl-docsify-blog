@@ -2,11 +2,11 @@
 
 ## webpack-dev-server
 [webpack-dev-server](https://www.webpackjs.com/configuration/dev-server/) 是一个小型的 Node.js Express 服务器,它使用 webpack-dev-middleware 来服务于 webpack 的包。也就是说以前用 express + webpack-dev-middleware + webpack-hot-middleware + http-proxy-middleware 启动服务，现在可以直接一个 webpack-dev-server 插件搞定（不过前面的组合扩展性更好，更容易定制，所以根据自身项目需求选择）。npm scripts 中用命令启动，比如这样：  
-```js
+```
  "dev": "cross-env NODE_ENV=dev webpack-dev-server"
 ```
 然后在 webpack.dev.js 配置 devServer 属性即可，比如：
-```js
+```
 devServer: {
   port: 8080,
   contentBase: '',

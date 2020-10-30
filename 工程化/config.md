@@ -2,7 +2,7 @@
 
 ## 抽取公共代码和第三方库（代码分割）
 
-```js
+```
 optimization: {
   // 分割代码块
   splitChunks: {

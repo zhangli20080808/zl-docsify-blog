@@ -94,7 +94,7 @@ var mid = function () {
 koa 中间件执行顺序实现主要靠的就是源码中的 koa-compress.js。
 源码分析:
 
-```js
+```
 module.exports = compose;
 // 把一个个不想关的中间件串到一起
 function compose(middleware) {

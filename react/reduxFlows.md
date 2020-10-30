@@ -52,7 +52,7 @@ redux和vuex截然不同
 - subscribe 变更订阅
   以一个计数器例子分析：
 
-```js
+```
 import { createStore } from 'redux';
 
 class Counter extends Component {
@@ -103,7 +103,7 @@ store.subscribe(render); // State 发生变化，就自动执行这个监听函�
 
 如果项目比较复杂，必然会出现 reducer 函数过大的问题，这个时候需要进行拆分，可以根据业务模块分成对应的 reducer 文件，各自模块 initState 也可放在 reducer 里，这样 state 和 reducer 都分而治之了。
 
-```js
+```
 // reducer.js
 import { combineReducers } from 'redux';
 import { user } from './redux/user.redux';
@@ -146,7 +146,7 @@ const thunk = ({dispatch,getState}) => dispatch => action => {
 }
 ```
 
-```js
+```
 import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import logger from 'redux-logger';
@@ -161,7 +161,7 @@ const store = createStore(
 
 然后发出一个有异步操作的 action：
 
-```js
+```
 const fetchPosts = postTitle => (dispatch, getState) => {
   dispatch(requestPosts(postTitle));
   return fetch(`/some/API/${postTitle}.json`)
@@ -212,7 +212,7 @@ React-Redux 规定，所有的 UI 组件都由用户提供，_容器组件则是
 
 React-Redux 提供 connect 方法，用于从 UI 组件生成容器组件。connect 的意思，就是将这两种组件连起来。
 
-```js
+```
 import { connect } from 'react-redux';
 
 // TodoList 是 UI 组件，VisibleTodoList 是容器组件
@@ -259,7 +259,7 @@ b、mapDispatchToProps
 **4、Provider 组件**  
 React-Redux 提供 Provider 组件，可以让容器组件拿到 state。
 
-```js
+```
 let store = createStore(todoApp);
 render(
   <Provider store={store}>
@@ -275,7 +275,7 @@ render(
 **5、计数器例子**  
 将前面 redux 里的例子用 react-redux 改造如下：
 
-```js
+```
 class Counter extends Component {
   render() {
     const { value, onIncreaseClick } = this.props;
@@ -336,7 +336,7 @@ ReactDOM.render(
 
 修改 state 的逻辑都会放在 models 下 (定义 model)：
 
-```js
+```
 // models/count.js
 export default {
   namespace: 'count',
@@ -376,7 +376,7 @@ export default {
 
 如何串联 model 和 UI component？也是通过 connect 方法，例如：
 
-```js
+```
 import { connect } from 'dva';
 
 @connect(({ count }) => ({

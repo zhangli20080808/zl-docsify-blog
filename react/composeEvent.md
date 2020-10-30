@@ -19,7 +19,7 @@ react 合成事件：定义在JSX组件上的事件。
 2. 放开 @2 处注释  
 3. 放开 @3 处注释  
 4. 放开 @4 处注释  
-```js
+```
 class App extends React.Component {
     componentDidMount(){
         const target = document.getElementById('test')

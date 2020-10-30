@@ -8,13 +8,13 @@
 
   - 储存 cookie 的值；
 
-  ```js
+  ```
   ctx.cookies.set(name, value, [options]);
   ```
 
   - 获取 cookie 的值
 
-  ```js
+  ```
   ctx.cookies.get(name, [options]);
   ```
 
@@ -32,7 +32,7 @@
 
   - 设置
 
-    ```js
+    ```
     document.cookie = 'key=value';
     ```
 
@@ -49,7 +49,7 @@
 
 * 获取
 
-  ```js
+  ```
   document.cookie;
   ```
 
@@ -59,7 +59,7 @@
 
   - 设置 cookie 封装
 
-  ```js
+  ```
   //设置cookie
   function setCookie(name, value, options = {}) {
     let cookieData = `${name}=${value};`;
@@ -73,7 +73,7 @@
 
   - 获取 cookie
 
-  ```js
+  ```
   //获取Cookie
   function getCookie(name) {
     let arr = document.cookie.split('; ');

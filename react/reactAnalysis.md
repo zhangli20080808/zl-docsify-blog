@@ -8,7 +8,7 @@ createElement、Component、render 三个 api
 
 1. 创建 kreact：实现 createElement 并返回 vdom
 
-```
+```js
 function createElement(type, props, ...children) {
     console.log(arguments) // 虚拟dom的创建是由内向外的
     // 返回虚拟DOM
@@ -57,7 +57,7 @@ export default {createElement}
 
 2.  创建 kreact-dom：实现 render，能够将 kvdom 返回的 dom 追加至 container
 
-```
+```js
 import initVNode from './kdom'
 
 function render(vnode, container) {
@@ -72,7 +72,7 @@ export default {render}
 
 3. 创建 kvdom：实现 initVNode，能够将 vdom 转换为 dom
 
-```
+```js
 export default function initVNode(vnode) {
     let {vtype} = vnode
     if (!vtype) {
@@ -136,7 +136,7 @@ function createClassComp(vnode) {
 
 1. setState 批量行为：React 会合并多次 setState 操作为一次执行
 
-```
+```js
    getState() {
         // 实例， 待更新状态  pendingStates要更新的状态
         let {instance, pendingStates} = this
@@ -170,8 +170,7 @@ function createClassComp(vnode) {
     }
 ```
 
-2. 异步：setState 调用后，会调用其 updater.addState，最终调用 updateQueue.add 将任务添加到队列等待系
-   统批量更新 batchUpdate
+2. 异步：setState 调用后，会调用其 updater.addState，最终调用 updateQueue.add 将任务添加到队列等待系统批量更新 batchUpdate
 
 # 虚拟 DOM 原理剖析
 
@@ -195,14 +194,14 @@ element diff
 
 5. 重排（reorder）操作：INSERT_MARKUP（插入）、MOVE_EXISTING（移动）和 REMOVE_NODE（删除）。
 
-- INSERT_MARKUP，新的 component 类型不在老集合里， 即是全新的节点，需要对新节点执行插入操作。
+6. INSERT_MARKUP，新的 component 类型不在老集合里， 即是全新的节点，需要对新节点执行插入操作。
 
-- MOVE_EXISTING，在老集合有新 component 类型，且 element 是可更新的类型，
+7. MOVE_EXISTING，在老集合有新 component 类型，且 element 是可更新的类型，
 
 generateComponentChildren 已调用 receiveComponent，这种情况下 prevChild=nextChild，就需要做移
 动操作，可以复用以前的 DOM 节点。
 
-- REMOVE_NODE，老 component 类型，在新集合里也有，但对应的 element 不同则不能直接复用和更新，
+8. REMOVE_NODE，老 component 类型，在新集合里也有，但对应的 element 不同则不能直接复用和更新，
   需要执行删除操作，或者老 component 不在新集合里的，也需要执行删除操作。
 
 # Hooks 原理
@@ -210,7 +209,7 @@ generateComponentChildren 已调用 receiveComponent，这种情况下 prevChild
 1. 将函数组件状态保存在外部作用域，类似链表的实现原理，由于有严格的顺序关系，所以函数组件中 useState 这些
    api 不能出现条件、循环语句中
 
-```
+```js
 function FunctionalComponent() {
     const [state1, setState1] = useState(1)
     const [state2, setState2] = useState(2)
@@ -234,3 +233,6 @@ state3 === hook2.memoizedState
 1. 给不同类型的更新赋予优先级
 1. 并发方面新的基础能力
 1. 更流畅
+
+
+# Hooks学习总结

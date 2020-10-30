@@ -6,7 +6,7 @@
 
 ### 方法一
 通过 location.href = 接口地址，可以获取到文件并下载到本地。
-```js
+```
 location.href = '/api/exportExcel?id=123';
 ```
 缺点：只能是 get 请求。
@@ -14,7 +14,7 @@ location.href = '/api/exportExcel?id=123';
 ### 方法二
 通过 [Blob](https://developer.mozilla.org/zh-CN/docs/Web/API/Blob) 对象处理，英文全称是 Binary Large Object，翻译成汉语是二进制大型对象，用于存储二进制数据。  
 代码如下
-```js
+```
 request('/api/exportExcel', {
   method: 'GET',
   params: {

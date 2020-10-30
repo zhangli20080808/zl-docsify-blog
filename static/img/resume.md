@@ -98,7 +98,7 @@ Amd--它是一个在浏览器端模块化开发的规范 AMD也采用require()�
 
 
 两个参数 require([module], callback);
-```js
+```
 require(['math'], function (math) {
 　　math.add(2, 3);
 });
