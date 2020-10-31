@@ -122,6 +122,11 @@
 
   - [常用命令](/es6/1.md)
   - [概念理解](/es6/4.md)
+  
+  * Promise学习总结
+
+  - [概念理解](/promise总结/1.md)
+
 
 * 链接总结
   - [better-scroll](/es6/2.md)
