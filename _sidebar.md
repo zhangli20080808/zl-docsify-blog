@@ -128,6 +128,11 @@
   - [概念理解](/promise总结/1.md)
 
 
+* proxy 代理响应式比较总结
+
+  - [概念理解](/es6/5.md)
+  
+
 * 链接总结
   - [better-scroll](/es6/2.md)
 
