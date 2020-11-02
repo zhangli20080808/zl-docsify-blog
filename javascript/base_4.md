@@ -288,9 +288,12 @@ console.log('Bye');
 
 ---
 
-DOM 事件，也用 event loop 也是基于回调 但不是异步
+## DOM 事件和 event loop 的关系
+
+DOM 事件，也用 event loop 也是基于回调(就是基于event loop) 但不是异步，注意 
 
 ```html
+<!-- 执行到   $('#btn1').click 的时候 会立刻把 cb暂存起来 等用户什么时候点击了，我们将其放到callback queue中 再去执行 -->
 <button id="btn1">提交</button>
 
 <script>
