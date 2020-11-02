@@ -75,7 +75,7 @@ JS 盒子模型指的是通过 JS 中提供的一系列的属性和方法,获取
    curEle:[object]当前要操作的元素对象
    attr:[string]我们要获取的样式属性的名称
 
-```
+```js
     function getCss(curEle, attr) {
         var val = null, reg = null;
         if ("getComputedStyle" in window) {
@@ -105,7 +105,7 @@ JS 盒子模型指的是通过 JS 中提供的一系列的属性和方法,获取
    document.body.offsetParent //->null
    想要改变父级参照物需要通过 position 定位来进行改变:absolute、relative、fixed 任意一个值都可以把父级参照物进行修改
 
-   ```
+   ```js
        outer.style.position = "relative";
        console.log(center.offsetParent);//->outer
        console.log(inner.offsetParent);//->outer
@@ -124,7 +124,7 @@ JS 盒子模型指的是通过 JS 中提供的一系列的属性和方法,获取
    ->获取的结果是一个对象{left:距离 BODY 的左偏移,top:距离 BODY 的上偏移}
    ->在标准的 IE8 浏览器中,我们使用 offsetLeft/offsetTop 其实是把父级参照物的边框已经算在内了,所以我们不需要自己在单独的加边框了
 
-```
+```js
       function offset(curEle) {
         var totalLeft = null,
           totalTop = null,
@@ -178,7 +178,7 @@ JS 盒子模型指的是通过 JS 中提供的一系列的属性和方法,获取
    - 总距离(target):当前的位置(当前的 scrollTop 值)-目标的位置(0)
    - 步长(step):每一次走的距离 target/duration->每 1ms 走的距离\*interval->每一次走的距离
 
-```
+```js
 开始GO按钮是不显示的,只有当浏览器卷去的高度超过一屏幕的高度的时候在显示,反之隐藏->只要浏览器的滚动条在滚动,我们就需要判断GO显示还是隐藏
 浏览器的滚动条滚动:拖动滚动条、数遍滚轮、键盘上下键或者pageDown/pageUp键、点击滚动条的空白处或者箭头(自主操作的行为)...我们还可以通过JS控制scrollTop的值实现滚动条的滚动
 window.onscroll不管怎么操作,只要滚动条动了就会触发这个行为
@@ -229,7 +229,7 @@ console.log(window.getComputedStyle(boxP, 'after').height);
 
 # 单张图片懒加载
 
-```
+```js
 window.onscroll = function () {
     if (banner.isLoad) {//->已经加载过了
         return;
@@ -251,7 +251,7 @@ window.onscroll = function () {
 ```
 # 多张图片懒加载
 
-```
+```js
 //->实现渐现的效果  透明度从0到1 500ms 10ms走一次
 function fadeIn(curImg) {
 var duration = 500,

@@ -164,7 +164,7 @@ Function.prototype.bind1 = function(arguements) {
 };
 
 function fn1(a, b, c) {
-  console.log('this', this);
+  console.log('this', this);s
   console.log(a, b, c);
   return 'this is fn1';
 }

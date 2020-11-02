@@ -34,16 +34,17 @@ for (var i = 0; i < oLis.length; i++) {
 - 我们定时器设置的等待时间不一定就是最后执行的时间,如果定时器之后还有其他的事情正在处理中,不管定时器的时间有没有到,都是不会执行定时器的
 
 ```js
-  // for循环就是同步编程的,只有循环结束后,才会继续执行下面的代码
-  for (var i = 0; i < 100000; i++) {
-      if (i == 99999) {
-          console.log("循环结束了~~");//->(1)
-      }
+// for循环就是同步编程的,只有循环结束后,才会继续执行下面的代码
+for (var i = 0; i < 100000; i++) {
+  if (i == 99999) {
+    console.log('循环结束了~~'); //->(1)
   }
-  console.log("ok");//->(2)
+}
+console.log('ok'); //->(2)
 
-  //
-  while(1){}  console.log("ok");//->永远都不会执行的,因为上面的循环是死循环,循环永远都不会结束
+//
+while (1) {}
+console.log('ok'); //->永远都不会执行的,因为上面的循环是死循环,循环永远都不会结束
 ```
 
 2. 手写 promise 加载一张图片
@@ -66,7 +67,7 @@ function getImage(src) {
 }
 ```
 
-3. 前端使用异步场景 
+3. 前端使用异步场景
    网路请求，如 ajax 加载图片
    定时任务 如果没有定时任务，js 读不需要异步了
 
@@ -79,7 +80,7 @@ console.log(3);
 setTimeout(() => {
   console.log(4);
 }, 0);
-console.log(5);  // 1 3 5 4 2
+console.log(5); // 1 3 5 4 2
 ```
 
 # JS 事件循环
@@ -121,21 +122,21 @@ sleep(10000);
     ![](../static/img/js-event2.jpg)
 
   ```js
-    console.log('11');
-    setTimeout(function() {
-        console.log('1');
-    });
+  console.log('11');
+  setTimeout(function () {
+    console.log('1');
+  });
 
-    new Promise(function(resolve) {
-      console.log('2');
-      for (var i = 0; i < 10000; i++) {
-        i == 99 && resolve();
-      }
-    }).then(function() {
-      console.log('3');
-    });
-    console.log('4');
-    // 11 2 4 3 1
+  new Promise(function (resolve) {
+    console.log('2');
+    for (var i = 0; i < 10000; i++) {
+      i == 99 && resolve();
+    }
+  }).then(function () {
+    console.log('3');
+  });
+  console.log('4');
+  // 11 2 4 3 1
   ```
 
   ```js
@@ -169,18 +170,18 @@ sleep(10000);
   ```
 
   ```js
-  console.log('script start')
+  console.log('script start');
   let promise1 = new Promise(function (resolve) {
-    console.log('promise1')
-    resolve()
-    console.log('promise1 end')
+    console.log('promise1');
+    resolve();
+    console.log('promise1 end');
   }).then(function () {
-    console.log('promise2')
-  })
-  setTimeout(function(){
-    console.log('settimeout')
-  })
-  console.log('script end')
+    console.log('promise2');
+  });
+  setTimeout(function () {
+    console.log('settimeout');
+  });
+  console.log('script end');
   // 输出顺序: script start->promise1->promise1 end->script end->promise2->settimeout
   ```
 
@@ -198,49 +199,112 @@ sleep(10000);
 ```js
 // 通过把一个多参函数转换成一系列嵌套的函数，每个函数依次接受一个参数，这就是函数柯里化。
 function multiply(a, b, c) {
-return a * b * c;
+  return a * b * c;
 }
 multiply(1, 2, 3); // 6
 // 柯里化后：
 function multiply(a) {
-return b => {
-  return c => {
-    return a * b * c;
+  return (b) => {
+    return (c) => {
+      return a * b * c;
+    };
   };
-};
 }
 multiply(1)(2)(3); // 6
 console.log(multiply(1)(2)(3));
-
 ```
 
 ```js
 // length 是函数对象的一个属性值,指该函数有多少个必须要传入的参数,即形参的个数
-  let _fn = curry(function(a, b, c, d, e) {
-    console.log(a + b + c + d + e, '11');
+let _fn = curry(function (a, b, c, d, e) {
+  console.log(a + b + c + d + e, '11');
+});
+
+function curry(fn, len = fn.length) {
+  return _curry.call(this, fn, len);
+}
+
+function _curry(fn, len, ...args) {
+  return function (...params) {
+    console.log(params);
+    let _args = [...args, ...params];
+    console.log(_args);
+    if (_args.length >= len) {
+      return fn.apply(this, _args);
+    } else {
+      // 没达到五个参数 递归调用 和前面的参数进行拼接
+      return _curry.call(this, fn, len, ..._args);
+    }
+  };
+}
+// 最终拼成了原始的 _fn(1,2,3,4,5)
+// _fn(1,2,3,4,5);    //15
+// _fn(1)(2)(3,4,5);  //15
+// _fn(1,2)(3,4)(5);  //15
+// _fn(1)(2)(3)(4)(5);  //15
+```
+
+# JS 进阶总结
+
+## event loop(事件循环 事件轮询)
+
+- js 是单线程
+- 异步要基于回调来实现，如何去实现的？
+- event loop 就是异步回调的实现原理
+
+```js
+console.log('Hi');
+
+setTimeout(function cb1() {
+  console.log('cb1'); // cb 即 callback
+}, 5000);
+
+console.log('Bye');
+```
+
+1. 执行第一行代码 推入到执行栈中 执行结束 console.log 清空调用栈
+2. setTimeout 执行这个函数，使我们的 webapis 会将我们的 cb1 放入定时器中 5000 后会放入 callback queue 中 完了 清空调用栈
+3. 开始执行 console 执行完 清空 执行栈这个时候为空了 这个时候就会启动(浏览器内核) event loop 机制(同步代码执行结束了) 看我们的 callback queue 中
+   是否有函数(循环) 有的话就放入 执行栈中去执行 5s 后有了 放进去执行 发现一个 console 打印 后面没代码了 清空执行栈
+
+执行栈 调用栈 -> call stack
+
+过程一
+
+- 同步代码，一行一行放在 call stack 执行
+- 遇到 异步 会先记录下 等待时机(定时器，网络请求)
+- 时机到了 移动到 callback queue 中
+
+过程二
+
+- 如 call stack (即同步代码执行完) eventloop 开始工作
+- 轮询查找 callback queue ，看有没有异步回调过来，如果有 则移动到 call stack 中执行同时 空闲的时候 会尝试 dom 渲染， 再触发 eventloop 每次轮询之后 也会尝试触发 dom 渲染
+- 然后继续轮询查找(永动机一样)
+
+定时器是什么时候开始计时的？
+从执行定时器的时候开始计时。
+但计时结束时，只是把回调函数放在 callback queue 中，不一定会立马执行。何时执行，还得看何时取出来放在 call stack 中。
+≥
+
+---
+
+DOM 事件，也用 event loop 也是基于回调 但不是异步
+
+```html
+<button id="btn1">提交</button>
+
+<script>
+  console.log('Hi');
+
+  $('#btn1').click(function (e) {
+    console.log('button clicked');
   });
 
-  function curry(fn, len = fn.length) {
-    return _curry.call(this, fn, len);
-  }
-
-  function _curry(fn, len, ...args) {
-    return function(...params) {
-      console.log(params);
-      let _args = [...args, ...params];
-      console.log(_args);
-      if (_args.length >= len) {
-        return fn.apply(this, _args);
-      } else {
-        // 没达到五个参数 递归调用 和前面的参数进行拼接
-        return _curry.call(this, fn, len, ..._args);
-      }
-    };
-  }
-  // 最终拼成了原始的 _fn(1,2,3,4,5)
-  // _fn(1,2,3,4,5);    //15
-  // _fn(1)(2)(3,4,5);  //15
-  // _fn(1,2)(3,4)(5);  //15
-  // _fn(1)(2)(3)(4)(5);  //15
-
+  console.log('Bye');
+</script>
 ```
+
+事件触发线程管理的任务队列是如何产生的呢？
+事实上这些任务就是从 JS 引擎线程本身产生的，主线程在运行时会产生执行栈，栈中的代码调用某些异步 API 时会在任务队列中添加事件
+，栈中的代码执行完毕后，就会读取任务队列中的事件，去执行事件对应的回调函数，如此循环往复，形成事件循环机制。
+JS 中有两种任务类型：微任务（microtask）和宏任务
