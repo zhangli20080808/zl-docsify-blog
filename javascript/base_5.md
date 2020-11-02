@@ -23,7 +23,7 @@ setAttribute 修改的是节点 html 的属性 会改变 html 结构
 property 可以获取 dom 元素修改对象属性，不会体现到 html 中 通过 js 的方式去操作这些属性 修改的是标签的属性
 两者都有可能引起 dom 重新渲染
 
-```
+```js
 const pList = document.querySelector('p'); //集合
 const p = pList[0];
 p.style.width = '100px';
@@ -45,7 +45,7 @@ createElement/createDocumentFragment/appendChild/insertBefore/cloneNode(true/fal
 
 1. 新增插入节点  
 
-```
+```js
 const div = document.getElementById('div1');
 //添加新节点
 const p1 = document.createElement('p');
@@ -58,7 +58,7 @@ div.appendChild(p2);
 
 2. 获取子元素列表，获取父元素
 
-```
+```js
 console.log(p2.parentNode); //获取父元素节点
 const divChildrenNodes = div.childNodes; // 获取子元素节点 p
 // node  nodeType nodeName 我们需要正常的一个节点 不需要text
@@ -72,7 +72,7 @@ const divChildrenP = Array.prototype.slice(divChildrenNodes).filter(child => {
 
 3. 删除子节点
 
-```
+```js
 const div = document.getElementById('div1');
 const child = div.childNodes;
 div.removeChild(child[0]);
@@ -84,7 +84,7 @@ DOM 非常昂贵，避免频繁操作 dom 占用 cpu 更会 可能导致浏览�
 对 dom 查询做缓存
 将频繁操作改为一次性操作(比如我们打个包一次性的扔进去)
 
-```
+```js
 // 不缓存dom查询结果
 for (let i = 0; i < document.getElementsByTagName('p').length; i++) {
   //每次循环 都会计算length，频繁进行dom查询
@@ -108,7 +108,7 @@ for (let i = 0; i < 10; i++) {
 listNode.appendChild(frag);
 ```
 
-```
+```js
 //->接下来写的所有的方法在jQuery中的作用和方法名一模一样
 //->function chlidren ->获取某一个容器中所有的元素子节点(还可以筛选出指定标签名的)
 //->getElementsByClass ->通过元素的样式类名获取一组元素(兼容所有的浏览器) (jQuery中没有这个方法名,但是jQuery的一部分选择器也是基于这个方法的原理来实现的)
@@ -134,7 +134,7 @@ listNode.appendChild(frag);
 ```
 # 单利模式工具类总结
 
-```
+```js
 var utils = (function () {
     var flag = "getComputedStyle" in window;
 

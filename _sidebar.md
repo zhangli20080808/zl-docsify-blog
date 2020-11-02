@@ -34,7 +34,7 @@
   - [JS 基础-变量类型计算](/javascript/base_1.md)
   - [JS 基础-原型和原型链](/javascript/base_2.md)
   - [JS 基础-作用域闭包](/javascript/base_3.md)
-  - [JS 基础-异步](/javascript/base_4.md)
+  - [JS 基础-异步-事件循环](/javascript/base_4.md)
   - [JS-Web-Api-Dom](/javascript/base_5.md)
   - [JS-Web-Api-Bom](/javascript/base_6.md)
   - [JS-Web-Api-Ajax](/javascript/base_7.md)

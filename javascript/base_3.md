@@ -5,9 +5,12 @@
 
 # 自由变量
 
-一个变量在当前作用域没有定义，但被使用了 向上级作用域层层查找，知道找到为止 如果到全局作用域还没有找到，那就是 not defined
+一个变量在当前作用域没有定义，但被使用了 向上级作用域(父级作用域)层层查找，知道找到为止 如果到全局作用域还没有找到，那就是 not defined  属性查找机制
+
+自由变量的查找，是在函数定义的地方，向上级作用域查找，不是在执行的地方！！！
 
 # 闭包
+
 
 作用域应用的特殊情况，有两种表现
 
@@ -20,19 +23,21 @@
 
 如果按照我的理解 JavaScript 里面所有的函数都是闭包，因为有全局环境，所有的函数都可以访问全局变量。
 
-```
+```js
+// 函数作为返回值
 function create(){
   //a 就是 用 ES5 实现私有变量
   let a = 100
   return function(){
-    console.log(a)
+    console.log(a)  // 此处的a就是自由变量 没有定义 要从他定义的地方向父级作用域去查找
   }
 }
 const fn = create()
 let a = 200
 fn() //100
-
-function print(fn) {
+----------------
+// 函数作为参数
+function print(fn) {  
   let a = 300;
   fn();
 }
@@ -40,24 +45,24 @@ let a = 200;
 function fn() {
   console.log(a);
 }
-print(fn); //200
+print(fn); //200   一定要注意 是在函数定义的时候的作用域的上级查找
 
 ```
 
 点击标签 依次弹出序号
 
-```
+```js
 let i, a;
 for (i = 0; i < 10; i++) {
   a = window.document.createElement('a');
   a.innerHTML = i + '<br>';
-  a.addEventListener('click', function(e) {
+  a.addEventListener('click', function(e) {  // 点击的时候执行
     e.preventDefault();
     alert(i);
   });
   document.body.appendChild(a);
 }
-// 这样没次点击 都会是10 为什么呢？ 因为 i 的作用域是全局 alert 的i 是自由变量 当我们开始点击的时候 时间循环早就结束了
+// 这样没次点击 都会是10 为什么呢？ 因为 i 的作用域是全局 alert 的i 是自由变量 当我们开始点击的时候 事件循环早就结束了
 // 改善  让没次循环的时候都去生成新的区块 i 就会不同
 let a;
 for (let i = 0; i < 10; i++) {
@@ -78,7 +83,7 @@ for (let i = 0; i < 10; i++) {
 2. 箭头函数
    注意: this 取什么值 是在函数执行的时候确认的 不是在定义的时候 我们的call调用 是在执行的时候
 
-```
+```js
 function fn1() {
   console.log(this);
 }
@@ -93,7 +98,7 @@ fn2(); // { x: 300 }
 箭头函数的 this 永远取他上级的 this 不会产生执行上下文  取决于他的外部
 因为箭头函数没有自己的执行上下文，所以它会继承调用函数中的 this
 
-```
+```js
 const zhangsan = {
   // 这个 setTimeout 的执行是 setTimeout 本身触发的执行 不是张三 zhagnsan.wait 这种方式执行
   wait() {
@@ -126,7 +131,7 @@ const zhangsan = {
 1. call 和 apply 的第一个参数 thisArg，都是 func 运行时指定的 this，如果这个函数处于非严格模式下，则指定为 null 或 undefined 时会自动替换为指向全局对象，原始值会被包装。
 2. 都可以只传递一个参数。
 
-```
+```js
 'use strict';
 var doSth2 = function(a, b){
     console.log(this);
@@ -141,16 +146,17 @@ doSth2.apply(null, [1, 2]); // this 是 null // [1, 2]
 this 的不同场景，如何取值
 当做普通函数调用 使用 call apply bind 作为对象方法调用 在 class 方法中调用 箭头函数
 
-```
+```js
+
 Function.prototype.bind1 = function(arguements) {
-  // 接受很多参数 第一个 this  将参数拆解为数组
+  // 接受很多参数 第一个 this  将arguements参数拆解为数组  伪数组->数组
   // call 通过  Array.prototype.slice执行的时候 将arguements赋值给其this
-  1. call接受一些离散的值 apply接受数组 第一个参数 this
-  2. 获取数组 this第一项
-  3. 返回一个函数
+  // 1. call接受一些离散的值 apply接受数组 第一个参数 this
+  // 2. 获取数组 this第一项
+  // 3. 返回一个函数
   const args = Array.prototype.slice.call(arguements);
   const t = args.shift();
-  fn1.bind(...) 中的fn1
+  // fn1.bind(...) 中的fn1  this 谁调用他了
   const self = this;
   return function() {
     return self.apply(t, args);
@@ -165,10 +171,10 @@ function fn1(a, b, c) {
 const fn2 = fn1.bind1({ x: 100 }, 10, 20, 30);
 fn2();
 console.log(fn1.__proto__ === Function.prototype); //true
-我们要重写 bind 就需要 Function.prototype
+// 我们要重写 bind 就需要 Function.prototype
 var args = Array.prototype.slice.call(arguments);
 var args = [].slice.call(arguments);
-将参数转换为真实的数组
+// 将参数转换为真实的数组
 var args = Array.from(arguments);
 var args = [...arguments];
 ```
@@ -190,8 +196,8 @@ var args = [...arguments];
 1. 隐藏数据
 2. 做一个简单的 cache 工具
 
-```
-闭包隐藏数据，只提供 API
+```js
+// 闭包隐藏数据，只提供 API
 function createCache() {
   const data = {}; //闭包中的数据被隐藏，不被外界访问
   return {
@@ -214,7 +220,7 @@ jquery 闭包思想总结
 先对立即执行函数做个总结
 什么是立即执行函数 也是匿名函数 立即函数就是将函数定义和执行放在一起了。不需要调用，自动执行
 
-```
+```js
 
 /*团队 成员1 --tab 组件*/
 (function(){
@@ -255,7 +261,7 @@ const rainman = (function(x, y) {
 1. 将我们需要获取的值赋值给 window 全局变量，使其成为 window 的一个属性
 2. 定义一个含有闭包特性的匿名函数
 
-```
+```js
 (function() {
   var name = 'SK';
   var sex = '男';
@@ -283,7 +289,7 @@ const rainman = (function(x, y) {
 
 或者 将我们需要获取的值赋值给任意一个全局变量，使其成为这个全局变量的属性
 
-```
+```js
 // window是默认系统全局面向，其实任何全局变量都可以，任何全局变量都可以
 var o = new Object();
 // 定义一个含有闭包特性的匿名函数
@@ -321,7 +327,7 @@ console.log(my.get());
 
 # 自己实现 自定义框架
 
-```
+```js
 (function(w) {
   var zhangli = {
     add: function() {

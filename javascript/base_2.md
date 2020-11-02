@@ -3,7 +3,7 @@
 本质上类似于一个模板，我们可以通过这个模板去构造一些东西
 constructor 属性 方法
 
-```
+```js
 class People {
   constructor(name) {
     this.name = name;
@@ -23,22 +23,21 @@ class Student extends People {
   }
 }
 
-class Teacher extends People{
-  constructor(name,major){
-    super(name)
-    this.major = major
+class Teacher extends People {
+  constructor(name, major) {
+    super(name);
+    this.major = major;
   }
-  teach(){
+  teach() {
     console.log(`我是老师${this.name},教大家${this.major}`);
-
   }
 }
 const xiaohong = new Student('zl', 333);
 const xiaoming = new Student('xiaoming', 555);
 const lis = new Teacher('missLi', 'English');
 xiaohong.sayHigh(); //我叫zl,学号是333
-xiaoming.eating() //我是你爸爸
-lis.teach() //我是老师missLi,教大家English
+xiaoming.eating(); //我是你爸爸
+lis.teach(); //我是老师missLi,教大家English
 ```
 
 # instanceof
@@ -50,7 +49,7 @@ lis.teach() //我是老师missLi,教大家English
 instanceof 前面这个变量顺着 xiaohong 隐式原型 往上找 能不能找到 第二个操作数 对应的显式原型
 我们 xiaohong 顺着隐式原型一层一层往上找 能不能对应到 class 的显示原型 如果能对应到，instanceof 成立
 
-```
+```js
 console.log(xiaohong instanceof Student); //true
 console.log(xiaohong instanceof People); // true
 console.log(xiaohong instanceof Object); //true
@@ -62,7 +61,7 @@ console.log([] instanceof Object, {} instanceof Object); // true true
 class 实际上是函数，可见是语法糖 typeof Student; //function
 隐式原型 **proto** 和 显式原型 prototype
 
-```
+```js
 console.log(xiaohong.__proto__);
 console.log(Student.prototype);
 console.log(xiaohong.__proto__  === Student.prototype); // 引用的是一个内存地址
@@ -101,7 +100,7 @@ console.log(Object.prototype.__proto__ );   //null
 
 简易版 jquery
 
-```
+```js
 jQuery-demo
 class jQuery {
   constructor(selector) {

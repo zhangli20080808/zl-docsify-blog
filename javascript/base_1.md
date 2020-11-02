@@ -19,7 +19,15 @@
 1. JSON.stringify 和 JSON.parse
    用 JSON.stringify 把对象转换成字符串，再用 JSON.parse 把字符串转换成新的对象。如果对象中包含 function 或 RegExp 这些就不能用这种方法了
 
-```
+   缺点
+    * 对象的属性值是函数时，无法拷贝。
+    * 原型链上的属性无法拷贝
+    * 不能正确的处理 Date 类型的数据
+    * 不能处理 RegExp
+    * 会忽略 symbol
+    * 会忽略 undefined
+
+```js
 function deepClone(obj) {
   let _obj = JSON.stringify(obj);
   let objClone = JSON.parse(_obj);
@@ -29,21 +37,52 @@ function deepClone(obj) {
 
 2. Object.assign()拷贝 当对象中只有一级属性，没有二级属性的时候，此方法为深拷贝，但是对象中有对象的时候，此方法，在二级属性以后就是浅拷贝。
 
+```js
+let a = { a: '123', b: { s: '345' } };
+let b = a;
+b.b.s = '456';
+let c = { ...a };
+a.b.s = '123';
+console.log(c); //c.b.s = '123'了 所以说 有对象嵌套的时候 就是个浅拷贝
+a.a = '456';
+console.log(c); // c.a='123' 没有变
+
+对象去重;
+const newResult = uniqBy([...selectedList, ...data.user], 'userinfoId');
+
+对象中有重复项;
+var hash = {};
+arr = arr.reduce(function (item, next) {
+  hash[next.name] ? '' : (hash[next.name] = true && item.push(next));
+  return item;
+}, []);
+console.log(arr);
+
+使用set;
+hasDuplicates = (data) => {
+  let seen = new Set();
+  const hasDuplicates = data.some((cur) => {
+    return seen.size === seen.add(cur.name).size;
+  });
+  return hasDuplicates;
+};
+```
+
 3. lodash.cloneDeep()实现深拷贝
 
-```
+```js
 let _ = require('lodash');
 let obj1 = {
-    a: 1,
-    b: { f: { g: 1 } },
-    c: [1, 2, 3]
+  a: 1,
+  b: { f: { g: 1 } },
+  c: [1, 2, 3],
 };
 let obj2 = _.cloneDeep(obj1);
 ```
 
 4. 通过 jQuery 的 extend 方法实现深拷贝
 
-```
+```js
 let $ = require('jquery');
 let obj1 = {
    a: 1,
@@ -59,7 +98,7 @@ let obj2 = $.extend(true, {}, obj1);
 
 5. 使用递归的方式实现深拷贝
 
-```
+```js
 /**
  * 深拷贝
  */
@@ -109,7 +148,7 @@ console.log(obj.arr[0]); // a3
 - ==
 - if 语句 逻辑判断
 
-```
+```js
 const b = 100 + '10'
 console.log(b); // 10010  100+ parseInt('10)
 
