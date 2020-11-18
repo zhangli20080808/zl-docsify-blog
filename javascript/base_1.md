@@ -1,11 +1,124 @@
 # 值类型 和 引用类型的区别
 
-值类型 undefined Number 数值类型 字符串 布尔值 Symbol
+值类型 undefined number null string boolean Symbol BigInt
 引用类型 对象 数组 null--特殊引用类型，指针指向空数组 函数--特殊引用类型，但不用于存储数据，所以没有拷贝复制函数这一说
 
 # typeOf 运算符
 
 1.判断所有值类型 2.能判断函数 3.能识别引用类型(但不能继续识别)
+对于原始类型 我们直接通过 instanceof 来判断是不行的
+
+```js
+
+Symbol.hasInstance  -- 其实就是可以让我们自定义 instanceof 行为的东西 以上代码等同于 typeof 'hello world' === 'string'， instanceof 也不是百分之百可信的
+
+class PrimitiveString {
+  static [Symbol.hasInstance](x) {
+    return typeof x === 'string'
+  }
+}
+console.log('hello world' instanceof PrimitiveString) // true
+```
+
+# 数据类型转化
+
+![](../static/img/ints.png)
+
+三种情况
+
+1. 转换为布尔值
+   在条件判断时，除了 undefined， null， false， NaN， ''， 0， -0，其他所有值都转为 true，包括所有对象。
+2. 转换为数字
+3. 转换为字符串
+
+# 对象转换类型
+
+对象在转换类型的时候，会调用内置的 [[ToPrimitive]] 函数，对于该函数来说，算法逻辑一般来说如下
+
+1. 如果已经是原始类型了，那就不需要转换了
+2. 如果需要转字符串类型就调用 x.toString()，转换为基础类型的话就返回转换的值。不是字符串类型的话就先调用 valueOf，结果不是基础类型的话再调用 toString
+3. 调用 x.valueOf()，如果转换为基础类型，就返回转换的值
+4. 如果都没有返回原始类型，就会报错
+
+```js
+当然你也可以重写 Symbol.toPrimitive ，该方法在转原始类型时调用优先级最高。
+
+let a = {
+  valueOf() {
+    return 0
+  },
+  toString() {
+    return '1'
+  },
+  [Symbol.toPrimitive]() {
+    return 2
+  }
+}
+1 + a // => 3
+```
+
+# 四则运算符
+
+1. 运算中其中一方为字符串，那么就会把另一方也转换为字符串
+2. 如果一方不是字符串或者数字，那么会将它转换为数字或者字符串
+
+```js
+1 + '1'; // '11'
+true + true; // 2   将true转换为1
+4 + [1, 2, 3]; // "41,2,3"  将数组通过 toString 转为字符串 1,2,3，得到结果 41,2,3
+
+另外注意 'a' + + 'b'   -> aNAN
+因为 + 'b' 等于 NaN  所以我们有时候可以通过 + '1'来快速获取number类型
+
+那么对于除了加法的运算符来说，只要其中一方是数字，那么另一方就会被转为数字
+4 * '3'  //12
+4 * []  // 0
+4 * [1, 2] // NaN   Number([1,2])
+```
+
+# 比较运算符
+
+1. 如果是对象，就通过 toPrimitive 转换对象
+2. 如果是字符串，就通过 unicode 字符索引来比较
+
+```js
+let a = {
+  valueOf() {
+    return 0
+  },
+  toString() {
+    return '1'
+  }
+}
+a > -1 // true
+因为 a 是对象，所以会通过 valueOf 转换为原始类型再比较值。
+
+```
+
+# 变量计算-类型转换
+
+- 字符串拼接
+- ==
+- if 语句 逻辑判断
+
+```js
+const b = 100 + '10'
+console.log(b); // 10010  100+ parseInt('10)
+
+// 除了 == null 其他地方都用 ===
+const obj = { x: 100 };
+if (obj.a == null) {}
+//相当于 if(obj) if (obj.a === null || obj.a === undefined) {}
+
+truely变量：  !!a === true 的变量
+falsely变量：  !!a === false 的变量 比如 !!0 undefined null '' false NaN
+
+我们if语句里面其实判断的就是 truely变量 或者 falsely变量 并不是判断 true/false
+```
+
+# == vs ===
+
+![](../static/img/int2.png)
 
 # 深拷贝
 
@@ -20,12 +133,14 @@
    用 JSON.stringify 把对象转换成字符串，再用 JSON.parse 把字符串转换成新的对象。如果对象中包含 function 或 RegExp 这些就不能用这种方法了
 
    缺点
-    * 对象的属性值是函数时，无法拷贝。
-    * 原型链上的属性无法拷贝
-    * 不能正确的处理 Date 类型的数据
-    * 不能处理 RegExp
-    * 会忽略 symbol
-    * 会忽略 undefined
+
+   - 对象的属性值是函数时，无法拷贝 不能序列化函数。
+   - 原型链上的属性无法拷贝
+   - 不能正确的处理 Date 类型的数据
+   - 不能处理 RegExp
+   - 会忽略 symbol
+   - 会忽略 undefined
+   - 不能解决循环引用的对象
 
 ```js
 function deepClone(obj) {
@@ -85,13 +200,13 @@ let obj2 = _.cloneDeep(obj1);
 ```js
 let $ = require('jquery');
 let obj1 = {
-   a: 1,
-   b: {
-     f: {
-       g: 1
-     }
-   },
-   c: [1, 2, 3]
+  a: 1,
+  b: {
+    f: {
+      g: 1,
+    },
+  },
+  c: [1, 2, 3],
 };
 let obj2 = $.extend(true, {}, obj1);
 ```
@@ -106,17 +221,25 @@ const obj = {
   name: 'zhangli',
   age: 20,
   address: {
-    city: 'beijing'
+    city: 'beijing',
   },
-  arr: [1, 2, 3]
+  arr: [1, 2, 3],
 };
 /**
  * 深拷贝
  * @param {*} obj  要拷贝的对象
  */
+
 function deepClone(obj = {}) {
   //如果不是对象或者数组 直接返回F
-  if (typeof obj !== 'object' || typeof obj == null) {
+  function isObject(o) {
+    return (typeof o === 'object' || typeof o === 'function') && o !== null;
+  }
+  if (
+    typeof obj !== 'object' ||
+    typeof obj == null || 
+    typeof obj === 'function'
+  ) {
     return obj;
   }
   //初始化结果
@@ -134,31 +257,18 @@ function deepClone(obj = {}) {
     }
   }
   return result;
+
+  // let isArray = Array.isArray(obj);
+  // let newObj = isArray ? [...obj] : { ...obj };
+  // Reflect.ownKeys(newObj).forEach((key) => {
+  //   newObj[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key];
+  // });
+
+  // return newObj;
 }
 const obj2 = deepClone(obj);
 obj2.address.city = 'gansu';
-obj2.arr[0] = 'a3'
+obj2.arr[0] = 'a3';
 console.log(obj.address.city); //beijing
 console.log(obj.arr[0]); // a3
-```
-
-# 变量计算-类型转换
-
-- 字符串拼接
-- ==
-- if 语句 逻辑判断
-
-```js
-const b = 100 + '10'
-console.log(b); // 10010  100+ parseInt('10)
-
-// 除了 == null 其他地方都用 ===
-const obj = { x: 100 };
-if (obj.a == null) {}
-//相当于 if(obj) if (obj.a === null || obj.a === undefined) {}
-
-truely变量：  !!a === true 的变量
-falsely变量：  !!a === false 的变量 比如 !!0 undefined null '' false NaN
-
-我们if语句里面其实判断的就是 truely变量 或者 falsely变量 并不是判断 true/false
 ```

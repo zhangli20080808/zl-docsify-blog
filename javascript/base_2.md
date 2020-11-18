@@ -60,6 +60,12 @@ console.log([] instanceof Object, {} instanceof Object); // true true
 
 class 实际上是函数，可见是语法糖 typeof Student; //function
 隐式原型 **proto** 和 显式原型 prototype
+简单理解 : 其实原型链就是多个对象通过 **proto** 的方式连接了起来。为什么 obj 可以访问到 valueOf 函数，就是因为 obj 通过原型链找到了 valueOf 函数。
+
+1. Object 是所有对象的爸爸，所有对象都可以通过 **proto** 找到它
+2. Function 是所有函数的爸爸，所有函数都可以通过 **proto** 找到它
+3. 函数的 prototype 是一个对象
+4. 对象的 **proto** 属性指向原型， **proto** 将对象和原型连接起来组成了原型链
 
 ```js
 console.log(xiaohong.__proto__);
