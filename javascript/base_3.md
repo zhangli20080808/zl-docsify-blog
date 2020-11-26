@@ -7,7 +7,24 @@
 
 一个变量在当前作用域没有定义，但被使用了 向上级作用域(父级作用域)层层查找，知道找到为止 如果到全局作用域还没有找到，那就是 not defined 属性查找机制
 
-自由变量的查找，是在函数定义的地方，向上级作用域查找，不是在执行的地方！！！
+自由变量的查找，是在函数定义的地方，向上级作用域查找，不是在执行的地方！！！(注意)
+
+```js
+var num = 12;
+function fn() {
+  var num = 120;
+  return function () {
+    console.log(num);
+  };
+}
+var f = fn();
+f(); //->120
+function sum() {
+  var num = 1200;
+  f(); //->120
+}
+sum();
+```
 
 # 闭包
 
@@ -16,7 +33,10 @@
 1. 函数作为参数被传递
 2. 函数作为返回值被返回
 
-闭包的两大作用 1.保护私有变量不被外界干扰 2.利用他不销毁的原理存储一些值(单例)
+闭包的两大作用
+
+1. 避免全局变量之间的冲突,保护私有变量不被外界干扰 (所有框架/类库的源码都是写在一个闭包函数中的,目的就是为了不和别人的代码冲突)
+2. 利用他不销毁的原理存储一些值(单例)
 
 注意？所有的自由变量的查找，是在函数定义的地方，向上级作用域查找，不是在执行的地方
 
@@ -121,7 +141,68 @@ for (let i = 0; i < 10; i++) {
 }
 ```
 
-# this 的几种赋值情况
+# this 的几种赋值情况总结
+
+## 基础实例总结
+
+```js
+/*  在全局作用域声明的变量可以看作是window的一个属性
+ *   this关键字不仅仅存在于函数中，但是我们主要研究函数体内的this
+ *   但是函数中的this无外乎就5种情况
+ *       1 给元素绑定事件，当事件被触发的时候，this就是当前元素
+ *       2 this是谁跟函数在哪里定义和执行没什么关系，就看函数执行的时候前面的'.'点，点前面是谁this就是谁,没有点就是window
+ *       3 自运行函数的this永远是window,无论这个自运行函数在哪
+ *
+ *
+ *       4  构造函数（类）中的this是当前实例
+ *       5  this可以通过call和apply去改变,这个优先级最高
+ *
+ * */
+//1
+document.getElementById('div1').onclick = function () {
+  //this div1
+  fn();
+};
+//2
+function fn() {
+  console.log(this);
+}
+var obj = {
+  fn: fn,
+};
+//window.fn(); //this?   window
+//obj.fn(); //obj
+
+//a = 7; //
+
+//console.log(window.a); //???
+
+var oo = {
+  sum: function () {
+    console.log(this);
+    fn();
+  },
+};
+//fn();
+//oo.sum(); //this????  oo
+
+//3
+
+var obj2 = {
+  fn: (function () {
+    console.log(this); //自执行函数的this永远是window
+
+    return function () {
+      //var xxx = 89;
+      console.log(this);
+      return function () {};
+    };
+  })(),
+};
+console.log(obj2.fn);
+//obj2.fn()//???? window obj2
+alert(window.xxx); //???
+```
 
 1. 在 class 方法中调用
 2. 箭头函数
@@ -410,4 +491,51 @@ console.log(my.get());
   w.$$ = zhangli;
 })(window);
 $$.add();
+```
+
+# 理解小题目
+
+```js
+var num = 20; //window.num = 20;  ==> 60 ==>240
+var obj = {
+  num: 30,
+  fn: (function (num) {
+    // 形参num相当于在函数体声明了一个num变量，并且赋值20; var num = 20;
+    //var num = 20;  相当于在这个作用于声明了一个num变量，并且赋值20。并且是这个作用域的私有变量
+    //this.num *= 3; //自执行函数的this是window ==>window.num *=3;
+    num += 15; // 35
+    var num = 45; //在函数执行的时候，如果在声明的变量之前有和变量名字相同的形参，那么有var和没有var的效果是一样的。代码执行到这的时候就是一个赋值操作
+    return function () {
+      this.num *= 4; //window.num *= 4;
+      num += 20; //当前作用域没有声明一个叫num的变量，那就去上一级作用域去寻找，一直到window。如果没有就报错了
+      console.log(num);
+    };
+  })(num), //num?? obj.num 我们这里的num是全局的20，而不是对象里的num30
+};
+
+var fn = obj.fn; //
+fn(); //65
+//obj.fn();//  85
+//console.log(window.num, obj.num);//240,120
+
+=================================================================
+function fn(i) {
+  //参数相当于在函数体内声明了一个变量
+  var i = 10; //第一次执行完27行的时候，我们的i被修改了一次
+  i = 10;
+  //debugger;
+  //console.log(a);
+  return function (n) {
+    //return的值即使是一个函数也不会被提前声明
+    console.log(n + ++i);
+  };
+};
+//fn();
+//var f = fn();  //首先产生一个私有的作用域，形参赋值，预解释，逐行执行
+
+//f(45);//56 形参赋值，预解释，代码执行
+//f(34); //46
+//f(45);
+//fn()(34); //45  函数执行完的返回值立即执行，也是作用域不被释放情况之一
+//fn()(56); //67
 ```

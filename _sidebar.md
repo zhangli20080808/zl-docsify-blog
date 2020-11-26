@@ -39,6 +39,7 @@
   - [JS-Web-Api-Bom](/javascript/base_6.md)
   - [JS-Web-Api-Ajax](/javascript/base_7.md)
   - [JS-Web-Api-存储](/javascript/base_7.md)
+  - [JS-核心原理解析](/javascript/base_10.md)
 
 * TypeScript
 

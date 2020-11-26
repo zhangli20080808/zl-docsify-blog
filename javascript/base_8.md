@@ -51,7 +51,7 @@
   - Content-type 返回数据格式
   - ContentL-length 返回数据大小 多少字节
   - Content-Encoding 告诉你用什么方法压缩的 gzip
-  - set-cookie 服务端设置cookie
+  - set-cookie 服务端设置 cookie
   - Location 重定向的地址
 - 自定义 header
 
@@ -147,13 +147,15 @@ If-None-Match: W/"2aaa-129892f459"
    Service Worker 是⼀种独⽴于主线程之外的 Javascript 线程。它脱离于浏览器窗体，算是幕后⼯作，可
    以实现离线缓存，⽹络代理等
 
-```
-window.navigator.serviceWorker.register('/kaikeba.js').then(
-function () {
-console.log('注册成功')
- }).catch(err => {
-console.error("注册失败")
- })
+```js
+window.navigator.serviceWorker
+  .register('/kaikeba.js')
+  .then(function () {
+    console.log('注册成功');
+  })
+  .catch((err) => {
+    console.error('注册失败');
+  });
 ```
 
 4. push cache
@@ -162,10 +164,10 @@ console.error("注册失败")
 # 缓存场景
 
 对于大部分的场景都可以使用强缓存配合协商缓存解决，但是在一些特殊的地方可能需要选择特殊的缓存策略
+
 1. 对于某些不需要缓存的资源，可以使用 Cache-control: no-store ，表示该资源不需要缓存
 2. 对于频繁变动的资源，可以使用 Cache-Control: no-cache 并配合 ETag 使用，表示该资源已被缓存，但是每次都会发送请求询问资源是否更新
 3. 对于代码文件来说，通常使用 Cache-Control: max-age=31536000 并配合策略缓存使用，然后对文件进行指纹处理，一旦文件名变动就会立刻下载新的文件
-
 
 # 前端部署最佳实践(缓存)
 
@@ -216,15 +218,15 @@ cdn 单独的域名，浏览器并发获取
 
 2. window.onLoad 和 DOMContentLoad 的区别
 
-```
-  window.addEventListener('load', function() {
+```js
+window.addEventListener('load', function () {
   //页面的全部资源全部加载完才会执行，包括图片 视频
-  });
+});
 
-  window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function () {
   // DOM 渲染完即可执行 此时图片 视频 可能还没加载完
   // 比如 jquery 一般都会监听这个事件 如果监听到 我们就默认网页加载结束了
-  });
+});
 ```
 
 # 前端性能优化
@@ -283,7 +285,7 @@ CDN=更智能的镜像+缓存+流量导流
 - 尽早开始执行 js，用 DOMContentLoaded 触发
 - 懒加载(图片懒加载，上滑加载更多)
 
-```
+```js
  图片懒加载作用:保证页面打开的速度(3s之内如果首页打不开就已经算是死亡页面了)
  对于首屏内容中的图片:首先给对应的区域一张默认图片占着位置(默认图需要非常的小,一般可以维持在5kb以内),当首屏内容都加载完成后(或者也可以给一个延迟的时间),我在开始加载真实的图片
  对于其它屏中的图片:也是给一张默认的图片占位,当滚动条滚动到对应区域的时候,我们在开始加载真实的图片
@@ -328,7 +330,7 @@ CDN=更智能的镜像+缓存+流量导流
 
 1. 防抖
 
-```
+```js
 防抖 用户在输入结束 或 暂停的时候我们开始请求 频繁操作，频繁输入最后触发
 触发高频事件后n秒内函数只会执行一次，如果n秒内高频事件再次被触发，则重新计算时间
 思路 每次触发事件时都取消之前的延时调用方法
@@ -363,7 +365,7 @@ input1.addEventListener(
    高频事件触发，但在 n 秒内只会执行一次，所以节流会稀释函数的执行频率
    思路？ 每次触发事件时都判断当前是否有等待执行的延时函数
 
-```
+```js
 节流场景
 1. 拖拽一个元素时，要随时拿到该元素被拖拽的位置
 2. 直接用drag事件，则会频繁触发，很容易导致卡顿
@@ -398,7 +400,7 @@ function throttle(fn, delay = 100) {
    图片我们不写 src data-src 在滑动的过程中 图片不动了 判断这个图片出现在视窗中了 将 data-scr 赋值给 src
    判断滚动的事件 是否加载懒加载判断的这个函数 就可以使用防抖
 
-```
+```js
 // 获取所有的图⽚标签
 const imgs = document.getElementsByTagName('img');
 // 获取可视区域的⾼度
@@ -420,8 +422,20 @@ function lazyload() {
 }
 // 监听Scroll事件
 window.addEventListener('scroll', lazyload, false);
-
 ```
+
+# 首屏加载优化方法总结
+
+- Vue-Router 路由懒加载（利用 Webpack 的代码切割）
+- 使用 CDN 加速，将通用的库从 vendor 进行抽离
+- Nginx 的 gzip 压缩
+- Vue 异步组件
+- 服务端渲染 SSR
+- Webpack 开启 gzip 压缩
+- Service Worker 缓存文件处理
+- 使用 link 标签的 rel 属性设置 prefetch
+- prefetch（这段资源将会在未来某个导航或者功能要用到，但是本资源的下载顺序权重比较低，prefetch 通常用于加速下一次导航）
+- preload（preload 将会把资源得下载顺序权重提高，使得关键数据提前下载好，优化页面打开速度）
 
 # 雅虎军规
 
