@@ -5,30 +5,6 @@
 - Egg
 - [概念理解](/Egg/1.md)
 
-* Vue
-* [基本使用](/vue/3.md)
-* [高级使用总结](/vue/2.md)
-* [vue 源码分析](/vue/vueAnalysis.md)
-* [MVVM 理解](/vue/1.md)
-*
-
-- [**React**](/react/index.md)
-
-  - [react 原理解析](/react/reactAnalysis.md)
-  - [从 redux 到 react-redux 再到 dva](/react/reduxFlows.md)
-  - [HOC](/react/hoc.md)
-  - [hooks]()
-  - [合成事件](/react/composeEvent.md)
-  - [基础使用](/react/baseUse/1.md)
-  - [高级使用](/react/advanceUse/1.md)
-
-- JavaScript 基础
-  - [盒子模型和盒子偏移量](/javascript/base9.md)
-
-* 移动端
-
-  - [移动端总结](/mobile/base1.md)
-
 * JavaScript
 
   - [JS 基础-变量类型计算](/javascript/base_1.md)
@@ -40,6 +16,40 @@
   - [JS-Web-Api-Ajax](/javascript/base_7.md)
   - [JS-Web-Api-存储](/javascript/base_7.md)
   - [JS-核心原理解析](/javascript/base_10.md)
+  - 盒子模型和盒子偏移量](/javascript/base9.md)
+
+* Vue
+* [基本使用](/vue/3.md)
+* [高级使用总结](/vue/2.md)
+* [vue 源码分析](/vue/vueAnalysis.md)
+* [MVVM 理解](/vue/1.md)
+
+* ES6 技巧
+
+  - [常用命令](/es6/1.md)
+  - [概念理解](/es6/4.md)
+
+* Promise 学习总结
+
+  - [概念理解](/promise总结/1.md)
+
+* proxy 代理响应式比较总结
+
+  - [概念理解](/es6/5.md)
+
+- [**React**](/react/index.md)
+
+  - [react 原理解析](/react/reactAnalysis.md)
+  - [从 redux 到 react-redux 再到 dva](/react/reduxFlows.md)
+  - [HOC](/react/hoc.md)
+  - [hooks]()
+  - [合成事件](/react/composeEvent.md)
+  - [基础使用](/react/baseUse/1.md)
+  - [高级使用](/react/advanceUse/1.md)
+
+* 移动端
+
+  - [移动端总结](/mobile/base1.md)
 
 * TypeScript
 
@@ -118,19 +128,6 @@
 * 混合开发
 
   - [常用命令](/app/1.md)
-
-* ES6 技巧
-
-  - [常用命令](/es6/1.md)
-  - [概念理解](/es6/4.md)
-
-* Promise 学习总结
-
-  - [概念理解](/promise总结/1.md)
-
-* proxy 代理响应式比较总结
-
-  - [概念理解](/es6/5.md)
 
 * 链接总结
   - [better-scroll](/es6/2.md)
