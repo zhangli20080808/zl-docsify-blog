@@ -67,15 +67,19 @@ export default { createElement };
 2.  创建 kreact-dom：实现 render，能够将 kvdom 返回的 dom 追加至 container
 
 ```js
-import initVNode from './kdom';
-
-function render(vnode, container) {
-  // container.innerHTML = `<pre>${JSON.stringify(vnode, null, 2)}</pre>`
-
-  container.appendChild(initVNode(vnode));
+import initVNode from './kdom'
+/**
+ * 虚拟Dom转换为真实Dom,并插入到容器里
+ * @param vNode 虚拟dom
+ * @param container 插入的容器
+ */
+function render (vNode, container) {
+  // container.innerHTML = `<pre>${JSON.stringify(vNode, null, 2)}</pre>`
+  const dom = initVNode(vNode)
+  container.appendChild(dom)
 }
 
-export default { render };
+export default { render }
 ```
 
 3. 创建 kvdom：实现 initVNode，能够将 vdom 转换为 dom
