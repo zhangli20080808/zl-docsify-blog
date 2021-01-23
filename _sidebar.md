@@ -39,13 +39,13 @@
 
 - [**React**](/react/index.md)
 
-  - [react 原理解析](/react/reactAnalysis.md)
-  - [从 redux 到 react-redux 再到 dva](/react/reduxFlows.md)
-  - [HOC](/react/hoc.md)
-  - [hooks]()
-  - [合成事件](/react/composeEvent.md)
   - [基础使用](/react/baseUse/1.md)
   - [高级使用](/react/advanceUse/1.md)
+  - [合成事件](/react/composeEvent.md)
+  - [HOC](/react/hoc.md)
+  - [从 redux 到 react-redux 再到 dva](/react/reduxFlows.md)
+  - [hooks]()
+  - [react 原理解析](/react/reactAnalysis.md)
 
 * 移动端
 
