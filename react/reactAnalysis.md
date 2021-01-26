@@ -6,11 +6,11 @@
 
 createElement、Component、render 三个 api
 
-1. 创建 kreact：实现 createElement 并返回 vdom
+## 创建 kreact：实现 createElement 并返回 vdom
 
 ```js
-import initVNode from './kdom'
-import { isFunc } from './util'
+import initVNode from './kdom';
+import { isFunc } from './util';
 
 /**
  * 什么时候用对象 什么时候用类
@@ -20,38 +20,42 @@ import { isFunc } from './util'
 export const updateQueue = {
   updaters: [], // 更新器数组
   isBatchingUpdate: false, // 是否处于批量更新模式 默认 非批量更新
-  add (updater) {  // 增加一个更细器
-    this.updaters.push(updater)
+  add(updater) {
+    // 增加一个更细器
+    this.updaters.push(updater);
   },
-  batchUpdate () { // 强制批量更新组件更新
-    this.updaters.forEach(update => update.updateComponent())
-    this.isBatchingUpdate = false
-  }
-}
+  batchUpdate() {
+    // 强制批量更新组件更新
+    this.updaters.forEach((update) => update.updateComponent());
+    this.isBatchingUpdate = false;
+  },
+};
 
 // 更新器会有多个 不断去创建实例
 
 class Updater {
-  constructor (classInstance) {
-    this.classInstance = classInstance  // 类组件的实例
-    this.pendingStates = []  //等待更新的状态
+  constructor(classInstance) {
+    this.classInstance = classInstance; // 类组件的实例
+    this.pendingStates = []; //等待更新的状态
   }
 
-  addState (partialState) {
+  addState(partialState) {
     // 先将这个分状态添加到 pendingStates 数组中去
-    this.pendingStates.push(partialState)
+    this.pendingStates.push(partialState);
     // 如果当前处于批量更新模式，也就是异步更新模式 把当前实例放到 updateQueue 里
     // 如果是非批量更新 也就是同步更新 则调用 updateComponent 直接更新
-    updateQueue.isBatchingUpdate ? updateQueue.add(this) : this.updateComponent()
+    updateQueue.isBatchingUpdate
+      ? updateQueue.add(this)
+      : this.updateComponent();
   }
 
-  updateComponent () {
-    let { classInstance, pendingStates } = this
+  updateComponent() {
+    let { classInstance, pendingStates } = this;
     if (pendingStates.length > 0) {
       // 拿到组件的老状态和数组中的新状态数组进行合并
-      classInstance.state = this.getState()
+      classInstance.state = this.getState();
       // 让组件强制更新
-      classInstance.forceUpdate()
+      classInstance.forceUpdate();
     }
   }
 
@@ -59,20 +63,21 @@ class Updater {
    * 根据老状态和等待生效的新状态，得到最后新状态
    * @returns { state } 获取最新state
    */
-  getState () {
-    let { classInstance, pendingStates } = this
-    let state = classInstance.state // 组件XXX.state
+  getState() {
+    let { classInstance, pendingStates } = this;
+    let state = classInstance.state; // 组件XXX.state
     // 需要更新   拿到组件的老状态和数组中的新状态数组进行合并
     if (pendingStates.length > 0) {
-      pendingStates.forEach(newState => {
-        if (isFunc(newState)) { // 如果势函数
-          newState = newState(state)
+      pendingStates.forEach((newState) => {
+        if (isFunc(newState)) {
+          // 如果势函数
+          newState = newState(state);
         }
-        state = { ...state, ...newState } // 新状态覆盖老状态
-      })
-      pendingStates.length = 0 //清空
+        state = { ...state, ...newState }; // 新状态覆盖老状态
+      });
+      pendingStates.length = 0; //清空
     }
-    return state
+    return state;
   }
 }
 
@@ -83,101 +88,101 @@ class Updater {
  * @param children 第一个儿子
  * @returns {{vType: number, type, props}} 虚拟dom，也就是我们的react元素
  */
-export function createElement (type, config, children) {
+export function createElement(type, config, children) {
   // console.log( children) // 虚拟dom的创建是由内向外的
   if (config) {
-    delete config._owner
-    delete config._store
+    delete config._owner;
+    delete config._store;
   }
   // 返回虚拟DOM
   if (arguments.length > 3) {
-    children = Array.prototype.slice.call(arguments, 2)
+    children = Array.prototype.slice.call(arguments, 2);
   }
   // children 可能是数组(多于一个儿子) 也有可能是字符串、数子 或者 null 也可能是个react元素
-  let props = { ...config }
-  props.children = children
+  let props = { ...config };
+  props.children = children;
   // 能够区分组件类型：  因为后续的dom操作要根据类型去做
   // vType: 1-原生标签；2-函数组件；3-类组件
-  let vType
+  let vType;
   if (typeof type === 'function') {
     // class组件
     if (type.isReactComponent) {
-      vType = 3
+      vType = 3;
     } else {
       // 函数组件
-      vType = 2
+      vType = 2;
     }
   } else if (typeof type === 'string') {
     //原始标签
-    vType = 1
+    vType = 1;
   }
 
   return {
     vType,
     type,
-    props
-  }
+    props,
+  };
 }
 
 // 每个类组件都会实现自己的render方法 约定 实例化的时候去调用生成vnode
 class Component {
   //标识符 区分class和函数组件
-  static isReactComponent = true
+  static isReactComponent = true;
 
-  constructor (props) {
-    this.props = props
-    this.state = {}
+  constructor(props) {
+    this.props = props;
+    this.state = {};
     //  我们为每一个组件实例 配一个 updater实例
-    this.updater = new Updater(this)
+    this.updater = new Updater(this);
   }
 
   /**
    * 同步更新逻辑
    * @param partialState
    */
-  setState (partialState) {
+  setState(partialState) {
     // this.state = { ...this.state, ...partialState }
     // let renderVNode = this.render() // 重新调用render方法得到虚拟dom
     // updateClassInstance(this, renderVNode)
 
     // 我们的组件不再直接负责更新了
-    this.updater.addState(partialState)
+    this.updater.addState(partialState);
   }
 
-  forceUpdate () {
-    let renderVNode = this.render()
-    updateClassComponent(this, renderVNode)
+  forceUpdate() {
+    let renderVNode = this.render();
+    updateClassComponent(this, renderVNode);
   }
 }
 
-function updateClassComponent (classInstance, renderVNode) {
+function updateClassComponent(classInstance, renderVNode) {
   // 机械替换 后续换成diff
-  let oldDom = classInstance.dom
-  let newDom = initVNode(renderVNode)  // 真实dom
-  oldDom.parentNode.replaceChild(newDom, oldDom)
-  classInstance.dom = newDom
+  let oldDom = classInstance.dom;
+  let newDom = initVNode(renderVNode); // 真实dom
+  oldDom.parentNode.replaceChild(newDom, oldDom);
+  classInstance.dom = newDom;
 }
 ```
 
-2.  创建 kreact-dom：实现 render，能够将 kvdom 返回的 dom 追加至 container
+## 创建 kreact-dom：实现 render，能够将 kvdom 返回的 dom 追加至 container
 
 ```js
-import initVNode from './kdom'
+import initVNode from './kdom';
 /**
  * 虚拟Dom转换为真实Dom,并插入到容器里
  * @param vNode 虚拟dom
  * @param container 插入的容器
  */
-function render (vNode, container) {
+function render(vNode, container) {
   // container.innerHTML = `<pre>${JSON.stringify(vNode, null, 2)}</pre>`
-  const dom = initVNode(vNode)
-  container.appendChild(dom)
+  const dom = initVNode(vNode);
+  container.appendChild(dom);
 }
 
-export default { render }
+export default { render };
 ```
 
-3. 创建 kvdom：实现 initVNode，能够将 vdom 转换为 dom
+## 创建 kvdom：实现 initVNode，能够将 vdom 转换为 dom
 
 ```js
 /**
@@ -185,54 +190,58 @@ export default { render }
  * @param vnode null 数字 字符串 react元素 不能是数组
  * @returns {Text|any}
  */
-import ReactDom from './kreact-dom'
+import ReactDom from './kreact-dom';
+import { addEvent } from './event';
 
-export default function initVNode (vnode) {
+export default function initVNode(vnode) {
   if (!vnode) {
-    return ''
+    return '';
   }
   // 如果textContent是一个字符串或者数字的话，创建一个文本的节点返回
   if (typeof vnode === 'string' || typeof vnode === 'number') {
-    return document.createTextNode(vnode)
+    return document.createTextNode(vnode);
   }
   // 负责就是要给react元素
-  let { vType } = vnode
+  let { vType } = vnode;
   if (!vType) {
     //文本节点
-    return document.createTextNode(vnode)
+    return document.createTextNode(vnode);
   }
   // vType: 1-原生标签；2-函数组件；3-类组件
   if (vType === 1) {
     //原生标签
-    return createNativeElement(vnode)
+    return createNativeElement(vnode);
   } else if (vType === 2) {
     //函数组件
-    return createFuncComp(vnode)
+    return createFuncComp(vnode);
   } else {
     //类组件
-    return createClassComp(vnode)
+    return createClassComp(vnode);
   }
 }
 
-function createNativeElement (vnode) {
-  const { type, props } = vnode
+function createNativeElement(vnode) {
+  const { type, props } = vnode;
   //'div'  {id:'demo',children:[],key,ref，style: { color: 'red' }}
-  const node = document.createElement(type)  // span div
-  updateProps(node, props)  // 更新属性 把虚拟Dom上的属性设置到真实Dom上
+  const node = document.createElement(type); // span div
+  updateProps(node, props); // 更新属性 把虚拟Dom上的属性设置到真实Dom上
   // 处理子节点 如果子节点就是一个单节点 并且是字符串或者数字
-  if (typeof props.children === 'string' || typeof props.children === 'number') {
-    node.textContent = props.children // node.textContent = 'hello'
+  if (
+    typeof props.children === 'string' ||
+    typeof props.children === 'number'
+  ) {
+    node.textContent = props.children; // node.textContent = 'hello'
     // 说明是一个单 react 元素
   } else if (typeof props.children === 'object' && props.children.type) {
-    ReactDom.render(props.children, node)
+    ReactDom.render(props.children, node);
     // 如果儿子是一个数组，说明有多个节点
   } else if (typeof Array.isArray(props.children)) {
-    reconcileChildren(props.children, node)
+    reconcileChildren(props.children, node);
   } else {
     // 如果出现其他的以为情况 null 就是空串
-    node.textContent = props.children ? props.children.toString() : ''
+    node.textContent = props.children ? props.children.toString() : '';
   }
-  return node
+  return node;
 }
 
 /**
@@ -240,27 +249,28 @@ function createNativeElement (vnode) {
  * @param node dom元素
  * @param props 属性对象
  */
-function updateProps (node, props) {
-  const { key, children, ...rest } = props
-  Object.keys(rest).forEach(item => {
+function updateProps(node, props) {
+  const { key, children, ...rest } = props;
+  Object.keys(rest).forEach((item) => {
     // 需特殊处理的htmlFor，className,style
     if (item === 'className') {
-      node.setAttribute('class', rest[item])
+      node.setAttribute('class', rest[item]);
     } else if (item === 'htmlFor') {
-      node.setAttribute('for', rest[item])
+      node.setAttribute('for', rest[item]);
     } else if (item === 'style') {
-      const styleObj = rest[item]
-      Object.keys(styleObj).forEach(cur => {
-        node.style[cur] = styleObj[cur]  // node.style.color = 'red'
-      })
+      const styleObj = rest[item];
+      Object.keys(styleObj).forEach((cur) => {
+        node.style[cur] = styleObj[cur]; // node.style.color = 'red'
+      });
       // 点击事件 onClick
     } else if (item.startsWith('on')) {
       // node.onclick = onclick函数
-      node[item.toLocaleLowerCase()] = props[item]
+      // node[item.toLocaleLowerCase()] = props[item]
+      addEvent(node, item.toLocaleLowerCase(), rest[item]);
     } else {
-      node.setAttribute(item, rest[item])
+      node.setAttribute(item, rest[item]);
     }
-  })
+  });
 }
 
 /**
@@ -268,11 +278,11 @@ function updateProps (node, props) {
  * @param children 子节点的虚拟Dom数组
  * @param parentNode 父节点的真实Dom
  */
-function reconcileChildren (children, parentNode) {
+function reconcileChildren(children, parentNode) {
   //递归子元素Node
-  children.forEach(childrenVNode => {
-    ReactDom.render(childrenVNode, parentNode)
-  })
+  children.forEach((childrenVNode) => {
+    ReactDom.render(childrenVNode, parentNode);
+  });
 }
 
 /**
@@ -286,11 +296,11 @@ function reconcileChildren (children, parentNode) {
  * vnode {type: Welcome ,props: { name :'zl'}}
  * newVNode { type: 'h1', props :{ children: { hello,zl }} }
  */
-function createFuncComp (vnode) {
-  const { type, props } = vnode
+function createFuncComp(vnode) {
+  const { type, props } = vnode;
   // function   此处type是一个函数 newVNode 可能是一个原生虚拟dom，也可能是一个组件虚拟dom
-  const newVNode = type(props)
-  return initVNode(newVNode)
+  const newVNode = type(props);
+  return initVNode(newVNode);
 }
 
 /**
@@ -310,18 +320,106 @@ function createFuncComp (vnode) {
  *    2> 调动实例的render方法(想想我们平常写的render方法和return)得到一个react元素
  *    3> 把返回的虚拟dom转成真实dom，插入到页面中去
  */
-function createClassComp (vnode) {
-  const { type, props } = vnode
+function createClassComp(vnode) {
+  const { type, props } = vnode;
   // class xxx  此处type是一个class
-  const comp = new type(props)  // new Welcome({name:'zl'})
+  const comp = new type(props); // new Welcome({name:'zl'})
   //vNode 如何得到？ 调用组件自身的 render方法
-  const newVNode = comp.render()
+  const newVNode = comp.render();
   //一定要记住 要转化成真实节点 让类组件实例上挂载一个dom，指向类组件的真实dom ->  组件更新的时候会用到
-  const dom = initVNode(newVNode)
-  comp.dom = dom
-  return dom
+  const dom = initVNode(newVNode);
+  comp.dom = dom;
+  return dom;
 }
 ```
+
+## 合成事件
+
+```js
+/**
+ * 合成事件
+ * 1. 我们的事件对象是一个临时对象 用完就销毁掉了 实现一个共享对象的效果，节约内存 方便回收
+ * 2. 为了批量更新  updateQueue
+ * event 不是dom原生的 是经过react封装的 事件委托->document 在react17 绑定到根节点了
+ */
+handleClick = (event) => {
+// event.persist() // persist 把这个event持久化  事件执行后不销毁
+setTimeout(() => {
+    console.log(event)
+}, 1000)
+// updateQueue.isBatchingUpdate = true
+this.setState({ number: this.state.number + 1 })
+console.log(this.state.number) // 0
+this.setState({ number: this.state.number + 1 })
+console.log(this.state.number)  // 0
+setTimeout(() => {
+    this.setState({ number: this.state.number + 1 })
+    console.log(this.state.number)  // 2
+    this.setState({ number: this.state.number + 1 })
+    console.log(this.state.number)  // 3
+})
+// updateQueue.batchUpdate()
+}
+-----------------------------------------------------------------
+import { updateQueue } from './kreact';
+
+/**
+ * 给哪个dom元素绑定哪种类型的事件
+ * @param dom 给哪个dom元素绑定事件 button 真实dom元素
+ * @param eventType 事件类型 onClick
+ * @param listener 事件处理函数 fn
+ */
+export function addEvent(dom, eventType, listener) {
+  // 给dom增加一个store属性，值是一个空对象
+  let store = dom.store || (dom.store = {});
+  store[eventType] = listener; // store.onclick = handleClick
+  if (!document[eventType]) {
+    // 有可能会覆盖用户的赋值操作 也有可能会被用户赋值覆盖掉
+    document[eventType] = dispatchEvent; // document.onclick = dispatchEvent
+  }
+}
+
+let syntheticEvents = {};
+
+/**
+ * 为什么需要合成事件 作用是什么
+ * 1. 可以实现批量更新
+ * 2. 可以实现事件对象的缓存和回收
+ * @param event
+ */
+function dispatchEvent(event) {
+  // event是原生事件DOM对象
+  let { target, type } = event; // type-> click target-> 事件源 button
+  let eventType = `on${type}`; // onclick
+  // 异步更新
+  updateQueue.isBatchingUpdate = true;
+  let syntheticEvent = createSyntheticEvent(event);
+
+  while (target) {
+    let { store } = target;
+    // 调用事件 store存储过了
+    let listener = store && store[eventType];
+    // 包装事件 绑定了事件我们再去执行 不然点击没有绑定的区域会有问题
+    // 自己实现事件冒泡
+    listener && listener.call(target, syntheticEvent);
+    target = target.parentNode;
+  }
+  for (const key in syntheticEvent) {
+    syntheticEvents[key] = null;
+  }
+  updateQueue.batchUpdate();
+}
+
+function createSyntheticEvent(nativeEvent) {
+  for (const key in nativeEvent) {
+    syntheticEvents[key] = nativeEvent[key];
+  }
+  return syntheticEvents;
+}
+```
+## ref
+1. refs提供了一种方式，允许我们访问dom节点或者在render方法中创建的react元素
+2. 在react渲染声明周期时，表单上的value值将会覆盖dom节点中的值，在非受控组件中，我们希望react能赋予组件一个初始值，但是不去控制后续的更新，在这种情况下，可以指定一个defaultValue，而不是value
 
 # setState 原理
 
