@@ -2,6 +2,11 @@
 
 [react 原理解析](https://yuchengkai.cn/react/)
 
+# jsx 
+
+是一种语法，打包的时候会进行编译，编译成 react.createElement,createElement 只是创建 react 元素的方法，
+react 元素=虚拟 dom，也就是一个普通的 jsx 对象，描述了 dom 真实的样子
+
 # 核心 api
 
 createElement、Component、render 三个 api
@@ -417,9 +422,11 @@ function createSyntheticEvent(nativeEvent) {
   return syntheticEvents;
 }
 ```
+
 ## ref
-1. refs提供了一种方式，允许我们访问dom节点或者在render方法中创建的react元素
-2. 在react渲染声明周期时，表单上的value值将会覆盖dom节点中的值，在非受控组件中，我们希望react能赋予组件一个初始值，但是不去控制后续的更新，在这种情况下，可以指定一个defaultValue，而不是value
+
+1. refs 提供了一种方式，允许我们访问 dom 节点或者在 render 方法中创建的 react 元素
+2. 在 react 渲染声明周期时，表单上的 value 值将会覆盖 dom 节点中的值，在非受控组件中，我们希望 react 能赋予组件一个初始值，但是不去控制后续的更新，在这种情况下，可以指定一个 defaultValue，而不是 value
 
 # setState 原理
 
