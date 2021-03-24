@@ -2,8 +2,11 @@
 
 [react 原理解析](https://yuchengkai.cn/react/)
 
-# jsx 
+# jsx
 
+不能说 jsx 就是 react 元素？
+jsx= react.createElement
+在浏览器执行的时候，createElement 的返回值才是 react 元素=虚拟 DOM
 是一种语法，打包的时候会进行编译，编译成 react.createElement,createElement 只是创建 react 元素的方法，
 react 元素=虚拟 dom，也就是一个普通的 jsx 对象，描述了 dom 真实的样子
 
