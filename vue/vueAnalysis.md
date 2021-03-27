@@ -4,6 +4,14 @@
 
 > [黄老师](https://github.com/ustbhuangyi/)，曾任职百度、滴滴，现担任 Zoom 前端架构师，《Vue.js 权威指南》主要作者。这本书也是我的第一本 vue 书籍。
 
+# 原理 
+* 组件化
+* 模板编译
+* 响应式
+* 渲染过程
+* vdom和diff
+* 前端路由
+
 # vue 设计架构
 
 vue2 采用的是典型的混入式架构，类似于 express 和 jquery，各部分分模块开发，再通过一个 mixin 去混入到最终暴露到全局的类上。
@@ -21,7 +29,7 @@ vue2 采用的是典型的混入式架构，类似于 express 和 jquery，各�
 - 祖先和后代之间
   provide/inject：能够实现祖先给后代传值
 - dispatch：后代给祖先传值
-- 任意两个组件之间：事件总线 或 vuex
+- 任意两个组件之间：事件总线 或 Vuex
   - 事件总线：创建一个 Bus 类负责事件派发、监听和回调管理
   - vuex：创建唯一的全局数据管理者 store，通过它管理数据并通知组件状态变更
 
@@ -31,14 +39,14 @@ vue2 采用的是典型的混入式架构，类似于 express 和 jquery，各�
 
 将来每个组件在创建实例的过程中都会执行
 
-```
-	Vue.mixin({
-		beforeCreate() {
-			if (this.$options.store) {
-				Vue.prototype.$store = this.$options.store
-			}
-		}
-	})
+```js
+Vue.mixin({
+  beforeCreate() {
+    if (this.$options.store) {
+      Vue.prototype.$store = this.$options.store;
+    }
+  },
+});
 ```
 
 - 匿名插槽
@@ -47,7 +55,7 @@ vue2 采用的是典型的混入式架构，类似于 express 和 jquery，各�
 
 # 表单组件实现
 
-```
+```js
 //index.vue
 <template>
 <div>
@@ -322,7 +330,7 @@ export default {
 
 # 递归组件
 
-```
+```js
 // item.vue
 <template>
   <li>
@@ -454,7 +462,7 @@ export default {
 
 # 独立组件实例
 
-```
+```js
 import Vue from 'vue';
 /*
  *  挂载相关的一些事情
@@ -503,7 +511,7 @@ export default function create(Component, props) {
 
 # vuex 实现
 
-```
+```js
 /**
  * 1. vuex也是插件 install prototype
  * 2. 实现三个东西  state/mutations/actions/getter
@@ -574,7 +582,7 @@ export default {
 像 vue-router，vuex 他们都是作为 vue 插件，请说一下他们分别都是如何在 vue 中生效的？
 通过 vue 的插件系统，用 vue.mixin 混入到全局，在每个组件的生命周期的某个阶段注入组件实例。
 
-```
+```js
 /*
  * 实现 vue router  插件
  * 主要作用  监听url变化  一旦url发生变化  将对应的组件替换过去
@@ -766,7 +774,7 @@ vnode 为什么 2.0 需要 1.0 不需要呢？
 1. core/instance/index.js
    实现 Vue 构造函数，实现若干实例方法和属性
 
-```
+```js
   function Vue (options) {
     this._init(options); // 构造函数仅执行了_init
   }
@@ -795,7 +803,7 @@ vnode 为什么 2.0 需要 1.0 不需要呢？
 5. initMixin
    实现 vue 初始化函数\_init
 
-```
+```js
   initLifecycle(vm); // $parent,$root,$children,$refs 的声明
   initEvents(vm); // 处理父组件传递的事件和回调
   initRender(vm);  //和渲染相关的一些事情 vnode
@@ -838,7 +846,7 @@ vnode 为什么 2.0 需要 1.0 不需要呢？
    init render !prevnode && vm.$el = vm.__patch__(vm.$el,vnode,hydrating,false)
    update vm.\$el = vm.**patch**(prevnode,vnode)
 
-```
+```js
  Vue.prototype._update = function (vnode, hydrating) {}
  Vue.prototype.$forceUpdate = function (vnode, hydrating) {}
  Vue.prototype.$destroy = function (vnode, hydrating) {}
@@ -847,7 +855,7 @@ vnode 为什么 2.0 需要 1.0 不需要呢？
 9. renderMixin(Vue)
    实现组件渲染函数\_render, \$nextTick
 
-```
+```js
   Vue.prototype.$nextTick = function (fn) {
    return nextTick(fn, this)
   };
@@ -878,7 +886,7 @@ initLifecycle src\core\instance\lifecycle.js
 把组件实例里面用到的常用属性初始化，比如$parent/$root/\$children 的声明
 组件创建顺序 从上到下 挂载顺序 自下而上
 
-```
+```js
 let parent = options.parent;
 vm.$parent = parent;
 vm.$root = parent ? parent.$root : vm;
@@ -899,7 +907,7 @@ vm._watcher = null;
 比如当他发现自定义事件的时候 回去做 render 函数 传 data data 中有关于 on 的设置 有肯能做 someEvent 的声明
 吧 vnode 创建成组件的时候 要处理这些 on 吧 说白了 在老爹里面发现的这些监听者执行者 其实是儿子
 
-```
+```js
 vm._events = Object.create(null);
 vm._hasHookEvent = false;
 var listeners = vm.$options._parentListeners; //把老爹里面的监听拿出来，给儿子去执行，事件是是派发，谁监听
@@ -915,8 +923,7 @@ updateComponentListeners(vm, listeners)
 - \$createElement 函数声明
 - $attrs和$listeners 响应化
 
-```
-
+```js
 vm._vnode = null;
 vm._staticTrees = null;
 const options = $options;
@@ -931,7 +938,6 @@ vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true);
 
 
 ```
-
 - initInjections
   注入数据 注入的数据是不会做响应化的 转义一下 有可能传递给别人
 
@@ -1005,7 +1011,7 @@ src\core\instance\state.jsinitData 核心代码是将 data 数据响应化
 
 observe 方法返回一个 Observer 实例，core/observer/index.js
 
-```
+```js
 
 // 已经存在 直接返回 负责创建新的实例
 function observe(value, asRootData) {
@@ -1034,7 +1040,7 @@ function observe(value, asRootData) {
 Observer 对象根据数据类型执行对应的响应化操作，core/observer/index.js
 每一个响应书的对象都会有一个 ob
 
-```
+```js
 class Observer {
   constructor(value) {
     this.value = value;
@@ -1073,7 +1079,7 @@ class Observer {
 - defineReactive
   defineReactive 定义对象属性的 getter/setter，getter 负责添加依赖，setter 负责通知更新
 
-```
+```js
 
 export function defineReactive(
   obj: Object,
@@ -1124,7 +1130,7 @@ export function defineReactive(
 
 # 数量理解
 
-```
+```js
   /*
   * 思考？
   * 有几个 Observer
@@ -1152,7 +1158,7 @@ export function defineReactive(
 
 负责管理一组 Watcher，包括 watcher 实例的增删及通知更新，core/observer/dep.js
 
-```
+```js
 export default class Dep {
   static target: ?Watcher; // 依赖收集时的 wacher 引用
   id: number;
@@ -1195,7 +1201,7 @@ Watcher 解析一个表达式并收集依赖，当数值变化时触发回调函
 页面初始化的时候 首次会创建一个明文的 watcher \$mount 的时候创建 相当于是给根组件创建了一个 watcher
 如果页面中又出现了自定义的组件 这个时候就又会生成 watcher 这就是一个组件 一个 watcher
 
-```
+```js
 
 export default class Watcher {
   constructor(
@@ -1285,7 +1291,7 @@ export default class Watcher {
 数组的数据变化和对象不同，我们操作数组通常使用 push pop splice 等，此时没有办法得知数据变化，所以 vue 采取的策略是拦截 push、pop、splice 等方法执行 dep 通知。
 为数组原型中的 7 个可以改变内容的方法定义拦截器，src\core\observer\array.js
 
-```
+```js
 // 数组原型
 const arrayProto = Array.prototype;
 // 修改后的原型
@@ -1382,7 +1388,7 @@ vue2
 * queueWatcher
   执行 watcher 入队操作，若存在重复 id 则跳过
 
-```
+```js
 const queue: Array<Watcher> = []
 const activatedChildren: Array<Component> = []
 let has: { [key: number]: ?true } = {}
@@ -1423,7 +1429,7 @@ export function queueWatcher(watcher: Watcher) {
 - nextTick(flushSchedulerQueue)
   nextTick 按照特定异步策略执行队列刷新操作
 
-```
+```js
 // nextTick 异步执行策略，src\core\util\next-tick.js
 const callbacks = [];
 export function nextTick(cb?: Function, ctx?: Object) {

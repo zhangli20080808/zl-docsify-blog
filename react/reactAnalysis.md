@@ -23,11 +23,11 @@ import { isFunc } from './util';
 /**
  * 什么时候用对象 什么时候用类
  * 单例 对象就够了 需要很多对象的时候用类
- * 定义更新队列
+ * 定义更新队列 所有组件共用一个 updateQueue
  */
 export const updateQueue = {
   updaters: [], // 更新器数组
-  isBatchingUpdate: false, // 是否处于批量更新模式 默认 非批量更新
+  isBatchingUpdate: false, // 是否处于批量更新模式 默认 非批量更新 粗暴比如点击事件之前设置为true结束设置为false 手动指定 源码 自动指定
   add(updater) {
     // 增加一个更细器
     this.updaters.push(updater);
@@ -431,6 +431,9 @@ function createSyntheticEvent(nativeEvent) {
 1. refs 提供了一种方式，允许我们访问 dom 节点或者在 render 方法中创建的 react 元素
 2. 在 react 渲染声明周期时，表单上的 value 值将会覆盖 dom 节点中的值，在非受控组件中，我们希望 react 能赋予组件一个初始值，但是不去控制后续的更新，在这种情况下，可以指定一个 defaultValue，而不是 value
 
+ * ref的值是一个字符串
+ * 
+
 # setState 原理
 
 1. setState 批量行为：React 会合并多次 setState 操作为一次执行
@@ -534,3 +537,4 @@ state3 === hook2.memoizedState
 1. 更流畅
 
 # Hooks 学习总结
+ 
