@@ -506,35 +506,5 @@ generateComponentChildren 已调用 receiveComponent，这种情况下 prevChild
 8. REMOVE_NODE，老 component 类型，在新集合里也有，但对应的 element 不同则不能直接复用和更新，
    需要执行删除操作，或者老 component 不在新集合里的，也需要执行删除操作。
 
-# Hooks 原理
 
-1. 将函数组件状态保存在外部作用域，类似链表的实现原理，由于有严格的顺序关系，所以函数组件中 useState 这些
-   api 不能出现条件、循环语句中
-
-```js
-function FunctionalComponent() {
-    const [state1, setState1] = useState(1)
-    const [state2, setState2] = useState(2)
-    const [state3, setState3] = useState(3)
-}
-
-hook1 => Fiber.memoizedState
-state1 === hook1.memoizedState
-hook1.next=>hook2
-state2 === hook2.memoizedState
-hook2.next=>hook3
-state3 === hook2.memoizedState
-```
-
-2. Fibter
-
-1. 为什么需要 fiber
-1. 任务分解的意义
-1. 增量渲染（把渲染任务拆分成块，匀到多帧）
-1. 更新时能够暂停，终止，复用渲染任务
-1. 给不同类型的更新赋予优先级
-1. 并发方面新的基础能力
-1. 更流畅
-
-# Hooks 学习总结
  
