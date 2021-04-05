@@ -314,7 +314,7 @@ function App() {
  */
 
 function EffectDemo2() {
-  console.log('FuncEffectDemo2 render')
+  console.log('FuncEffectDemo2 render');
   let [state, setState] = useState({ number: 0 });
   // useEffect 会在组件挂载后执行  没有给第二个参数 没次渲染都会执行调用 同时 会返回一个清理函数 当组件将要卸载的时候 执行清理函数
   // render 添加 useEffect 函数
@@ -628,6 +628,178 @@ function StateDemo() {
 }
 
 export default StateDemo;
+```
+
+# useRef
+
+## useRef
+
+- useRef -- 如果和获取最新的值
+- useRef 会返回一个可变的 ref 对象 {current}
+- ref 对象在组件的整个生命周期内保持不变
+-
+
+```js
+import React, { useEffect } from 'react';
+import { render } from '../../index';
+
+/**
+ * useRef -- 如果和获取最新的值
+ * useRef 会返回一个可变的ref对象 {current}
+ * ref对象在组件的整个生命周期内保持不变
+ *
+ * 注意区分 React.createRef 和 useRef
+ * 为什么需要转发? React.forwardRef() 因为函数组件没有实例 不能使用ref
+ * forwardRef
+ * 1. 将ref从父组件转发到子组件中的dom元素上
+ * 2. 子组件接受props和ref作为参数
+ */
+let memoizedStates = [];
+let index = 0;
+
+function useState(initialState) {
+  memoizedStates[index] = memoizedStates[index] || initialState;
+  let currentIndex = index;
+
+  function setState(newState) {
+    memoizedStates[currentIndex] =
+      typeof newState === 'function'
+        ? newState(memoizedStates[index])
+        : newState;
+    // 每次渲染的时候清0  不然会累加
+    index = 0;
+    render();
+  }
+
+  // 返回 memoizedStates[index]的结果 index + 1
+  return [memoizedStates[index++], setState];
+}
+
+function useRef(current) {
+  memoizedStates[index] = memoizedStates[index] || { current };
+  return memoizedStates[index++];
+}
+
+function forwardRef(Comp) {
+  return class extends React.Component {
+    render() {
+      console.log(this, 'this');
+      // ref 属性很特殊 是一个内部保护的变量
+      return Comp(this.props, this.props.ref2);
+    }
+  };
+}
+
+/**
+ * 经过之后会拿到两个参数
+ * @param props
+ * @param ref
+ */
+function FuncChild(props, ref) {
+  return <input ref={ref} />;
+}
+
+const ForwardFuncChild = forwardRef(FuncChild);
+
+function Index() {
+  const [num, setNum] = useState(0);
+  let numberRef = useRef(); //  useRef 后续自定义实现
+  let funChildRef = useRef();
+
+  function updateNumber() {
+    setNum(num + 1);
+  }
+
+  function lazyFunc() {
+    setTimeout(() => {
+      alert(numberRef.current);
+    }, 2000);
+  }
+
+  // 在每次渲染结束之后，这个时候 num 值是最新的
+  useEffect(() => {
+    numberRef.current = num;
+  });
+
+  return (
+    <div>
+      <ForwardFuncChild ref2={funChildRef} />
+      <div>{num}</div>
+      <div>ref: {numberRef.current}</div>
+      <button onClick={lazyFunc}>lazyFunc</button>
+      <button onClick={updateNumber}>+</button>
+      <button onClick={() => funChildRef.current.focus()}>获取焦点</button>
+    </div>
+  );
+}
+
+export default Index;
+```
+
+## forwardRef
+
+```js
+ ref和forwardRef结合使用
+ 1. 通过forwardRef可以将ref转发到子组件
+ 2. 子组件拿到父组件中创建的ref，绑定到自己的某一个元素中
+
+ 现在通过ref和forwardRef，可以在父组件中随意改变元素。
+ 但是我们可能只希望父组件只能对子组件进行有限操作，也就是限制父组件的自由度。
+ 1. 直接暴露给父组件带来的问题是某些情况的不可控
+ 2. 父组件可以拿到DOM后进行任意的操作
+ 3. 我们只是希望父组件可以操作的focus，其他并不希望它随意操作其他方法
+
+ 可以只暴露特定的操作 useImperativeHandle
+ to -> useImperativeHandle
+```
+
+### useImperativeHandle
+
+```js
+import React, { useRef, forwardRef, useImperativeHandle } from 'react';
+
+/**
+ * 可以让我们在使用ref时自定义暴露给父组件的实例值
+ * 大多数情况下，应当避免使用ref这样的命令代码，useImperativeHandle 应当和 forwardRef 一起使用
+ * 通过useImperativeHandle的Hook, 将父组件传入的ref和useImperativeHandle第二个参数返回的对象绑定到了一起
+ * 所以在父组件中, 调用inputRef.current时, 实际上是返回的对象
+ *
+ * 简单使用总结
+ * 1. 作用: 减少暴露给父组件获取的DOM元素属性, 只暴露给父组件需要用到的DOM方法
+ * 2. 参数1: 父组件传递的ref属性
+ * 3. 参数2: 返回一个对象, 以供给父组件中通过ref.current调用该对象中的方法
+ * @type {React.ForwardRefExoticComponent<React.PropsWithoutRef<{}> & React.RefAttributes<unknown>>}
+ */
+
+// function useImperativeHandle(ref,factory){
+//   ref.current = factory()
+// }
+
+const JMInput = forwardRef((props, ref) => {
+  const inputRef = useRef();
+  // 作用: 减少父组件获取的DOM元素属性,只暴露给父组件需要用到的DOM方法
+  // 参数1: 父组件传递的ref属性
+  // 参数2: 返回一个对象,父组件通过ref.current调用对象中方法
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current.focus();
+    },
+  }));
+  return <input type="text" ref={inputRef} />;
+});
+
+export default function ImperativeHandleDemo() {
+  // useImperativeHandle 主要作用:用于减少父组件中通过forward+useRef获取子组件DOM元素暴露的属性过多
+  // 为什么使用: 因为使用forward+useRef获取子函数式组件DOM时,获取到的dom属性暴露的太多了
+  // 解决: 使用uesImperativeHandle解决,在子函数式组件中定义父组件需要进行DOM操作,减少获取DOM暴露的属性过多
+  const inputRef = useRef();
+  return (
+    <div>
+      <button onClick={() => inputRef.current.focus()}>聚焦</button>
+      <JMInput ref={inputRef} />
+    </div>
+  );
+}
 ```
 
 # Hooks 原理
