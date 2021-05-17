@@ -18,11 +18,28 @@
   - [JS-核心原理解析](/javascript/base_10.md)
   - [盒子模型和盒子偏移量](/javascript/base9.md)
 
+- [**React**](/react/index.md)
+
+  - [基础使用](/react/baseUse/1.md)
+  - [高级使用](/react/advanceUse/1.md)
+  - [合成事件](/react/composeEvent.md)
+  - [HOC](/react/hoc.md)
+  - [从 redux 到 react-redux 再到 dva](/react/reduxFlows.md)
+  - [hooks](/react/hooks.md)
+  - [react 原理解析](/react/reactAnalysis.md)
+
 * Vue
 * [基本使用](/vue/3.md)
 * [高级使用总结](/vue/2.md)
 * [vue 源码分析](/vue/vueAnalysis.md)
 * [MVVM 理解](/vue/1.md)
+
+* CLI
+
+  - [自定义 cli](/cli/custom.md)
+  - vim
+  - [curl](/cli/curl.md)
+  - ssh
 
 * ES6 技巧
 
@@ -36,16 +53,6 @@
 * proxy 代理响应式比较总结
 
   - [概念理解](/es6/5.md)
-
-- [**React**](/react/index.md)
-
-  - [基础使用](/react/baseUse/1.md)
-  - [高级使用](/react/advanceUse/1.md)
-  - [合成事件](/react/composeEvent.md)
-  - [HOC](/react/hoc.md)
-  - [从 redux 到 react-redux 再到 dva](/react/reduxFlows.md)
-  - [hooks](/react/hooks.md)
-  - [react 原理解析](/react/reactAnalysis.md)
 
 * 移动端
 
@@ -103,13 +110,6 @@
   - [业务分析之文件流下载](/前端架构/businessFileDown.md)
   - 微前端
   - [工具网址](/前端架构/utilSites.md)
-
-* CLI
-
-  - [自定义 cli](/cli/custom.md)
-  - vim
-  - [curl](/cli/curl.md)
-  - ssh
 
 * CI/CD
 
