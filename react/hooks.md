@@ -95,6 +95,20 @@ function count1() {
 }
 ```
 
+## hook依赖问题
+```js
+// 当obj是对象的state时，不会无限循环，不会像下面这样直接取对比，而是只有显示刻意的去调用setObj
+// 的时候 react才会认为这个obj改变了，其他时候都不认为这个obj是改变的
+  const [obj, setObj] = useState({ name: "jack" });
+  // const obj = {name:'1'}
+  // 当 obj 是基本数据类型的时候，不会无限循环
+  // 当obj 是对象的时候，会无限循环
+  const [num, setNum] = useState(0);
+  useEffect(() => {
+    setNum(num + 1);
+  }, [obj]);
+```
+
 ## 性能优化
 
 1. react 使用 Object.is 比较算法  
@@ -949,7 +963,23 @@ export const useDebounce = <V>(value: V, delay?: number) => {
   }, [value, delay]);
 
   return debouncedValue;
-};            
+};         
+
+
+export const useArray = <T>(initialArray: T[]) => {
+  const [value, setValue] = useState(initialArray);
+  return {
+    value,
+    setValue,
+    add: (item: T) => setValue([...value, item]),
+    clear: () => setValue([]),
+    removeIndex: (index: number) => {
+      const copy = [...value];
+      copy.splice(index, 1);
+      setValue(copy);
+    }
+  };
+};
 ```
 
 
