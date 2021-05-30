@@ -94,9 +94,34 @@ function count1() {
   );
 }
 ```
+## 使用
+[思考](https://zhuanlan.zhihu.com/p/85969406)
+### 使用单个 state 变量还是多个 state 变量
+1. 将完全不相关的 state 拆分为多组 state
+2. 如果某些 state 是相互关联的，或者需要一起发生改变，就可以把它们合并为一组 state
 
+### deps 依赖过多，导致 Hooks 难以维护，如何解决呢？
+1. 思考？ deps 是否真的都需要
+依赖数组依赖的值最好不要超过 3 个，否则会导致代码会难以维护。
+如果发现依赖数组依赖的值过多，我们应该采取一些方法来减少它。
+去掉不必要的依赖。
+将 Hook 拆分为更小的单元，每个 Hook 依赖于各自的依赖数组。
+通过合并相关的 state，将多个依赖值聚合为一个。
+通过 setState 回调函数获取最新的 state，以减少外部依赖。
+通过 ref 来读取可变变量的值，不过需要注意控制修改它的途径。
+
+### 常见问题
+1. 生命周期函数如何映射到hooks
+2. 类实例成员变量如何映射到hooks
+3. hooks中如何获取历史props和state
+  因为ref，不受渲染的影响，我们可以在下次渲染中取到上一次的值
+4. 如何强制更新一个hooks组件,使用中间变量间接去更新  
+5. useState适合用于单个的状态，useReducer适合定义一群互相影响的状态
 ## hook依赖问题
 ```js
+ // 一个非状态的非基本类型是不能作为依赖的，不然会造成无限循环
+ // 如果我们定义了非基本类型想要做依赖，必须使用useMemo,useCallback 限制住，让他们不会再页面重新渲染的时候重新创建
+// 自定义hooks 如果要返回函数，基本上需要使用 useCallback
 // 当obj是对象的state时，不会无限循环，不会像下面这样直接取对比，而是只有显示刻意的去调用setObj
 // 的时候 react才会认为这个obj改变了，其他时候都不认为这个obj是改变的
   const [obj, setObj] = useState({ name: "jack" });
@@ -222,6 +247,7 @@ function StateDemo() {
 ```
 
 # useCallback/useMemo
+useCallback解决的是传入子组件的函数参数过度变化导致子组件过度渲染的问题
 
 ```js
 let lastCallback;

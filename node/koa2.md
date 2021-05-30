@@ -25,7 +25,7 @@
 从 generator 到 async 和 await
 中间件是如何知道来的是请求还是响应呢 不需要知道 以为请求肯定比响应早处理 分界其实就是 next()
 
-```
+```js
 var mid = function () {
   return function* (next) {
     this.body = '123';
@@ -45,7 +45,7 @@ var mid = function () {
    Koa 中间件机制：Koa 中间件机制就是函数组合的概念，将一组需要顺序执行的函数复合为一个函数，外层函
    数的参数实际是内层函数的返回值。洋葱圈模型可以形象表示这种机制，是源码中的精髓和难点
 
-````
+````js
 /**
  * 每个中间件都是 async 的格式  中间件才是把整个http在koa中的运转串起来的一个非常核心的东西
   为什么能够按照use的方式 一个一个执行 为什么可以在依次执行的过程中暂停下来 走后面的流程 再回来继续执行
@@ -135,7 +135,7 @@ function compose(middleware) {
 
 context 上下文 基础 getter setter Object.create 对象继承
 
-```
+```js
 // 测试代码，test-getter-setter.js
 const zhangli = {
   info: { a: '1231' },
@@ -160,7 +160,7 @@ console.log(zhangli.name);
 2. 封装 request、response 和 context
    [](https://github.com/koajs/koa/blob/master/lib/response.js)
 
-```
+```js
 // request.js
 module.exports = {
   get url() {
@@ -200,8 +200,7 @@ module.exports = {
 模拟的 kkb 可以对复杂的对象进行简单的封装
 [Object.create()和 new object()和{}的区别](https://www.cnblogs.com/bug-jin/p/10388672.html)
 
-```
-
+```js
   // 构建上下文, 把res和req都挂载到ctx之上，并且在ctx.req和ctx.request.req同时保存
   // 使用Object.create()是将对象继承到__proto__属性上
   // var test = Object.create({x:123,y:345}); __proto__ 上面有{x:123,y:345}
@@ -275,7 +274,7 @@ module.exports = KKB;
 
 1. 函数组合
 
-```
+```js
 const add = (x, y) => x + y
 const square = z => z * z
 const fn = (x, y) => square(add(x, y))
@@ -285,7 +284,7 @@ console.log(fn(1, 2))
 
 上⾯就算是两次函数组合调⽤，我们可以把他合并成⼀个函数
 
-```
+```js
 const compose = (fn1, fn2) => (...args) => fn2(fn1(...args));
 const fn = compose(add, square);
 
@@ -293,7 +292,7 @@ const fn = compose(add, square);
 
 多个函数组合：中间件的数⽬是不固定的，我们可以⽤数组来模拟
 
-```
+```js
 const compose = (...[first, ...other]) => (...args) => {
   let ret = first(...args);
   other.forEach((fn) => {
@@ -309,7 +308,7 @@ console.log(fn(1, 2));
 异步中间件：上⾯的函数都是同步的，挨个遍历执⾏即可，如果是异步的函数呢，是⼀个
 promise，我们要⽀持 async + await 的中间件，所以我们要等异步结束后，再执⾏下⼀个中间件。
 
-```
+```js
 function compose(middlewares) {
   return function () {
     return dispatch(0);
@@ -368,7 +367,7 @@ finalFn();
 - 接收 ctx 和 next 两个参数
 - 任务结束需要执行 next
 
-```
+```js
 const mid = async (ctx, next) => {
   // 来到中间件，洋葱圈左边
   next(); // 进入其他中间件
@@ -386,7 +385,7 @@ const mid = async (ctx, next) => {
 
 3. router 实现
 
-```
+```js
 class Router {
   constructor() {
     this.stack = [];
@@ -437,7 +436,7 @@ module.exports = Router;
 - 静态文件读取
 - 返回
 
-```
+```js
 // static.js
 const fs = require('fs');
 const path = require('path');
@@ -496,7 +495,7 @@ module.exports = (dirPath = './public') => {
 
 # express 原理
 
-```
+```js
 const http = require('http');
 const slice = Array.prototype.slice;
 
