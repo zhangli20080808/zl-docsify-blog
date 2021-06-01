@@ -94,44 +94,52 @@ function count1() {
   );
 }
 ```
+
 ## 使用
+
 [思考](https://zhuanlan.zhihu.com/p/85969406)
+
 ### 使用单个 state 变量还是多个 state 变量
+
 1. 将完全不相关的 state 拆分为多组 state
 2. 如果某些 state 是相互关联的，或者需要一起发生改变，就可以把它们合并为一组 state
 
 ### deps 依赖过多，导致 Hooks 难以维护，如何解决呢？
+
 1. 思考？ deps 是否真的都需要
-依赖数组依赖的值最好不要超过 3 个，否则会导致代码会难以维护。
-如果发现依赖数组依赖的值过多，我们应该采取一些方法来减少它。
-去掉不必要的依赖。
-将 Hook 拆分为更小的单元，每个 Hook 依赖于各自的依赖数组。
-通过合并相关的 state，将多个依赖值聚合为一个。
-通过 setState 回调函数获取最新的 state，以减少外部依赖。
-通过 ref 来读取可变变量的值，不过需要注意控制修改它的途径。
+   依赖数组依赖的值最好不要超过 3 个，否则会导致代码会难以维护。
+   如果发现依赖数组依赖的值过多，我们应该采取一些方法来减少它。
+   去掉不必要的依赖。
+   将 Hook 拆分为更小的单元，每个 Hook 依赖于各自的依赖数组。
+   通过合并相关的 state，将多个依赖值聚合为一个。
+   通过 setState 回调函数获取最新的 state，以减少外部依赖。
+   通过 ref 来读取可变变量的值，不过需要注意控制修改它的途径。
 
 ### 常见问题
-1. 生命周期函数如何映射到hooks
-2. 类实例成员变量如何映射到hooks
-3. hooks中如何获取历史props和state
-  因为ref，不受渲染的影响，我们可以在下次渲染中取到上一次的值
-4. 如何强制更新一个hooks组件,使用中间变量间接去更新  
-5. useState适合用于单个的状态，useReducer适合定义一群互相影响的状态
-## hook依赖问题
+
+1. 生命周期函数如何映射到 hooks
+2. 类实例成员变量如何映射到 hooks
+3. hooks 中如何获取历史 props 和 state
+   因为 ref，不受渲染的影响，我们可以在下次渲染中取到上一次的值
+4. 如何强制更新一个 hooks 组件,使用中间变量间接去更新
+5. useState 适合用于单个的状态，useReducer 适合定义一群互相影响的状态
+
+## hook 依赖问题
+
 ```js
- // 一个非状态的非基本类型是不能作为依赖的，不然会造成无限循环
- // 如果我们定义了非基本类型想要做依赖，必须使用useMemo,useCallback 限制住，让他们不会再页面重新渲染的时候重新创建
+// 一个非状态的非基本类型是不能作为依赖的，不然会造成无限循环
+// 如果我们定义了非基本类型想要做依赖，必须使用useMemo,useCallback 限制住，让他们不会再页面重新渲染的时候重新创建
 // 自定义hooks 如果要返回函数，基本上需要使用 useCallback
 // 当obj是对象的state时，不会无限循环，不会像下面这样直接取对比，而是只有显示刻意的去调用setObj
 // 的时候 react才会认为这个obj改变了，其他时候都不认为这个obj是改变的
-  const [obj, setObj] = useState({ name: "jack" });
-  // const obj = {name:'1'}
-  // 当 obj 是基本数据类型的时候，不会无限循环
-  // 当obj 是对象的时候，会无限循环
-  const [num, setNum] = useState(0);
-  useEffect(() => {
-    setNum(num + 1);
-  }, [obj]);
+const [obj, setObj] = useState({ name: 'jack' });
+// const obj = {name:'1'}
+// 当 obj 是基本数据类型的时候，不会无限循环
+// 当obj 是对象的时候，会无限循环
+const [num, setNum] = useState(0);
+useEffect(() => {
+  setNum(num + 1);
+}, [obj]);
 ```
 
 ## 性能优化
@@ -247,7 +255,8 @@ function StateDemo() {
 ```
 
 # useCallback/useMemo
-useCallback解决的是传入子组件的函数参数过度变化导致子组件过度渲染的问题
+
+useCallback 解决的是传入子组件的函数参数过度变化导致子组件过度渲染的问题
 
 ```js
 let lastCallback;
@@ -989,7 +998,7 @@ export const useDebounce = <V>(value: V, delay?: number) => {
   }, [value, delay]);
 
   return debouncedValue;
-};         
+};
 
 
 export const useArray = <T>(initialArray: T[]) => {
@@ -1008,6 +1017,118 @@ export const useArray = <T>(initialArray: T[]) => {
 };
 ```
 
+## useAsync
+
+```js
+import { useState, useReducer, useCallback } from 'react';
+import { useMountedRef } from '@/utils/index';
+
+interface State<D> {
+  error?: Error | null;
+  data: D | null;
+  stat?: 'idle' | 'loading' | 'error' | 'success';
+  // 处理数据
+  workDataFn?: (key: any) => any;
+  config?: () => void;
+}
+
+const defaultInitialState: State<null> = {
+  stat: 'idle',
+  data: null,
+  error: null,
+};
+
+const useSafeDispatch = <T>(dispatch: (...args: T[]) => void) => {
+  const mountedRef = useMountedRef();
+  return useCallback(
+    // eslint-disable-next-line no-void
+    (...args: T[]) => (mountedRef.current ? dispatch(...args) : void 0),
+    [dispatch, mountedRef]
+  );
+};
+
+export const useAsync = <D>(initialState?: State<D>) => {
+  const [state, dispatch] = useReducer(
+    (reducerState: State<D>, action: Partial<State<D>>) => ({
+      ...reducerState,
+      ...action,
+    }),
+    {
+      ...initialState,
+      ...defaultInitialState,
+    }
+  );
+
+  const [retry, setRetry] = useState(() => () => {});
+
+  const safeDispatch = useSafeDispatch(dispatch);
+
+  const setData = useCallback(
+    (data: D) =>
+      safeDispatch({
+        data,
+        stat: 'success',
+        error: null,
+      }),
+    [safeDispatch]
+  );
+
+  const setError = useCallback(
+    (error: Error) =>
+      safeDispatch({
+        error,
+        stat: 'error',
+        data: null,
+      }),
+    [safeDispatch]
+  );
+
+  /**
+   * 1. 非状态的非基本类型是不能作为依赖的
+   * 2. 注意 自定义hooks中暴露出去的函数我们是不希望每次都重新创建的，不然很容易造成死循环 使用useCallback处理
+   * 3. 如果我们想使用非基本类型的数据作为依赖，需要使用useMemo和useCallback来限制，不要在页面每次重新渲染的时候重新创建
+   * 4. 此处状态较多，比较适合 useReducer -> useState比较适合单个的状态，后者比较适合定义一群会互相影响的状态
+        https://zh-hans.reactjs.org/docs/error-boundaries.html#gatsby-focus-wrapper
+   */
+  const run = useCallback(
+    (promise: Promise<D>, runConfig?: { retry: () => Promise<D> }) => {
+      if (!promise || !promise.then) {
+        throw new Error('请传入 Promise 类型的数据');
+      }
+      setRetry(() => () => {
+        if (runConfig?.retry) {
+          run(runConfig.retry(), runConfig);
+        }
+      });
+      safeDispatch({ stat: 'loading' });
+      return promise
+        .then((data) => {
+          setData(data);
+          return data;
+        })
+        .catch((error) => {
+          // catch会消化异常，如果不主动抛出，外面是接受不到异常的
+          setError(error);
+          return error;
+        });
+    },
+    [safeDispatch, setData, setError]
+  );
+
+  return {
+    isIdle: state.stat === 'idle',
+    isLoading: state.stat === 'loading',
+    isError: state.stat === 'error',
+    isSuccess: state.stat === 'success',
+    run,
+    setData,
+    setError,
+    // retry 被调用，重新走一遍run，刷新state
+    retry,
+    ...state,
+  };
+};
+```
 
 # Hooks 原理
 
