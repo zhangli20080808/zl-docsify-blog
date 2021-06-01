@@ -244,16 +244,19 @@ store.dispatch(fetchPosts('reactjs')).then(() =>
 上面代码中，fetchPosts 是一个 Action Creator（动作生成器），返回一个函数。这个函数执行后，先发出一个 Action（requestPosts(postTitle)），然后进行异步操作。拿到结果后，先将结果转成 JSON 格式，然后再发出一个 Action（ receivePosts(postTitle, json)）。  
 总结异步操作：先使用 redux-thunk 中间件改造 store.dispatch，然后写出一个含异步操作的 Action Creator。
 
-## react-redux
+# react-redux
 
 如果需要在 react 使用 redux，可以直接使用 react-redux 库（也是 redux 作者开发的），这样组件可以更方便拿到 state 和 发出 dispatch(action)，不用一层层传。也不用通过 store.subscribe 监听 render 函数去重新渲染，而是自动完成渲染。
+
+主要是可以将我们的 state 转换成组件中的状态，组件中的状态和普通变量不一样在哪里呢？就是我们组件中的状态改变的时候页面会自动渲染，react-redux 做的就是这件事情，作为一个桥梁，把我们 state 中的数据和我们的组件连接在一起
 
 redux 每次都重新调用 render 和 getState 太 low 了 使用 react 方式 和订阅问题
 
 1. provider 为后代组件提供 store
 2. connect 为组件提供数据和变更方法(每一次数据只要变更，自动的帮助我们组件刷新，把最新的值传给我们，用属性的方式传)
 
-**1、UI 组件和容器组件**  
+## UI 组件和容器组件
+
 React-Redux 将所有组件分成两大类：UI 组件和容器组件。  
 UI 组件特点：
 
@@ -271,14 +274,42 @@ UI 组件特点：
 总之，只要记住一句话就可以了：UI 组件负责 UI 的呈现，容器组件负责管理数据和逻辑。  
 React-Redux 规定，所有的 UI 组件都由用户提供，_容器组件则是由 React-Redux 自动生成_。也就是说，用户负责视觉层，状态管理则是全部交给它。
 
-**2、connect()**
+## connect
 
-React-Redux 提供 connect 方法，用于从 UI 组件生成容器组件。connect 的意思，就是将这两种组件连起来。
+connect([mapStateToProps],
+[mapDispatchToProps], [mergeProps],
+[options])
+
+UI 组件和容器组件分离,React-Redux 提供 connect 方法，用于从 UI 组件生成容器组件。connect 的意思，就是将这两种组件连起来。
+
+- 连接 React 组件与 Redux store
+- 返回⼀个新的已与 Redux store 连接的组件类。
+
+1. mapStateToProps(state, [ownProps]):stateProps
+   该回调函数必须返回⼀个纯对象，这个对象会与组件的 props 合并。
+   如果定义该参数，组件将会监听 Redux store 的变化，否则 不监听。
+   ownProps 是当前组件⾃身的 props，如果指定了，那么只要组件接收到新的 props，mapStateToProps 就会被调
+   ⽤，mapStateToProps 都会被重新计算，mapDispatchToProps 也会被调⽤。注意性能！
+
+2. mapDispatchToProps(dispatch, [ownProps]): dispatchProps
+   如果你省略这个 mapDispatchToProps 参数，默认情况下，dispatch 会注⼊到你的组件 props 中。
+
+- 如果传递的是⼀个对象，那么每个定义在该对象的函数都将被当作 Redux action creator，对象所定义的⽅法名将
+  作为属性名；每个⽅法将返回⼀个新的函数，函数中 dispatch ⽅法会将 action creator 的返回值作为参数执
+  ⾏。这些属性会被合并到组件的 props 中。
+- 如果传递的是⼀个函数，该函数将接收⼀个 dispatch 函
+  数，然后由你来决定如何返回⼀个对象。
+  ownProps 是当前组件⾃身的 props，如果指定了，那么只
+  要组件接收到新的 props，mapDispatchToProps 就会被
+  调⽤。注意性能！
+
+3. mergeProps(stateProps, dispatchProps,ownProps): props
+   如果指定了这个参数，mapStateToProps() 与 mapDispatchToProps() 的执⾏结果和组件⾃身的 props 将传⼊到这个回调函数中。该回调函数返回的对象将作为 props 传递到被包装的组件中。你也许可以⽤这个回调函数，根据组件的 props 来筛选部分的 state 数据，或者把 props 中的某个特定变量与 action creator 绑定在
+   ⼀起。如果你省略这个参数，默认情况下返回 Object.assign({}, ownProps, stateProps,dispatchProps) 的结果。
 
 ```js
 import { connect } from 'react-redux';
-
-// TodoList 是 UI 组件，VisibleTodoList 是容器组件
+// TodoList 是 UI 组件，VisibleTodoList 是容器组件  UI 组件和容器组件分离 非常经典的模式 hook的出现打破了这个模式
 const VisibleTodoList = connect(
   // 工作中一般的用的装饰器，@connect(mapStateToProps, mapDispatchToProps)
   mapStateToProps,
@@ -311,7 +342,8 @@ const VisibleTodoList = connect(
 )
 ```
 
-**3、mapStateToProps 和 mapDispatchToProps**  
+## mapStateToProps 和 mapDispatchToProps
+
 a、mapStateToProps  
 是一个函数，一般返回一个对象。它的作用就是建立一个从（外部的）state 对象到（UI 组件的）props 对象的映射关系。比如 mapStateToProps 返回对象 obj，则 UI 组件的 props = { ...this.props, ...obj }。  
 mapStateToProps 会订阅 Store，每当 state 更新的时候，就会自动执行，重新计算 UI 组件的参数，从而触发 UI 组件的重新渲染。
@@ -319,12 +351,16 @@ mapStateToProps 会订阅 Store，每当 state 更新的时候，就会自动执
 b、mapDispatchToProps  
 可以是一个函数，也可以是一个对象。用来建立 UI 组件的参数到 store.dispatch 方法的映射。
 
-**4、Provider 组件**  
+## Provider 组件 <Provider store>
+
 React-Redux 提供 Provider 组件，可以让容器组件拿到 state。
+<Provider store> 使组件层级中的 connect() ⽅法都能够获得 Redux store。正常情况下，你的根组件应该嵌套在
+<Provider> 中才能使⽤ connect() ⽅法
 
 ```js
 let store = createStore(todoApp);
 render(
+  //  把Provider放在根组件外层，使⼦组件能获得store
   <Provider store={store}>
     <App />
   </Provider>,
@@ -335,7 +371,8 @@ render(
 上面代码中，Provider 在根组件外面包了一层，这样一来，App 的所有子组件就默认都可以拿到 state 了。  
 它的原理是 React 组件的 context 属性，store 放在了上下文对象 context 上面，子组件就可以从 context 拿到 store。
 
-**5、计数器例子**  
+## 计数器例子
+
 将前面 redux 里的例子用 react-redux 改造如下：
 
 ```js
@@ -382,7 +419,7 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-// Connected Component
+// Connected Component  状态映射 mapStateToProps  派发事件映射 mapDispatchToProps
 const App = connect(mapStateToProps, mapDispatchToProps)(Counter);
 
 ReactDOM.render(
@@ -393,84 +430,64 @@ ReactDOM.render(
 );
 ```
 
-## dva
-
-[dva](https://dvajs.com/guide/) 首先是一个基于 redux 和 [redux-saga](https://redux-saga-in-chinese.js.org/) 的数据流方案，如果使用 dva 框架开发，可以更方便的使用 redux 功能，提高开发效率，推荐使用哦。
-
-修改 state 的逻辑都会放在 models 下 (定义 model)：
+## 详细使用
 
 ```js
-// models/count.js
-export default {
-  namespace: 'count',
-  state: {
-    count: 0,
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+// connect帮组⼦组件与store链接，其实就是⾼阶组件，这⾥返回的是⼀个新的组件
+export default connect(
+  // mapStateToProps Function (state, ownProps)
+  (state) => ({ count: state }),
+  // !谨慎使⽤ownProps，如果它发⽣变化，mapStateToProps就会执⾏，⾥⾯的state会被重新计算，容易影响性能
+  // (state, ownProps) => {
+  // console.log("ownProps", ownProps); //sylog
+  // return {
+  // count: state
+  // };
+  // }
+  // mapDispatchToProps Object/Function 如果不定义 默认把props注⼊组件
+  // 如果是对象的话，原版的dispatch就没有被注⼊了
+  // {
+  // add: () => ({type: "ADD"})
+  // }
+  // Function (dispatch,ownProps)
+  // !谨慎使⽤ownProps，如果它发⽣变化，mapDispatchToProps就会执⾏，容易影响性能
+  // (dispatch, ownProps) => {
+  // console.log("ownProps", ownProps); //sylog
+  (dispatch) => {
+    let res = {
+      add: () => ({ type: 'ADD' }),
+      minus: () => ({ type: 'MINUS' }),
+    };
+    res = bindActionCreators(res, dispatch);
+    return { dispatch, ...res };
   },
-  // 副作用，底层是引入了 redux-saga 做异步流程控制
-  effects: {
-    *addAfter1Second({ payload }, { call, put }) {
-      yield call(delay, payload); // delay 可以是个异步操作，payload 是组件传过来的 { id: 123 }
-      yield put({ type: 'add' }); // 会触发 reducers 里的 add 方法
-    },
-  },
-  reducers: {
-    add(state, action) {
-      // action 对应的是 { type: 'add' } 对象
-      return {
-        ...state,
-        count: state.count + 1,
-      };
-    },
-  },
-  // 订阅
-  subscriptions: {
-    set({ history }) {
-      // 监听 history 变化
-      return history.listen((res) => {
-        console.log(res);
-        if (window._dgt) {
-          window._dgt.push(['track_SPA_view']);
-        }
-      });
-    },
-  },
-};
-```
-
-如何串联 model 和 UI component？也是通过 connect 方法，例如：
-
-```js
-import { connect } from 'dva';
-
-@connect(({ count }) => ({
-  // 这里面的属性都会加到组件的 props 上面去
-  count,
-}))
-export default class Counter extends Component {
-  componentDidMount() {
-    console.log(this.props.count); // { count: 0 }, 返回的就是对应 model 文件里的 state 对象。
-    this.props.dispath({
-      type: 'count/addAfter1Second',
-      payload: {
-        id: 123,
-      },
-    });
+  // mergeProps Function
+  // 如果指定了这个参数，`mapStateToProps()` 与`mapDispatchToProps()` 的执⾏结果和组件⾃身的`props` 将传到这个回调函数中。
+  (stateProps, dispatchProps, ownProps) => {
+    console.log('mergeProps', stateProps, dispatchProps, ownProps); //sy-log
+    return { omg: 'omg', ...stateProps, ...dispatchProps, ...ownProps };
   }
-  render() {}
-}
+)(
+  class ReactReduxPage extends Component {
+    render() {
+      console.log('props', this.props); //sylog
+      const { count, dispatch, add, minus } = this.props;
+      return (
+        <div>
+          <h3>ReactReduxPage</h3> <p>{count}</p> <button
+            onClick={() => dispatch({ type: 'ADD' })}
+          >
+            add use dispatch
+          </button> <button onClick={add}>add</button> <button onClick={minus}>minus</button>
+        </div>
+      );
+    }
+  }
+);
 ```
-
-##### dva 数据流向
-
-通过 dispatch 发起一个 action，如果是同步行为会直接通过 Reducers 改变 State ，如果是异步行为（副作用）会先触发 Effects 然后流向 Reducers 最终改变 State，所以在 dva 中，数据流向非常清晰简明。
-
-![dva](../static/img/dva.png)
-
-## 扩展阅读
-
-- [Redux 中文文档](https://www.redux.org.cn/)
-- [Redux](http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_one_basic_usages.html)
-- [React-Redux](http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html)
 
 # 实现 redux
 
@@ -657,3 +674,82 @@ export function bindActionCreators(creators, dispatch) {
 }
 
 ```
+
+# dva
+
+[dva](https://dvajs.com/guide/) 首先是一个基于 redux 和 [redux-saga](https://redux-saga-in-chinese.js.org/) 的数据流方案，如果使用 dva 框架开发，可以更方便的使用 redux 功能，提高开发效率，推荐使用哦。
+
+修改 state 的逻辑都会放在 models 下 (定义 model)：
+
+```js
+// models/count.js
+export default {
+  namespace: 'count',
+  state: {
+    count: 0,
+  },
+  // 副作用，底层是引入了 redux-saga 做异步流程控制
+  effects: {
+    *addAfter1Second({ payload }, { call, put }) {
+      yield call(delay, payload); // delay 可以是个异步操作，payload 是组件传过来的 { id: 123 }
+      yield put({ type: 'add' }); // 会触发 reducers 里的 add 方法
+    },
+  },
+  reducers: {
+    add(state, action) {
+      // action 对应的是 { type: 'add' } 对象
+      return {
+        ...state,
+        count: state.count + 1,
+      };
+    },
+  },
+  // 订阅
+  subscriptions: {
+    set({ history }) {
+      // 监听 history 变化
+      return history.listen((res) => {
+        console.log(res);
+        if (window._dgt) {
+          window._dgt.push(['track_SPA_view']);
+        }
+      });
+    },
+  },
+};
+```
+
+如何串联 model 和 UI component？也是通过 connect 方法，例如：
+
+```js
+import { connect } from 'dva';
+
+@connect(({ count }) => ({
+  // 这里面的属性都会加到组件的 props 上面去
+  count,
+}))
+export default class Counter extends Component {
+  componentDidMount() {
+    console.log(this.props.count); // { count: 0 }, 返回的就是对应 model 文件里的 state 对象。
+    this.props.dispath({
+      type: 'count/addAfter1Second',
+      payload: {
+        id: 123,
+      },
+    });
+  }
+  render() {}
+}
+```
+
+##### dva 数据流向
+
+通过 dispatch 发起一个 action，如果是同步行为会直接通过 Reducers 改变 State ，如果是异步行为（副作用）会先触发 Effects 然后流向 Reducers 最终改变 State，所以在 dva 中，数据流向非常清晰简明。
+
+![dva](../static/img/dva.png)
+
+## 扩展阅读
+
+- [Redux 中文文档](https://www.redux.org.cn/)
+- [Redux](http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_one_basic_usages.html)
+- [React-Redux](http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html)
