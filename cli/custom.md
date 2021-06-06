@@ -17,6 +17,12 @@
 - 不满足需求：jenkins、travis 通常在 git hooks 中触发，需要在服务端执行，无法覆盖研发人员本地的功能，如：创建项目自动化、本地 git 操作自动化等
 - 定制复杂：jenkins、travis 定制过程需要开发插件，其过程较为复杂，需要使用 Java 语言，对前端同学不够友好
 
+## 命令基础
+
+1. ~表示当前登录用户的主目录
+2. node 的环境变量指向的就是 bin 这个文件夹，bin 下面的目录是用来存放可执行文件的，如果存在才会执行该命令。
+3. 可以通过/usr/bin/env 命令查看一下 node 的环境变量
+
 ## 从使用角度来理解什么是脚手架
 
 1. 脚手架简介
@@ -75,12 +81,70 @@ vue create vue-test-app --force -r https://registry.npm.taobao.org
 <p>为什么 <code>vue</code> 指向一个 <code>js</code> 文件，我们却可以直接通过 <code>vue</code> 命令直接去执行它？</p>
 
 5. 脚手架原理进阶
-* 为什么说脚手架本质是操作系统的客户端？它和我们在PC上安装的应用/软件有什么区别？
-* 如何为 node  脚手架命令创建别名？
-* 描述脚手架命令执行的全过程
-   ![脚手架执行过程](./img/cli2.png)
 
-   ```js
-   #!/usr/bin/env node  // 在环境变量中查找 node
-   #!/usr/bin/node  // 直接执行 usr/bin/ 目录 下面的node
-   ```
+- 为什么说脚手架本质是操作系统的客户端？它和我们在 PC 上安装的应用/软件有什么区别？
+- 如何为 node 脚手架命令创建别名？
+- 描述脚手架命令执行的全过程
+  ![脚手架执行过程](./img/cli2.png)
+
+  ```js
+  #!/usr/bin/env node  // 在环境变量中查找 node
+  #!/usr/bin/node  // 直接执行 usr/bin/ 目录 下面的node
+  ```
+
+## 脚手架开发流程
+
+- 流程
+  1.  开发流程
+  2.  创建 npm 项目
+  3.  创建脚手架入口文件，在最上方添加 <code>#!/usr/bin/env node</code>
+  4.  配置 package.json，添加 bin 属性
+  5.  编写脚手架代码
+  6.  将脚手架发布到 npm
+- 难点
+  1.  分包: 将复杂的模块拆分成若干个模块
+  2.  命令注册
+      比如 vue create / vue add /vue invoke
+      参数解析 1. options 的全称： --version --help 2. options 的简写： -V -h 3. 带 params 的 options：--path /usr/zl/Desktop/xxx
+      代码块 <code>vue command [options] <params></code>
+      帮助文档
+      global help
+      Usage 2. Options 3. Commands
+      vue 的示例信息
+      command help \* Usage Options
+      vue create 的帮助信息
+      还有很多
+      命令行交互
+      日志打印
+      命令行文字变色
+      网络通信
+      文件处理
+
+## 脚手架本地 link 标准流程
+
+1. 链接本地脚手架
+
+   cd your-cli-dir -> npm link
+2. 链接本地库文件
+
+   cd your-lib-dir   npm link</br>
+   cd your-cli-dir   npm link your-lib
+
+3. 取消链接本地库文件
+
+   cd your-lib-dir npm unlink
+   cd your-cli-dir
+4. 解除 link - 也可以 npm remove/uninstall -g xxxx
+
+- link 存在 npm unlink your-lib
+- link 不存在 <code>rm -rf node_modules  npm install -S your-lib</code>
+
+5. 理解 npm link
+   - npm link your-lib: 将当前项目中的 node_modules 下指定的库文件链接到 node 全局 node_modules 下的库文件（ 全局的又指向我们开发的库文件）
+   - npm link: 将当前项目链接到 node 全局 node_modules 中作为一个库文件，并解析 bin 配置创建可执行文件
+6. 理解 npm unlink
+   - npm unlink: 将项目从 node 全局 node_modlues 中移除
+   - npm unlink your-lib: 将当前项目中的库文件移除依赖
+
+7. 全局lib库地址 <code> /usr/local/lib/node_modules</code>
+
