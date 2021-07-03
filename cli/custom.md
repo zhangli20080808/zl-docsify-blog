@@ -120,7 +120,7 @@ vue create vue-test-app --force -r https://registry.npm.taobao.org
       网络通信
       文件处理
 
-## 脚手架本地 link 标准流程
+## 脚手架本地 link 标准流程 - 本地调试方法 
 
 1. 链接本地脚手架
 
@@ -148,3 +148,5 @@ vue create vue-test-app --force -r https://registry.npm.taobao.org
 
 7. 全局lib库地址 <code> /usr/local/lib/node_modules</code>
 
+
+## lerna学习

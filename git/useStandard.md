@@ -1,6 +1,6 @@
 # Git 使用规范流程
 
-# 状态
+## 状态
 1. 已修改 2.已暂存 3.已提交 4.特殊 未追踪
 1. git add <file>
 1. git rm <file> //从 git 仓库与工作区中删除指定文件 --cached 只删除 git 仓库中文件
@@ -14,3 +14,5 @@
 1. git tag -a v.1.0.0 // 默认是当前 head 也可以指定某一次 HEAD/commitId 多次提交形成一个版本，我们想打 tag，记录特殊节点
 1. git push origin --delete 分支名 删除远程分支
    [Git 使用规范流程](http://www.ruanyifeng.com/blog/2015/08/git-use-process.html)
+
+## 分支管理
