@@ -1,6 +1,6 @@
 # XMLHttpRequest
 
-```
+```js
 // 创建ajax引擎对象----所有操作都是由ajax引擎完成
 const xhtHttp = new XMLHttpRequest();
 // 为引擎对象绑定监听事件
@@ -31,6 +31,8 @@ onreadystatechange ->0 未初始化 还没调用send方法  ->1 载入 已调用
 
 # 状态码
 
+静态服务实现 - https://github.com/zhangli20080808/static-server-zl
+
 0. 1xx 服务器收到请求
 1. 2xx 请求成功
 2. 3xx 需求重定向，浏览器直接跳转 服务端告诉你你来这不行，你需要去别的地方 比如我们百度的搜索引擎
@@ -38,6 +40,24 @@ onreadystatechange ->0 未初始化 还没调用send方法  ->1 载入 已调用
 - 301(永远重定向 配合 location，浏览器自动处理 浏览器会记住，我下次访问的时候直接取访问新的网址，比如域名到期了，或者我想换域名了，老的域名就能返回一个 301 的状态，location 一个新的域名，让浏览器记住了这件事情，不会再去访问老的域名了)
 - 302(临时重定向 配合 location,服务端返回 location 302，浏览器自动处理 比如 下次访问还是会去访问老的地址 短网址意思也差不多)
 - 304(资源未改变，刚才的资源请求过了，我们再发一个请求，服务端有可能返回给你一个 304，没有过期，你可以接着使用缓存，资源在本地还有效)
+
+```js
+// 如果当前是手机端 就跳转到 百度
+// 如果是pc端 我就挑转 腾讯
+let http = require('http');
+http
+  .createServer((req, res) => {
+    let agent = req.headers['user-agent'];
+    res.statusCode = 302;
+    if (agent.includes('iPhone')) {
+      res.setHeader('Location', 'http://www.baidu.com');
+    } else {
+      res.setHeader('Location', 'http://www.qq.com');
+    }
+    res.end(); // 重定向的原理
+  })
+  .listen(8000);
+```
 
 3. 4xx 客户端错误 403 没权限 404
 4. 5xx 服务端报错 504 网关超时(比如能访问到第一台服务器，但在连接其他服务器的时候，超时了)
@@ -70,8 +90,8 @@ script 可以实现 jsonp
 
 跨域解决方案 1. jsonp 2.cors
 
-```
-页面事先声明好了 callBack 函数abc 再次加载到 js 返回值的时候 会自动调用 callBack abc 得到数据
+```js
+// 页面事先声明好了 callBack 函数abc 再次加载到 js 返回值的时候 会自动调用 callBack abc 得到数据
 function(data){
   // 这个使我们跨域得到的数据
   console.log(data);
@@ -85,7 +105,7 @@ function(data){
 
 cors - 跨域资款共享,允许浏览器向跨域服务器发出 XMLHttpRequest 请求，从而克服跨域问题，它需要浏览器和服务器的同时支持
 
-```
+```js
 浏览器端会自动向请求头添加origin字段，表明当前请求来源
 服务器端需要设置响应头的Access-Control-Allow-Methods，Access-Control-Allow-Headers，Access-Control-Allow-Origin等字段，指定允许的方法，头部，源等信息
 
@@ -93,7 +113,7 @@ cors - 跨域资款共享,允许浏览器向跨域服务器发出 XMLHttpRequest
 
 // 第二个参数填写允许跨域的名称
 response.setHeader('Access-Control-Allow-Origin', 'http://localhost:8001');
-response.setHeader('Access-Control-Allow-Headers', 'X-Request-With');
+response.setHeader('Access-Co ntrol-Allow-Headers', 'X-Request-With');
 response.setHeader(
   'Access-Control-Allow-Methods',
   'PUT,GET,POST,DELETE,OPTIONS'

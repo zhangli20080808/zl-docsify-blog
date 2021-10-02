@@ -151,14 +151,15 @@ zhangli.name = '13';
 console.log(zhangli.name);
 ```
 
-1. context
+## context
 
 - koa 为了能够简化 API，引入上下文 context 概念，将原始请求对象 req 和响应对象 res 封装并挂载到 context
   上，并且在 context 上设置 getter 和 setter，从而简化操作。
   app.use(ctx=>{ ctx.body = 'hehe' })
 
-2. 封装 request、response 和 context
-   [](https://github.com/koajs/koa/blob/master/lib/response.js)
+## 封装 request、response 和 context
+
+[代码](https://github.com/koajs/koa/blob/master/lib/response.js)
 
 ```js
 // request.js
@@ -172,6 +173,7 @@ module.exports = {
 };
 // response.js
 module.exports = {
+  _body: undefined,
   get body() {
     return this._body;
   },
@@ -194,19 +196,22 @@ module.exports = {
     return this.request.method;
   },
 };
-
 ```
 
-模拟的 kkb 可以对复杂的对象进行简单的封装
+## 模拟的 kkb 可以对复杂的对象进行简单的封装
+
 [Object.create()和 new object()和{}的区别](https://www.cnblogs.com/bug-jin/p/10388672.html)
 
 ```js
-  // 构建上下文, 把res和req都挂载到ctx之上，并且在ctx.req和ctx.request.req同时保存
-  // 使用Object.create()是将对象继承到__proto__属性上
-  // var test = Object.create({x:123,y:345}); __proto__ 上面有{x:123,y:345}
-  // 对比 var test1 = new Object({x:123,y:345});  test1.__proto__.x undefined
-  //var test2 = {x:123,y:345}; test2.__proto__.x);//undefined
+var test = Object.create({x:123,y:345});  // __proto__ 上面有{x:123,y:345}
+// 对比
+var test1 = new Object({x:123,y:345});  //test1.__proto__.x undefined
+var test2 = {x:123,y:345}; test2.__proto__.x); //undefined
+```
 
+```js
+// 构建上下文, 把res和req都挂载到ctx之上，并且在ctx.req和ctx.request.req同时保存
+// 使用Object.create()是将对象继承到__proto__属性上
 const http = require('http');
 const context = require('./context');
 const request = require('./request');
@@ -240,7 +245,8 @@ class KKB {
     this.middlewares.push(middleware);
   }
   // 构建上下文, 把res和req都挂载到ctx之上，并且在ctx.req和ctx.request.req同时保存
-  createContext(req, res) {  //http中的req,res
+  createContext(req, res) {
+    //http中的req,res
     const ctx = Object.create(context);
     ctx.request = Object.create(request);
     ctx.response = Object.create(response);
@@ -275,34 +281,36 @@ module.exports = KKB;
 1. 函数组合
 
 ```js
-const add = (x, y) => x + y
-const square = z => z * z
-const fn = (x, y) => square(add(x, y))
-console.log(fn(1, 2))
-
+const add = (x, y) => x + y;
+const square = (z) => z * z;
+const fn = (x, y) => square(add(x, y));
+console.log(fn(1, 2));
 ```
 
 上⾯就算是两次函数组合调⽤，我们可以把他合并成⼀个函数
 
 ```js
-const compose = (fn1, fn2) => (...args) => fn2(fn1(...args));
+const compose =
+  (fn1, fn2) =>
+  (...args) =>
+    fn2(fn1(...args));
 const fn = compose(add, square);
-
 ```
 
 多个函数组合：中间件的数⽬是不固定的，我们可以⽤数组来模拟
 
 ```js
-const compose = (...[first, ...other]) => (...args) => {
-  let ret = first(...args);
-  other.forEach((fn) => {
-    ret = fn(ret);
-  });
-  return ret;
-};
+const compose =
+  (...[first, ...other]) =>
+  (...args) => {
+    let ret = first(...args);
+    other.forEach((fn) => {
+      ret = fn(ret);
+    });
+    return ret;
+  };
 const fn = compose(add, square);
 console.log(fn(1, 2));
-
 ```
 
 异步中间件：上⾯的函数都是同步的，挨个遍历执⾏即可，如果是异步的函数呢，是⼀个
@@ -354,14 +362,13 @@ function delay() {
 const middlewares = [fn1, fn2, fn3];
 const finalFn = compose(middlewares);
 finalFn();
-
 ```
 
 # 常见 koa 中间件的实现
 
 函数式编程 compose 异步 compose js 中间件对比学习 express koa redux 中间件重要原理 static router
 
-1. koa 中间件的规范
+## koa 中间件的规范
 
 - 一个 async 函数
 - 接收 ctx 和 next 两个参数
@@ -373,17 +380,16 @@ const mid = async (ctx, next) => {
   next(); // 进入其他中间件
   // 再次来到中间件，洋葱圈右边
 };
-
 ```
 
-2. 中间件常见任务
+## 中间件常见任务
 
 - 请求拦截
 - 路由
 - 日志
 - 静态文件服务
 
-3. router 实现
+## router 实现
 
 ```js
 class Router {
@@ -426,10 +432,9 @@ class Router {
   }
 }
 module.exports = Router;
-
 ```
 
-4. 静态文件服务 koa-static
+## 静态文件服务 koa-static
 
 - 配置绝对资源目录地址，默认为 static
 - 获取文件或者目录信息
@@ -489,8 +494,6 @@ module.exports = (dirPath = './public') => {
     }
   };
 };
-
-
 ```
 
 # express 原理
@@ -592,5 +595,4 @@ class LikeExpress {
 module.exports = () => {
   return new LikeExpress();
 };
-
 ```
