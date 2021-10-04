@@ -1,7 +1,10 @@
-# koa2
+## koa2
 
-思考？原生 http 的不足，令人困惑的 request 和 response，res.end 流是个什么东西
-对复杂业务的描述（流程描述，切面 aop 描述） 没有给出一些解决方法，所以才引出了 koa
+思考？
+
+1. 原生 http 的不足，令人困惑的 request 和 response，res.end
+2. 流是个什么东西？
+3. 对复杂业务的描述（流程描述，切面 aop 描述） 没有给出一些解决方法，所以才引出了 koa
 
 对于 request 和 response 他提供了一种上下文环境 context
 对于 对复杂业务的描述 他引入了 中间件的机制
@@ -45,6 +48,12 @@ var mid = function () {
    Koa 中间件机制：Koa 中间件机制就是函数组合的概念，将一组需要顺序执行的函数复合为一个函数，外层函
    数的参数实际是内层函数的返回值。洋葱圈模型可以形象表示这种机制，是源码中的精髓和难点
 
+3. 中间价有什么特点？
+
+- 在中间件函数中 处理封装公共的属性和逻辑 添加方法和属性 ctx.request.body
+- 决定是否向下执行，不掉用当前操作就结束了(权限校验，有权限继续向下，没有，直接返回) 也就是 提前处理请求，给 koa 提前处理静态资源
+- 封装公共逻辑
+
 ````js
 /**
  * 每个中间件都是 async 的格式  中间件才是把整个http在koa中的运转串起来的一个非常核心的东西
@@ -53,7 +62,7 @@ var mid = function () {
   application 就是提供了一种能力 通过new的实例 传入中间件 实例端口 生成的实例 能够在nodejs能通过拿到进来的http
   逐层过中间件数组 把生成的结果交给了 处理响应函数 具体返回内容
   1.  在koa中 一切的流程 都是中间件
-  2.  我们的http请求进入koa中  都会流经配置好的中间件 middware
+  2.  我们的http请求进入koa中  都会流经配置好的中间件 middleware
   3.  在中间件执行 的过程中  会通过koa-compose 把这些中间件组合在一起 一个一个的把数组中的函数依次执行
       通过一个next的回调函数 不断的将执行权向下传递
   4.  每一个中间件都会拿到请求的上下文 通过context可以访问到 req res 很多属性和方法
@@ -65,7 +74,10 @@ var mid = function () {
   两个概念
   1. 纯函数  x->y 无副作用
   2. 伪递归
-  ```
+
+  **/
+
+  ```js
   // 调用 递归的时候 程序会保存当前方法的调用栈 调用tail(2)的时候 必须要记录是如何调用tail(1)的
   // 这样才能在执行完tail(2)之后 返回tail(1)的下一行代码 打印一下 这个1  缺点 记录了太多的状态和堆栈深度 执行的结果就是下一次的入参
   function tail(i) {
@@ -77,19 +89,18 @@ var mid = function () {
   tail(0);
 
   ```
- *  application 就是提供了一种能力 通过new的实例 传入中间件 实例端口 生成的实例 能够在nodejs能通过拿到进来的http
- * 逐层过中间件数组 把生成的结果交给了 处理响应函数 具体返回内容
- * http 上下文对象 context(ctx)
- * 1. 我们 new koa() 之后 其实并没有对网络层进行一个监听 任何的请求都没有进来 在listen之后我们会对特定的端口进行监听 到具体的某次http请求
- * 2. new koa -> 难理解的可能是 listen监听的回调函数 this.callback()
- * 3. koa在封装application的时候 对callback多做了一些事情
- * callback
+ application 就是提供了一种能力 通过new的实例 传入中间件 实例端口 生成的实例 能够在nodejs能通过拿到进来的http
+ 逐层过中间件数组 把生成的结果交给了 处理响应函数 具体返回内容
+ http 上下文对象 context(ctx)
+ 1. 我们 new koa() 之后 其实并没有对网络层进行一个监听 任何的请求都没有进来 在listen之后我们会对特定的端口进行监听,到具体的某次http请求
+ 2. new koa -> 难理解的可能是 listen监听的回调函数 this.callback()
+ 3. koa在封装 application 的时候,对callback多做了一些事情
+ 4. callback
  * -> 1. createContext (便于我们在各个中间件或者业务处理的时候拿到进来的request请求和响应 把request 和 responese上面的所有属性都给了context)
- * -> 2. handlerequest (调用整个中间件的数组 等全部结束之后，再调用封装的res f返回数据给客户端 有多种返回格式 1. buffer 2. string 3. stream pipe 4.json)
+ * -> 2. handlerequest (调用整个中间件的数组 等全部结束之后，再调用封装的res返回数据给客户端,有多种返回格式 1. buffer 2. string 3. stream pipe 4.json)
  */
 
-
-## koa-compress
+## koa-compress，koa核心处理方法
 
 koa 中间件执行顺序实现主要靠的就是源码中的 koa-compress.js。
 源码分析:
@@ -98,14 +109,6 @@ koa 中间件执行顺序实现主要靠的就是源码中的 koa-compress.js。
 module.exports = compose;
 // 把一个个不想关的中间件串到一起
 function compose(middleware) {
-  // 判断 middleware 是否是数组
-  if (!Array.isArray(middleware))
-    throw new TypeError('Middleware stack must be an array!');
-  for (const fn of middleware) {
-    if (typeof fn !== 'function')
-      throw new TypeError('Middleware must be composed of functions!');
-  }
-
   // 请求进来的时候会调 handleRequest  next 钩子函数 串联下一个中间件
   return function (context, next) {
     let index = -1;
@@ -131,7 +134,7 @@ function compose(middleware) {
 }
 ````
 
-# 源码解读
+## 源码解读
 
 context 上下文 基础 getter setter Object.create 对象继承
 
@@ -254,6 +257,35 @@ class KKB {
     ctx.res = ctx.response.res = res;
     return ctx;
   }
+  /**
+   * 1. 默认执行第一个，然后继续执行
+   * 2. 返回值进行包装 返回 Promise
+   */
+  async compose(ctx) {
+    // 默认将 middlewares 里的第一个执行
+    let index = -1;
+    const dispatch = (i) => {
+      let middleware = this.middlewares[i];
+
+      if (i === index) {
+        return Promise.reject(new Error('next() cb 多次调用'));
+      }
+      index = i; // 相当于第一次调用时候 将 index 变为 0
+
+      // 如果执行完毕会，返回的不是 promise 进行包装
+      if (i === this.middlewares.length) {
+        return Promise.resolve();
+      }
+      // 链式调用 之后 如果用户调用了 await next()
+      // 这里需要增加 错误处理 负责直接抛出 需要捕获异常
+      try {
+        return Promise.resolve(middleware(ctx, () => dispatch(i + 1)));
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    };
+    return dispatch(0); // 默认取出第一个执行
+  }
   //合成函数
   compose(middlewares) {
     return function (ctx) {
@@ -362,6 +394,75 @@ function delay() {
 const middlewares = [fn1, fn2, fn3];
 const finalFn = compose(middlewares);
 finalFn();
+```
+
+# 模板引擎的实现
+
+## 基础字符串
+
+```js
+/**
+ * 1. 需要用户读取html，将最终的结果用一个字符串保存起来
+ * 2. 通过 new Function 的方式，将字符串变成一个函数
+ * 3. with来解决取值问题
+ */
+function anonymous(obj) {
+  let str;
+  with (obj) {
+    str = `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Document</title>
+    </head>
+    <body>
+        `;
+    arr.forEach((item) => {
+      str += `
+            <li>123</li>
+        `;
+    });
+    str += `
+    </body>
+    </html>`;
+  }
+  return str;
+}
+
+let r = anonymous({ arr: [1, 2, 3] });
+console.log(r);
+
+let obj = { a: 1 };
+with (obj) {
+  console.log(a, 'a');
+}
+```
+
+## render 函数的实现
+
+```js
+let ejs = require('ejs');
+let fs = require('fs');
+let templateStr = fs.readFileSync('./template.html', 'utf8');
+// 把<%%> 语法替换掉 ，把我们需要的内容用str拼接起来
+// 实现一个with(obj);
+// new Function
+function render(templateStr, obj) {
+  let start = `let str\r\n`;
+  start += `with(obj){\r\n`;
+  start += 'str=`';
+  templateStr = templateStr.replace(/<%([\s\S]+?)%>/g, function () {
+    return '`\r\n' + arguments[1] + '\r\nstr+=`';
+  });
+  let tail = '`\r\n} \r\n return str';
+  // 让字符串变成函数
+  let fnStr = new Function('obj', start + templateStr + tail);
+  return fnStr(obj);
+}
+templateStr = render(templateStr, { arr: [1, 2, 3] });
+console.log(templateStr);
 ```
 
 # 常见 koa 中间件的实现

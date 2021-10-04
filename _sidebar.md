@@ -18,6 +18,11 @@
   - [JS-核心原理解析](/javascript/base_10.md)
   - [盒子模型和盒子偏移量](/javascript/base9.md)
 
+* ES6 技巧
+
+  - [常用命令](/es6/1.md)
+  - [概念理解](/es6/4.md)
+  
 - [**React**](/react/index.md)
 
   - [基础使用](/react/baseUse/1.md)
@@ -27,6 +32,9 @@
   - [从 redux 到 react-redux 再到 dva](/react/reduxFlows.md)
   - [hooks](/react/hooks.md)
   - [react 原理解析](/react/reactAnalysis.md)
+
+
+- [**Promise 学习总结**](/promise总结/1.md)
 
 * Vue
 * [基本使用](/vue/3.md)
@@ -44,14 +52,6 @@
   - [curl](/cli/curl.md)
   - ssh
 
-* ES6 技巧
-
-  - [常用命令](/es6/1.md)
-  - [概念理解](/es6/4.md)
-
-* Promise 学习总结
-
-  - [概念理解](/promise总结/1.md)
 
 * proxy 代理响应式比较总结
 
