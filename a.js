@@ -1,30 +1,7 @@
-async function async1() {
-  console.log('async1 start');
-  await async2();
-  console.log('async1 end');
-  async2()
-    .then(resolve)
-    .then(() => {
-      console.log('async1 end');
-    });
-  new Promise((resolve) => resolve(async2())).then(() => {
-    console.log('async1 end');
-  });
-}
-async function async2() {
-  console.log('async2');
-}
-console.log('script start');
-setTimeout(function () {
-  console.log('setTimeout');
-}, 0);
-async1();
-new Promise(function (resolve) {
-  console.log('promise1');
-  resolve();
-  console.log('???'); // 这一句是我自己加的，目的考察大家是否知道同步代码和微任务，迷惑大家resolve()后面是否还会执行
-}).then(function () {
-  console.log('promise2');
+setImmediate(() => { // node中的宏任务，会立即执行，和setTimeout有什么区别呢？
+  // 异步
+  console.log('异步 -> setImmediate'); // node中的宏任务
 });
-console.log('script end');
-// script start -> async1 start -> async2 -> promise1 -> ??? -> script end -> async1 end -> promise2 -> setTimeout
+setTimeout(() => {
+  console.log('setTimeout');
+}, 2);

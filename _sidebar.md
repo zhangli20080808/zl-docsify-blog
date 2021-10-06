@@ -22,7 +22,7 @@
 
   - [常用命令](/es6/1.md)
   - [概念理解](/es6/4.md)
-  
+
 - [**React**](/react/index.md)
 
   - [基础使用](/react/baseUse/1.md)
@@ -71,6 +71,7 @@
 
 * Node
   - [node 基础](/node/1.md)
+  - [node 进阶](/node/2.md)
   - [koa2](/node/koa2.md)
   - [浑仪系统后端技术栈回顾总结](/node/hyxt.md)
   - [网络编程](/node/4.md)
