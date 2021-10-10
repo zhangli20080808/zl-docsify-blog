@@ -466,7 +466,6 @@ function render(templateStr, data) {
 }
 let r = render(templateStr, { arr: [4, 2, 3] });
 console.log(r);
-
 ```
 
 # 常见 koa 中间件的实现
@@ -599,6 +598,391 @@ module.exports = (dirPath = './public') => {
     }
   };
 };
+```
+
+# cookie 和 session
+
+## cookie
+
+```js
+/**
+ * http header 默认 4k cookie 4k
+ * 浏览器localstorage (跨域吗？大小限制 5M)
+ * http无状态的 cookie 做登录 / jwt json web token
+ * session 是服务器上的  cookie 服务器和客户端端都能设置
+ * session 是基于cookie的 （如果什么都放到cookie上 可能占用流量 需要合理设置cookie）
+ 1. 摘要算法：摘要算法又称哈希/散列算法。它通过一个函数，把任意长度的数据转换为一个长度固定的数据串
+ （通常用16进制的字符串表示）。算法不可逆
+ */
+let http = require('http');
+let querystring = require('querystring');
+let crypto = require('crypto');
+http
+  .createServer(function (req, res) {
+    let sign = (value) => {
+      return (
+        crypto
+          .createHmac('sha256', 'zf')
+          .update(value.toString())
+          // base64字符串在传输过程中，会把/+=变成'',
+          .digest('base64')
+          .replace(/\/|\+|\=/, '')
+      );
+    };
+    res.getCookie = function getCookie(key, { signedCookie }) {
+      let cookies = querystring.parse(req.headers.cookie, '; ');
+      if (signedCookie) {
+        // 如果内容签名了 我需要核实一下内容是否可靠
+        let [value, signStr] = cookies[key].split('.');
+        let s = sign([value]);
+        if (s === signStr) {
+          return value;
+        } else {
+          return '';
+        }
+      }
+      return cookies[key] || '';
+    };
+    let cookiesArr = [];
+    res.setCookie = function (key, value, options = {}) {
+      let optionArgs = [];
+      if (options.domain) {
+        optionArgs.push(`domain=${options.domain}`);
+      }
+      if (options.path) {
+        optionArgs.push(`path=${options.path}`);
+      }
+      if (options.httpOnly) {
+        optionArgs.push(`httpOnly=true`);
+      }
+      if (options.signedCookie) {
+        value = value + '.' + sign(value); // 10.xxx
+      }
+      cookiesArr.push(`${key}=${value}; ${optionArgs.join('; ')}`);
+      res.setHeader('Set-Cookie', cookiesArr);
+    };
+    // cookie不能跨域设置，携带凭证
+    // 读取cookie  如果超过最大存活时间会自动销毁
+    if (req.url === '/read') {
+      // name=zf; age=10  => {name:zf,age:10}
+      console.log(req.headers.cookie);
+      let age = res.getCookie('age', { signedCookie: true });
+      res.end(age.toString());
+      //res.end(JSON.stringify(querystring.parse(req.headers.cookie,'; ')));
+    }
+    // 设置cookie
+    if (req.url === '/write') {
+      //www.baidu.com music.baidu.com  => .baidu.com
+      // domain 只能在某个域名下设置cookie
+      // path 在哪个路径下可以访问cookie ，以 / 开头表示任何路径都可以, /xxx 以xxx开头即可
+      // max-age(相对时间) expires(绝对时间) 设置缓存时间
+      //   res.setHeader('Set-Cookie', [
+      //     'name=zf; domain=.zf.cn; max-age=10',
+      //     `age=10; max-age=10; httpOnly=true; expire=${new Date(
+      //       Date.now() + 10 * 1000
+      //     ).toGMTString()}`,
+      //   ]);
+      // httpOnly 是否服务端设置就，前端不能更改，保证cookie不能再浏览器端获取，但是依然可以伪造,篡改
+
+      //   如果不设置 domain path 每次请求都会带上cookie，增加传输流量的浪费，合理设置，减少传输
+      res.setCookie('name', 'jw.zxcvzxcx', {
+        httpOnly: true,
+        domain: '.baidu.com',
+        path: '/',
+        maxAge: 10,
+      }); // md5
+      res.setCookie('age', 10, { signedCookie: true });
+      res.end('ok');
+    }
+    res.end('路径有误');
+  })
+  .listen(3000);
+// 有一个秘钥 ，这个秘钥只有我有，如果用户改了cookie
+// 加盐
+// let r = crypto.createHmac('sha256','zf1').update('hello').digest('base64');
+// console.log(r);
+```
+
+## session
+
+```js
+/**
+ * session 保证我们的cookie更加安全
+   就是一个对象，保存着每次客户请求过来的信息
+   借助于cookie，没有大小限制，存储于服务器中，持久化存储
+   主要用于 前后端不分离，服务端渲染
+ */
+let http = require('http');
+let querystring = require('querystring');
+let uuid = require('uuid');
+// 我去洗澡店消费
+let session = {}; // 更安全的 可以存储用户的状态, 存在问题，服务器重启之后会信息会丢失,可以存储到redis里面
+// 怎么证明是第一次来
+// 我先给店铺起个名，然后发卡
+let shopName = 'zl';
+// 用户的信息 用户的名 做一个关联
+http
+  .createServer((req, res) => {
+    // 可能有卡号 但是店铺黄了
+    if (req.url === '/') {
+      //  看用户是否有卡，卡号是否注册过
+      let cardId = querystring.parse(req.headers.cookie, '; ')[shopName];
+      if (cardId && session[cardId]) {
+        // 第二次来
+        session[cardId].mny -= 10;
+        res.end('current money is ' + session[cardId].mny);
+      } else {
+        // 第一次
+        let cardId = uuid.v4(); // 生成一个卡号
+        res.setHeader('Set-Cookie', `${shopName}=${cardId}`);
+        console.log('====================================');
+        console.log(1);
+        console.log('====================================');
+        session[cardId] = { mny: 100 };
+        res.end('weclome current money is ' + session[cardId].mny);
+      }
+    }
+  })
+  .listen(3003);
+```
+
+## session 在 koa 中的应用
+
+```js
+let Koa = require('koa');
+let Router = require('koa-router');
+let bodyparser = require('koa-bodyparser');
+let views = require('koa-views');
+let session = require('koa-session');
+let app = new Koa();
+let router = new Router();
+app.keys = ['zf'];
+app.use(
+  session(
+    {
+      // 续命 访问淘宝 30分钟之内一直访问
+      expires: new Date(Date.now() + 10000),
+    },
+    app
+  )
+);
+app.use(
+  views(__dirname + '/views', {
+    map: {
+      html: 'ejs',
+    },
+  })
+);
+router.get('/', async (ctx) => {
+  await ctx.render('home.html');
+});
+router.post('/login', async (ctx) => {
+  let { username, password } = ctx.request.body;
+  if (username === '1' && password === '1') {
+    // 表示用户登陆成功了 存到session
+    ctx.session.user = { username };
+    ctx.redirect('/list');
+  } else {
+    ctx.redirect('/');
+  }
+});
+router.get('/list', async (ctx) => {
+  // 如果当前访问的这个请求里 可以拿到session 就表示登陆过
+  let username = ctx.session.user || {};
+  console.log(ctx.session);
+  if (username) {
+    console.log(username);
+    await ctx.render('list.html', { username });
+  } else {
+    ctx.redirect('/');
+  }
+});
+app.use(bodyparser()); // 支持 json  表单 不支持文件上传 koa-multer
+app.use(router.routes());
+app.listen(3003);
+// session 基于cookie 跨域
+// 第一次客户端访问服务器（登陆）
+// 服务器将要返回的内容 {username:xxxx} 并且在加一个签名返还给客户端
+// 返还的结果是 内容+签名
+// 你在次访问服务器 我同构签名校验一下内容，如果都没问题，我可以认为你有登陆的权限
+// 服务器不需要存储用户的状态，并且可以无限扩展
+```
+
+# JWT 包含了使用`.`分隔的三部分
+
+- Header 头部
+
+  ```
+  { "alg": "HS256", "typ": "JWT"}
+  // 表示使用算算法 algorithm => HMAC SHA256
+  // 类型 - type => JWT
+  ```
+
+- Payload 负载、载荷(比如，谁给的令牌，下面的这些内容)
+
+  ```
+  JWT 规定了7个官方字段
+  iss (issuer)：签发人
+  exp (expiration time)：过期时间
+  sub (subject)：主题
+  aud (audience)：受众
+  nbf (Not Before)：生效时间
+  iat (Issued At)：签发时间
+  jti (JWT ID)：编号
+  ```
+
+- Signature 签名
+
+  对前两部分的签名，防止数据篡改
+
+  ```javascript
+  HMACSHA256(base64UrlEncode(header) + '.' + base64UrlEncode(payload), secret);
+  ```
+
+JWT 作为一个令牌（token），有些场合可能会放到 URL（比如 api.example.com/?token=xxx）。Base64 有三个字符`+`、`/`和`=`，在 URL 里面有特殊含义，所以要被替换掉：`=`被省略、`+`替换成`-`，`/`替换成`_` 。这就是 Base64URL 算法。
+
+## 使用方式
+
+HTTP 请求的头信息`Authorization`字段里面
+
+```
+Authorization: Bearer <token>
+```
+
+通过 url 传输
+
+```
+http://www.xxx.com/pwa?token=xxxxx
+```
+
+如果是 post 请求也可以放在请求体中
+
+## 实际应用+实现
+
+```javascript
+// 实现一个登陆功能
+// 实现一个校验是否登陆
+let Koa = require('koa');
+let Router = require('koa-router');
+let bodyparser = require('koa-bodyparser');
+let jwt = require('jwt-simple');
+let app = new Koa();
+let router = new Router();
+app.use(bodyparser());
+let crypto = require('crypto');
+let MyJwt = {
+  // base 去掉 + / =
+  escape(content) {
+    return content.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=/g, '');
+  },
+  fromStringToBase64(content) {
+    return this.escape(Buffer.from(JSON.stringify(content)).toString('base64'));
+  },
+  unescape(str) {
+    str += new Array(5 - (str.length % 4)).join('=');
+    return str.replace(/\-/g, '+').replace(/_/g, '/');
+  },
+  sign(content, secret) {
+    return this.escape(
+      crypto.createHmac('sha256', secret).update(content).digest('base64')
+    );
+  },
+  encode(content, secret) {
+    // eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiMSIsImV4cHIiOiJTdW4s
+    // IDEwIE9jdCAyMDIxIDA3OjQwOjAwIEdNVCJ9.SDU75rh71RNUB75VJ_BGU5y0ab3Qt4EAlap4C_e9QGI"
+    // header +'.'+payload  = sha256加密出来一个sign
+    // header + '.' + payload + '.' + sign
+    // 将header转成base64
+    let header = this.fromStringToBase64({ typ: 'JWT', alg: 'HS256' }); // 固定死的，这两个参数
+    // 将payload转成base64 payload还是明文，还是可以解码出来的，不能存储铭感信息
+    let body = this.fromStringToBase64(content);
+    // 将header和payload组合到一起，一起签名
+    let sign = this.sign(header + '.' + body, secret);
+    // 散步分放在一起就是最终的结果
+    return header + '.' + body + '.' + sign;
+  },
+  fromBase64ToString(content) {
+    return Buffer.from(content, 'base64').toString();
+  },
+  decode(content, secret) {
+    let [header, body, sign] = content.split('.');
+    let newSign = this.sign(header + '.' + body, secret);
+    if (newSign === sign) {
+      let content = this.fromBase64ToString(this.unescape(body));
+      content = JSON.parse(content);
+      console.log(new Date(content.expr), Date.now());
+      if (content.expr && new Date(content.expr) < Date.now()) {
+        throw new Error('过期了');
+      }
+      return content;
+    } else {
+      throw new Error('token错误');
+    }
+  },
+};
+// jwtwebtoken  jwt-simple
+let secret = 'zf';
+router.post('/login', async (ctx) => {
+  // 当访问登陆的时候
+  let { username, password } = ctx.request.body;
+  console.log(username, password);
+  if (username === password) {
+    // 登陆过了 需要给他发一个token
+    // 加入一个过期的字段 如果超过这个事件当前token就过期了
+    let content = {
+      user: username,
+      expr: new Date(Date.now() + 20 * 1000).toGMTString(),
+    };
+    console.log(content);
+
+    // decode校验签名正确性包括解析内容 encode签名
+    let token = jwt.encode(content, secret);
+    ctx.body = {
+      code: 200,
+      content,
+      token,
+    };
+  } else {
+    // ctx.status = 401; // 需要前端配合
+    ctx.body = {
+      code: 401,
+      data: '登陆失败',
+    };
+  }
+});
+router.get('/validate', async (ctx) => {
+  // 校验内容是否合法
+  let [, token] = ctx.get('authorization').split(' ');
+  if (token) {
+    try {
+      let content = MyJwt.decode(token, secret); // 把默认的内容取出来
+      // 续命 继续验证增加登陆的时长
+      content = {
+        ...content,
+        expr: new Date(Date.now() + 10 * 10000).toGMTString(),
+      };
+      token = MyJwt.encode(content, secret);
+      ctx.body = {
+        code: 200,
+        content,
+        token,
+      };
+    } catch (e) {
+      console.log(e);
+      ctx.body = {
+        code: 401,
+        data: '没有登陆',
+      };
+    }
+  } else {
+    ctx.body = {
+      code: 401,
+      data: '没有登陆',
+    };
+  }
+});
+app.use(router.routes());
+app.listen(3003);
 ```
 
 # express 原理
