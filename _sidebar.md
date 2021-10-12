@@ -23,6 +23,7 @@
 
   - [常用命令](/es6/1.md)
   - [概念理解](/es6/4.md)
+  - [模块-类](/es6/6.md)
 
 - [**React**](/react/index.md)
 
@@ -74,6 +75,7 @@
   - [node 基础](/node/1.md)
   - [node 进阶](/node/2.md)
   - [koa2](/node/koa2.md)
+  - [express](/node/express.md)
   - [浑仪系统后端技术栈回顾总结](/node/hyxt.md)
   - [网络编程](/node/4.md)
   - [HTTP 协议详解](/node/http.md)
