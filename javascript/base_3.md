@@ -5,7 +5,7 @@
 
 # 自由变量
 
-一个变量在当前作用域没有定义，但被使用了 向上级作用域(父级作用域)层层查找，知道找到为止 如果到全局作用域还没有找到，那就是 not defined 属性查找机制
+一个变量在当前作用域没有定义，但被使用了 向上级作用域(父级作用域)层层查找，直到找到为止 如果到全局作用域还没有找到，那就是 not defined 属性查找机制
 
 自由变量的查找，是在函数定义的地方，向上级作用域查找，不是在执行的地方！！！(注意)
 
@@ -86,9 +86,7 @@ for (var i = 1; i <= 5; i++) {
     console.log(i)
   }, i * 1000)
 }
-
 首先因为 setTimeout 是个异步函数，所以会先把循环全部执行完毕，这时候 i 就是 6 了，所以会输出一堆 6。
-
 解决方式
 1. 使用闭包的方式
 for (var i = 1; i <= 5; i++) {
@@ -99,7 +97,6 @@ for (var i = 1; i <= 5; i++) {
   })(i)
 }
 我们首先使用了立即执行函数将 i 传入函数内部，这个时候值就被固定在了参数 j 上面不会改变，当下次执行 timer 这个闭包的时候，就可以使用外部函数的变量 j，从而达到目的
-
 2. 使用 setTimeout 的第三个参数，这个参数会被当成 timer 函数的参数传入。
 for (var i = 1; i <= 5; i++) {
   setTimeout(
@@ -152,8 +149,6 @@ for (let i = 0; i < 10; i++) {
  *       1 给元素绑定事件，当事件被触发的时候，this就是当前元素
  *       2 this是谁跟函数在哪里定义和执行没什么关系，就看函数执行的时候前面的'.'点，点前面是谁this就是谁,没有点就是window
  *       3 自运行函数的this永远是window,无论这个自运行函数在哪
- *
- *
  *       4  构造函数（类）中的this是当前实例
  *       5  this可以通过call和apply去改变,这个优先级最高
  *
@@ -172,26 +167,23 @@ var obj = {
 };
 //window.fn(); //this?   window
 //obj.fn(); //obj
-
 //a = 7; //
-
 //console.log(window.a); //???
-
 var oo = {
+  a: 123,
   sum: function () {
     console.log(this);
+    console.log(this.a);
     fn();
   },
 };
 //fn();
-//oo.sum(); //this????  oo
-
+//oo.sum(); //this????  oo 谁调用就是谁
 //3
 
 var obj2 = {
   fn: (function () {
     console.log(this); //自执行函数的this永远是window
-
     return function () {
       //var xxx = 89;
       console.log(this);
@@ -207,8 +199,12 @@ alert(window.xxx); //???
 1. 在 class 方法中调用
 2. 箭头函数
    注意: this 取什么值 是在函数执行的时候确认的 不是在定义的时候 我们的 call 调用 是在执行的时候
+3. 箭头函数没有 argument，没有原型 除非传入
 
 ```js
+let say = (...argument) => {
+  console.log(argument); // 正确，如果不传是没有的
+};
 function fn1() {
   console.log(this);
 }
@@ -235,10 +231,8 @@ function a() {
   }
 }
 console.log(a()()())
-
 注意 另外对箭头函数使用 bind 这类函数是无效的。 对于这些函数来说，this 取决于第一个参数，如果第一个参数为空，那么就是 window
 思考？ 如果对一个函数多次bind 那么上下文是什么呢？
-
 let a = {}
 let fn = function () { console.log(this) }
 fn.bind().bind(a)() // => ?
@@ -251,7 +245,6 @@ let fn2 = function fn1() {
 }
 fn2()
 管我们给函数 bind 几次，fn 中的 this 永远由第一次 bind 决定，所以结果永远是 window
-
 可能会发生多个规则同时出现的情况，这时候不同的规则之间会根据优先级最高的来决定 this 最终指向哪里
 首先，new 的方式优先级最高，接下来是 bind 这些函数，然后是 obj.foo() 这种调用方式，最后是 foo 这种调用方式，同时，箭头函数的 this 一旦被绑定，就不会再被任何方式所改变。
 ```
@@ -266,7 +259,6 @@ const zhangsan = {
     });
   },
 };
-
 const zhangsan = {
   sayHigh(){
     // 当前对象
@@ -280,11 +272,10 @@ const zhangsan = {
     });
   },
 };
-
 我们构造函数的这个this 指向的就是当前这个实例
 ```
 
-相同点
+## 相同点、不同点
 
 1. call 和 apply 的第一个参数 thisArg，都是 func 运行时指定的 this，如果这个函数处于非严格模式下，则指定为 null 或 undefined 时会自动替换为指向全局对象，原始值会被包装。
 2. 都可以只传递一个参数。
@@ -297,8 +288,10 @@ var doSth2 = function (a, b) {
 };
 doSth2.call(0, 1, 2); // this 是 0 // [1, 2]
 doSth2.apply('1'); // this 是 '1' // [undefined, undefined]
-doSth2.apply(null, [1, 2]); // this 是 null // [1, 2]
+doSth2.apply(null, [1, 2]); // this 是 window // [1, 2]
 ```
+
+## call、bind 实现
 
 this 的不同场景，如何取值
 当做普通函数调用 使用 call apply bind 作为对象方法调用 在 class 方法中调用 箭头函数
@@ -321,7 +314,6 @@ Function.prototype.bind1 = function (arguements) {
 
 function fn1(a, b, c) {
   console.log('this', this);
-  s;
   console.log(a, b, c);
   return 'this is fn1';
 }
@@ -334,6 +326,36 @@ var args = [].slice.call(arguments);
 // 将参数转换为真实的数组
 var args = Array.from(arguments);
 var args = [...arguments];
+
+--------实现2---------
+Function.prototype.bind2 = function(context) {
+    var _this = this;
+    var argsParent = Array.prototype.slice.call(arguments, 1);
+    return function() {
+        var args = argsParent.concat(Array.prototype.slice.call(arguments)); //转化成数组
+        _this.apply(context, args);
+    };
+}
+```
+
+## apply 实现
+
+```js
+Function.prototype.apply = function (context, args) {
+  context = context ? Object(context) : window;
+  // 想法  构造对象的fn方法 调用
+  context.fn = this;
+  // 直接调用
+  if (!args) {
+    return context.fn();
+  }
+
+  //  利用数组的 toString 特性
+  let r = eval('context.fn(' + args + ')');
+  delete context.fn;
+  return r;
+};
+fn1.apply('hello', [1, 2, 3]);
 ```
 
 思路总结
@@ -347,6 +369,37 @@ var args = [...arguments];
 
 - [手写 call 实现 1](https://www.cnblogs.com/web-chuan/p/11592261.html)
 - [手写 call 实现 2](https://cloud.tencent.com/developer/article/1475924)
+
+```js
+function fn1(name, age) {
+  this.say = '123';
+  console.log(this);
+  console.log(`我养了一直${this.name},今年${name},${age}${this.test}`);
+}
+
+function fn2() {
+  console.log(this);
+}
+Function.prototype.call = function (context) {
+  var context = Object(context) || window; //因为传进来的context有可能是null
+  context.fn = this;
+  var args = [];
+  for (var i = 1; i < arguments.length; i++) {
+    args.push('arguments[' + i + ']'); //不这么做的话 字符串的引号会被自动去掉 变成了变量 导致报错
+  }
+  args = args.join(',');
+
+  var result = eval('context.fn(' + args + ')'); //相当于执行了context.fn(arguments[1], argument[2]);
+  delete context.fn;
+  return result; //因为有可能this函数会有返回值return
+};
+// 一般会将fn1中的this指向hello 不能直接把this 给一个hello 构造对象fn
+// xxx.fn1() 可以将hello作为.前面的值   {}.fn = fn1
+// fn1.call('hello', '1', '2')
+// fn1.call(fn2)
+// fn1.call.call.call(fn2) //fn2最后执行的时候前面并没有.
+// 如果多个call会让call方法执行 并且把call中的this变成fn2
+```
 
 # 闭包的应用
 

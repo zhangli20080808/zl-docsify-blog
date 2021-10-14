@@ -46,10 +46,12 @@ lis.teach(); //我是老师missLi,教大家English
 
 1. 可以判断引用类型
 2. Object 是所有人的一个父类
+3. instanceof是基于原型链实现的
 
    instanceof 判断这个类型到时属于哪个 class 或者属于哪个构造函数
 
 ```js
+// 判断是不是数组 https://blog.csdn.net/qq_39207948/article/details/81052154
 instanceof 前面这个变量顺着 xiaohong 隐式原型 往上找 能不能找到 第二个操作数 对应的显式原型
 我们 xiaohong 顺着隐式原型一层一层往上找 能不能对应到 class 的显示原型 如果能对应到，instanceof 成立
 

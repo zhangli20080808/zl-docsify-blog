@@ -60,6 +60,15 @@ http
 ```
 
 3. 4xx 客户端错误 403 没权限 404
+
+```js
+499对应的是 “client has closed connection”，客户端请求等待链接已经关闭，这很有可能是因为服务器端处理的时间过长，客户端等得“不耐烦”了。还有一种原因是两次提交post过快就会出现499。
+解决方法：
+
+前端将timeout最大等待时间设置大一些
+nginx上配置proxy_ignore_client_abort on;
+```
+
 4. 5xx 服务端报错 504 网关超时(比如能访问到第一台服务器，但在连接其他服务器的时候，超时了)
 
 # Restful api
@@ -160,3 +169,16 @@ response.setHeader('Access-Control-Allow-Credentials', 'true');
 
 1.  JSONP 只支持 GET 请求，CORS 支持所有类型的 HTTP 请求
 2.  JSONP 的优势在于支持老式浏览器，以及可以向不支持 CORS 的网站请求数据
+
+# 存储
+
+## cookie
+
+浏览器和服务端用来通信，借用来做本地存储，缺点-最大存储 4kb，localStorage 最大 5m，针对域名来说
+localStorage,sessionStorage,session,cookie,indexDB,cacheApi
+
+1. cookie 不支持跨域 合理使用 cookie 否则会导致流量浪费 domain p
+2. localStorage / sessionStorage 不会发送给服务器
+3. IndexDB 浏览器中的非关系型数据库
+   [http://www.ruanyifeng.com/blog/2018/07/indexeddb.html](http://www.ruanyifeng.com/blog/2018/07/indexeddb.html)
+4. cacheApi 离线缓存

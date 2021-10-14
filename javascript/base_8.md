@@ -39,19 +39,19 @@
 
 - 请求 headers
   - Accept 可接受的数据格式
-  - Accept-Encoding 请求报头域类似于 Accept，但是它是用于指定可接受的内容编码(浏览器可接受的压缩算法)
+  - Accept-Encoding 请求报头域类似于 Accept，但是它是用于指定可接受的内容编码(浏览器可接受的压缩算法，gzip)
   - Accept-Language: 浏览器可接受的语言
-  - connect keep-alive 一次 Tcp 连接的重复使用
-  - cookie
-  - host 请求域名
+  - connect: keep-alive 一次 Tcp 连接的重复使用
+  - cookie: 不支持跨域，同域每次都会携带
+  - host: 请求域名是什么
   - User-Agent (ua 浏览器信息)
   - Authorization 请求报头域主要用于证明客户端有权查看某个资源
   - Content-Type 发送数据的格式 application/json
 - 响应 headers
   - Content-type 返回数据格式
-  - ContentL-length 返回数据大小 多少字节
+  - ContentL-length 返回数据大小,多少字节
   - Content-Encoding 告诉你用什么方法压缩的 gzip
-  - set-cookie 服务端设置 cookie
+  - Set-Cookie 服务端设置cookie
   - Location 重定向的地址
 - 自定义 header
 
@@ -75,7 +75,7 @@
 
 2. http 缓存策略(强缓存，协商缓存)，
    初次请求，服务端觉得资源可以被缓存 会加一个 Cache-control 在 res header 中，返回资源和资源标识(Last-Modified/etag)，控制强制缓存的逻辑
-   eg: cache-control: max-age=3153600
+   eg: cache-control: max-age=3153600 秒
    客户端再次请求(会带着资源标识,If-Modified-Since:值是 Last-Modified) 之前有 cache-control 会判断时间 若时间没过期，浏览器回去本地缓存中找，找到了就返回资源 如果时间过期，缓存失效，再次请求服务端，服务端返回资源和 cache-control
 
    协商缓存- 服务端缓存策略/对比缓存
@@ -89,7 +89,7 @@
    1. Last-Modified 资源最后修改时间
    2. Etag(资源唯一标识，一个字符串，类似指纹)
 
-3) 刷新操作方式，对缓存的影响
+3. 刷新操作方式，对缓存的影响
 
 - 正常操作: 地址栏输入 url 链接跳转 前进后退 强制缓存有效 协商缓存有效
 - 手动刷新 强制缓存无效 协商缓存有效
