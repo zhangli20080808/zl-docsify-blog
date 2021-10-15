@@ -1,7 +1,4 @@
-setImmediate(() => { // node中的宏任务，会立即执行，和setTimeout有什么区别呢？
-  // 异步
-  console.log('异步 -> setImmediate'); // node中的宏任务
-});
-setTimeout(() => {
-  console.log('setTimeout');
-}, 2);
+var test = Object.create({ x: 123, y: 345 }); // __proto__ 上面有{x:123,y:345}
+// 对比
+var test1 = new Object({ x: 123, y: 345 }); //test1.__proto__.x undefined
+var test2 = { x: 123, y: 345 }; // test2.__proto__.x); //undefined

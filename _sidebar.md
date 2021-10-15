@@ -23,6 +23,7 @@
 
   - [常用命令](/es6/1.md)
   - [概念理解](/es6/4.md)
+  - [proxy代理响应式比较总结](/es6/5.md)
   - [模块-类](/es6/6.md)
 
 - [**React**](/react/index.md)
@@ -53,11 +54,6 @@
   - vim
   - [curl](/cli/curl.md)
   - ssh
-
-
-* proxy 代理响应式比较总结
-
-  - [概念理解](/es6/5.md)
 
 * 移动端
 

@@ -1,8 +1,9 @@
-## 如何用class实现继承
+## 如何用 class 实现继承
 
 本质上类似于一个模板，我们可以通过这个模板去构造一些东西
-1. constructor 
-2. 属性 
+
+1. constructor
+2. 属性
 3. 方法
 
 ```js
@@ -46,7 +47,7 @@ lis.teach(); //我是老师missLi,教大家English
 
 1. 可以判断引用类型
 2. Object 是所有人的一个父类
-3. instanceof是基于原型链实现的
+3. instanceof 是基于原型链实现的
 
    instanceof 判断这个类型到时属于哪个 class 或者属于哪个构造函数
 
@@ -61,7 +62,56 @@ console.log(xiaohong instanceof Object); //true
 console.log([] instanceof Object, {} instanceof Object); // true true
 ```
 
+4. 实现
+
+```js
+// console.log([] instanceof Array)
+// console.log([] instanceof Object)
+//
+// console.log([].__proto__ === Array.prototype)
+// console.log([].__proto__.__proto__ === Object.prototype)
+
+class A {}
+
+let a = new A();
+// 不能判断自定义类型
+console.log(Object.prototype.toString.call(a));
+
+function instanceOf(C, D) {
+  D = D.prototype;
+  C = C.__proto__;
+
+  while (true) {
+    if (C === null) {
+      return false;
+    }
+    if (C === D) {
+      return true;
+    }
+    C = C.__proto__;
+  }
+}
+
+console.log(instanceOf(a, Array));
+// 缺陷 如果是原始类型就不能检验了
+let str = '123';
+console.log(str instanceof String);
+// 等价写法
+console.log(String[Symbol.hasInstance](str));
+
+class ValidateStr {
+  //重写这方方法
+  static [Symbol.hasInstance](x) {
+    return typeof x === 'string';
+  }
+}
+
+console.log(ValidateStr[Symbol.hasInstance]('hello'));
+console.log('hello' instanceof ValidateStr);
+```
+
 # 原型和原型链
+
 ```js
 1. class 实际上是函数，可见是语法糖 typeof Student;  //function
 2. 隐式原型 __proto__ 和 显式原型 prototype
@@ -109,6 +159,7 @@ console.log(Object.prototype.__proto__ );   //null
 v8 引擎就是 chrome 内置的一个 js 引擎，即用它来执行 js 代码。
 js 说白了就是一堆字符串，得有一个环境去执行它，它才能作为一个代码来处理逻辑。v8 就是干这个的。
 ```
+
 ![](../static/img/prototype.png)
 
 简易版 jquery

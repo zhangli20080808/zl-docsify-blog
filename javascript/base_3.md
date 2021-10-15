@@ -291,7 +291,7 @@ doSth2.apply('1'); // this 是 '1' // [undefined, undefined]
 doSth2.apply(null, [1, 2]); // this 是 window // [1, 2]
 ```
 
-## call、bind 实现
+## 手写 call、bind 实现
 
 this 的不同场景，如何取值
 当做普通函数调用 使用 call apply bind 作为对象方法调用 在 class 方法中调用 箭头函数
@@ -336,6 +336,40 @@ Function.prototype.bind2 = function(context) {
         _this.apply(context, args);
     };
 }
+--------实现3---------
+~function () {
+  function bind (context, ...args) {
+    // this -> func
+    let _this = this
+    context = context == undefined ? window : context
+    let type = typeof context
+    if (!/^(object|function)$/.test(type)) {
+      if (/^(symbol|bigint)$/.test(type)) {
+        context = Object(context)
+      } else {
+        context = new context.constructor(context)
+      }
+    }
+    return function anonymous (...innerArgs) {
+      _this.call(context, ...args.concat(innerArgs))
+    }
+  }
+
+  Function.prototype.bind = bind
+}()
+var obj = {
+  name: 'zhufeng'
+}
+
+function func () {
+  console.log(this, arguments)
+}
+
+document.body.onclick = func.bind(obj, 100, 200)
+
+/* document.body.onclick = function anonymous(ev) {
+	func.call(obj, 100, 200,ev);
+}; */
 ```
 
 ## apply 实现
@@ -399,6 +433,41 @@ Function.prototype.call = function (context) {
 // fn1.call(fn2)
 // fn1.call.call.call(fn2) //fn2最后执行的时候前面并没有.
 // 如果多个call会让call方法执行 并且把call中的this变成fn2
+
+----------   实现2 -----------
+~ function () {
+	function change(context, ...args) {
+		// this -> func
+		context = context == undefined ? window : context;
+		let type = typeof context;
+		if (!/^(object|function)$/.test(type)) {
+			if (/^(symbol|bigint)$/.test(type)) {
+				context = Object(context);
+			} else {
+				context = new context.constructor(context);
+			}
+		}
+		let key = Symbol('key'),
+			result;
+		context[key] = this;
+		result = context[key](...args);
+		delete context[key];
+		return result;
+	};
+	Function.prototype.change = change;
+}();
+
+let obj = {
+	name: 'zhufeng'
+};
+
+function func(x, y) {
+	this.total = x + y;
+	return this;
+}
+let res = func.call(0, 100, 200);
+console.log(res);
+//res => {name:'Alibaba',total:300}
 ```
 
 # 闭包的应用
@@ -592,3 +661,4 @@ function fn(i) {
 //fn()(34); //45  函数执行完的返回值立即执行，也是作用域不被释放情况之一
 //fn()(56); //67
 ```
+![x](./img/scope.png)

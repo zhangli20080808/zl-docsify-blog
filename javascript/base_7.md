@@ -73,8 +73,8 @@ nginx上配置proxy_ignore_client_abort on;
 
 # Restful api
 
-传统的 Api 设计，把每个 url 当一个功能
-Restful Api 设计，把每个 url 当成一个资源（标识 id）
+- 传统的 Api 设计，把每个 url 当一个功能
+- Restful Api 设计，把每个 url 当成一个资源（标识 id）
 
 如何设计成一个资源呢？
 
@@ -83,6 +83,11 @@ Restful Api 设计，把每个 url 当成一个资源（标识 id）
    restful Api /api/getList/2
 
 # 跨域 同源策略 跨域解决方案
+
+- ajax get post 区别
+- get 主要用于查询 post 主要用于提交数据
+- get 参数拼接在 url 上 post 放在请求体内(数据体积大)
+- 安全性： post 易于防止 csrf
 
 ajax 请求时 浏览器要求当前网页和 server 必须同源(安全)
 同源 协议 端口 域名 三者必须一致

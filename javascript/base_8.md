@@ -51,7 +51,7 @@
   - Content-type 返回数据格式
   - ContentL-length 返回数据大小,多少字节
   - Content-Encoding 告诉你用什么方法压缩的 gzip
-  - Set-Cookie 服务端设置cookie
+  - Set-Cookie 服务端设置 cookie
   - Location 重定向的地址
 - 自定义 header
 
@@ -111,8 +111,9 @@
 
 - Expires 和 Cache-Control 两个 header 来控制强缓存
 
-```
-expires: Wed, 11 Mar 2019 16:12:18 GMT  //后端返回，在这个时间之前都可以使用强缓存 (expires被cache-control代替了，兼容两种写法)
+```js
+ //后端返回，在这个时间之前都可以使用强缓存 (expires被cache-control代替了，兼容两种写法)
+expires: Wed, 11 Mar 2019 16:12:18 GMT
 cache-control
 max-age=31536000 // 1.1 精准 优先级⾼ 前端访问 max-age
 no-cache(不用本地缓存，正常向服务端请求)
@@ -135,7 +136,7 @@ If-Modified-Since: Fri, 27 Oct 2017 06:35:57 GMT
 - 服务器： ⼩⽼弟，没改过，直接⽤缓存把，这次请求返回 304 not Modified
   两者共存，如果有 etag 类似⽂件的指纹，这个优先级更⾼ 因为更准确，如果资源被重复生成而内容不变，etag 更精确 // etag 去算文件 hash
 
-```
+```js
 ETag: W/"2aaa-129892f459"
 If-None-Match: W/"2aaa-129892f459"
 ```
@@ -200,21 +201,30 @@ cdn 单独的域名，浏览器并发获取
 1. 从输入 url 到渲染出页面的整个过程
 
 - 加载资源的形式
-  html 代码 媒体文件 图片视频 javascript css
+  - html 代码
+  - 媒体文件 - 图片视频
+  - javascript css
 - 加载资源的过程
-  浏览器通过 DNS 把域名解析成 ip 的过程 域名 -> ip (dns 可以理解成一种网络协议或者服务)
-  浏览器根据 ip 地址 简历 TCP 连接 向服务器发起 http 请求
-  服务器接受请求，查库，读文件等，拼接好返回的 http 响应，并返回给浏览器
+  - 浏览器通过 DNS 把url地址解析成 ip 的过程(如果有缓存直接返回缓存,否则递归解析)  
+    域名 -> ip (dns 可以理解成一种网络协议或者服务)
+  - 通过DNS解析得到了目标服务器的IP地址后，与服务器建立TCP连接
+    * ip协议： 选择传输路线,负责找到
+    * tcp协议： 三次握手，分片，可靠传输，重新发送的机制
+  - 浏览器通过http协议发送请求 (增加http的报文信息) 头 体 行  
+  - 服务器接受请求后，查库，读文件，拼接好返回的http响应 
 - 渲染页面的过程
-  浏览器收到首屏 html,开始渲染 解析 html 为 dom tree
-  根据 css 代码生成 CSSOM 对象模型 也就是 解析 css 为 css-tree
-  将 dom 树和 CSSOM 整合行程 -> render tree(框架和样式合并出来的一个结构)(dom+css 生成 render-tree 绘图)
-  根据 render tree 渲染页面
-  加载 script 文件 如果 遇到 script 则暂停渲染，优先加载并执行 js 代码，完成再继续 (因为 js 的进程和渲染进程是共用一个进程)
 
-  因为我们的 js 中有可能会改变 dom 结构 改变我们当前渲染的结果 你再渲染的话就没用了
-  只至把 render tree 渲染完
-  执行 js
+  - 浏览器收到首屏 html,开始渲染 解析 html 为 DOM Tree
+  - 根据 css 代码生成 CSSOM 对象模型,也就是 解析 css 为 CSSOM -css tree
+    将 DOM 树和 CSSOM 整合形成 -> Render Tree(框架和样式合并出来的一个结构,可以理解成每个节点挂了很多 css 属性)(dom+css 生成 render-tree 绘图)
+  - 根据 Render Tree 渲染页面
+  - 遍历渲染树开始布局，计算每个节点的位置大小信息
+  - 将渲染树每个节点绘制到屏幕
+  - 加载js文件,运行js脚本 ,如果遇到 script 则暂停渲染，优先加载并执行 js 代码，完成再继续 (因为 js 的进程和渲染进是共用一个进程)
+
+    因为我们的 js 中有可能会改变 dom 结构,改变我们当前渲染的结果 你再渲染的话就没用了
+
+  - 只至把 Render Tree 渲染完
 
 2. window.onLoad 和 DOMContentLoad 的区别
 
@@ -222,7 +232,6 @@ cdn 单独的域名，浏览器并发获取
 window.addEventListener('load', function () {
   //页面的全部资源全部加载完才会执行，包括图片 视频
 });
-
 window.addEventListener('DOMContentLoaded', function () {
   // DOM 渲染完即可执行 此时图片 视频 可能还没加载完
   // 比如 jquery 一般都会监听这个事件 如果监听到 我们就默认网页加载结束了
@@ -257,7 +266,9 @@ window.addEventListener('DOMContentLoaded', function () {
 
 1. 让加载更快 减少资源体积：压缩代码 服务器 gzip 图片格式和压缩 少加载文件
    少执行代码
-2. 减少访问次数：合并代码(打包后的一个 js(webpack output->fileName :'bundle.[contenthash].js')) ssr 服务端渲染 缓存(命中) 比如雪碧图 很多图合称为一个 css 定位展示
+2. 减少访问次数
+   * 合并代码(打包后的一个 js(webpack output->fileName :'bundle.[contenthash].js')) 
+   * ssr 服务端渲染 缓存(命中) 比如雪碧图 很多图合称为一个，css 定位展示
 3. 使用更快的网络：cdn (是根据区域来做一个服务器的处理) 用户与内容之间的物理距离缩短，用户的等待时间也得以缩短
 4. 长列表(对内存做优化 针对移动端 比如淘宝首页无限滚动 如果直接渲染)
 
@@ -339,6 +350,7 @@ function debounce(fn, delay = 500) {
   let timer = null; // 此时timer是在闭包中的
   // 返回函数
   return function(...args) {
+  // return function() {
     if (timer) {
       // 每当用户输入的时候把前一个 setTimeout clear 掉
       clearTimeout(timer);
@@ -347,6 +359,7 @@ function debounce(fn, delay = 500) {
     timer = setTimeout(() => {
       // fn() 这个函数可能会接受一些参数
       fn.apply(this, args);
+      // fn.apply(this, argument);
       timer = null;
     }, delay);
   };
