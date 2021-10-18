@@ -44,6 +44,7 @@
 * [高级使用总结](/vue/2.md)
 * [vue 源码分析](/vue/vueAnalysis.md)
 * [MVVM 理解](/vue/1.md)
+* [面试题小结](/vue/face.md)
 
 * 前端架构
 * [前端架构](/homework/1.md)

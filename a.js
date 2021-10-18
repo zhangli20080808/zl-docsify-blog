@@ -1,16 +1,19 @@
-class Bus {
-  constructor() {
-    // eventName1:[fn1,fn2],
-    // eventName2:[fn3,fn4],
-    this.callbacks = {};
-  }
-  $on(name, fn) {
-    this.callbacks[name] = this.callbacks[name] || [];
-    this.callbacks[name].push(fn);
-  }
-  $emit(name, args) {
-    if (this.callbacks[name]) {
-      this.callbacks[name].forEach((cb) => cb(args));
-    }
-  }
-}
+Vue.component('router-link', {
+  props: {
+    to: String,
+  },
+  // 这个地方不能用 template 这种方式运行时打包的方式 根本没有编译器 只能写render
+  render(h) {
+    // h(tag,data,children)
+    return h(
+      'a',
+      {
+        attrs: {
+          href: '#' + this.to,
+        },
+        class: 'router-link',
+      },
+      [this.$slots.default]
+    );
+  },
+});

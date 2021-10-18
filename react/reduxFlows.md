@@ -154,7 +154,8 @@ const render = () =>
     document.getElementById('root')
   );
 render();
-store.subscribe(render); // State 发生变化，就自动执行这个监听函数, 进而重新渲染，如果没有这个组件不会更新
+// State 发生变化，或者派发dispatch,就自动执行这个监听函数, 进而重新渲染，如果没有这个组件不会更新
+store.subscribe(render);
 ```
 
 - 定义好 reducer 后， 通过 createStore 函数接收 reducer 创建好 store，一个应用只有 store;
@@ -388,7 +389,7 @@ class Counter extends Component {
   }
 }
 
-// Reducer
+// Reducer state->老装填，action->动作
 function counter(state = { count: 0 }, action) {
   switch (action.type) {
     case 'increase':
@@ -497,8 +498,13 @@ export default connect(
 /*
  * 中间件理解  dispatch经过 applyMiddleWare 之后 -> SuperDispatch (对dispatch执行若干次高阶函数)
  * SuperDispatch会把所有中间件执行完后 再执行正常的 dispatch
- *
  * 函数复合 比如我想让这个数组顺序执行  [fn1,fn2,fn3]  -> fn3(fn2(fn1()))
+   store
+   1. 获取仓库中的状态 store.getState
+   2. 向仓库派发动作 store.dispatch
+   3. 仓库收到动作后会把动作和老的状态传给 reducer(处理器或者计算器) 来计算新状态
+
+
  * */
 
 export function createStore(reducer, enhancer) {
@@ -515,18 +521,18 @@ export function createStore(reducer, enhancer) {
   }
   // 更新状态
   function dispatch(action) {
-    // 修改
+    // 修改,传入老状态和action，计算出新的状态，更新新状态
     currentState = reducer(currentState, action);
     // 变更通知
     currentListeners.forEach((v) => v());
     return action;
   }
-  // subscribe 我们的render函数
+  // subscribe 我们的render函数，有 dispatch 动作，我们就执行
   function subscribe(cb) {
     currentListeners.push(cb);
   }
 
-  // 初始化状态
+  // 派发一个默认动作，为了给我们的 currentState 初始值
   dispatch({ type: '@IMOOC/KKB-REDUX' });
 
   return {
