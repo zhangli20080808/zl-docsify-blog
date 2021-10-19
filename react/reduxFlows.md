@@ -437,9 +437,14 @@ React-Redux 规定，所有的 UI 组件都由用户提供，_容器组件则是
 
 ## connect
 
-connect([mapStateToProps],
-[mapDispatchToProps], [mergeProps],
-[options])
+```js
+/**
+组件和仓库的关系？
+1. 输入 把仓库里的数据输入到组件中显示
+2. 输出 组件派发动作，从而修改仓库里的状态
+*/
+connect([mapStateToProps], [mapDispatchToProps], [mergeProps], [options]);
+```
 
 UI 组件和容器组件分离,React-Redux 提供 connect 方法，用于从 UI 组件生成容器组件。connect 的意思，就是将这两种组件连起来。
 
@@ -453,7 +458,13 @@ UI 组件和容器组件分离,React-Redux 提供 connect 方法，用于从 UI 
    ⽤，mapStateToProps 都会被重新计算，mapDispatchToProps 也会被调⽤。注意性能！
 
 2. mapDispatchToProps(dispatch, [ownProps]): dispatchProps
-   如果你省略这个 mapDispatchToProps 参数，默认情况下，dispatch 会注⼊到你的组件 props 中。
+
+```js
+export default connect(
+  mapStateToProps
+  // 如果你省略这个 mapDispatchToProps 参数，默认情况下，dispatch 会注⼊到你的组件 props 中。
+);
+```
 
 - 如果传递的是⼀个对象，那么每个定义在该对象的函数都将被当作 Redux action creator，对象所定义的⽅法名将
   作为属性名；每个⽅法将返回⼀个新的函数，函数中 dispatch ⽅法会将 action creator 的返回值作为参数执
@@ -505,20 +516,28 @@ const VisibleTodoList = connect(
 
 ## mapStateToProps 和 mapDispatchToProps
 
-a、mapStateToProps  
-是一个函数，一般返回一个对象。它的作用就是建立一个从（外部的）state 对象到（UI 组件的）props 对象的映射关系。比如 mapStateToProps 返回对象 obj，则 UI 组件的 props = { ...this.props, ...obj }。  
-mapStateToProps 会订阅 Store，每当 state 更新的时候，就会自动执行，重新计算 UI 组件的参数，从而触发 UI 组件的重新渲染。
+1. mapStateToProps - 把状态中的状态变成组件的属性对象
 
-b、mapDispatchToProps  
-可以是一个函数，也可以是一个对象。用来建立 UI 组件的参数到 store.dispatch 方法的映射。
+```js
+// 是一个函数，一般返回一个对象。
+// 它的作用就是建立一个从（外部的）state 对象到（UI 组件的）props 对象的映射关系。比如
+// mapStateToProps 返回对象 obj，则 UI 组件的 props = { ...this.props, ...obj }
+function mapStateToProps(state) {
+  return state.obj; // 当成组件的属性对象
+}
+```
+
+2. mapStateToProps 会订阅 Store，每当 state 更新的时候，就会自动执行，重新计算 UI 组件的参数，从而触发 UI 组件的重新渲染。
+
+3. mapDispatchToProps  
+   可以是一个函数，也可以是一个对象。用来建立 UI 组件的参数到 store.dispatch 方法的映射。
 
 ## Provider 组件 <Provider store>
 
-React-Redux 提供 Provider 组件，可以让容器组件拿到 state。
-<Provider store> 使组件层级中的 connect() ⽅法都能够获得 Redux store。正常情况下，你的根组件应该嵌套在
-<Provider> 中才能使⽤ connect() ⽅法
-
 ```js
+// React-Redux 提供 Provider 组件，可以让容器组件拿到 state。
+// <Provider store> 使组件层级中的 connect() ⽅法都能够获得 Redux store。
+// 正常情况下，你的根组件应该嵌套在<Provider> 中才能使⽤ connect() ⽅法
 let store = createStore(todoApp);
 render(
   //  把Provider放在根组件外层，使⼦组件能获得store
@@ -529,8 +548,9 @@ render(
 );
 ```
 
-上面代码中，Provider 在根组件外面包了一层，这样一来，App 的所有子组件就默认都可以拿到 state 了。  
-它的原理是 React 组件的 context 属性，store 放在了上下文对象 context 上面，子组件就可以从 context 拿到 store。
+上面代码中，Provider 在根组件外面包了一层，这样一来，App 的所有子组件就默认都可以拿到 state 了。
+
+- 它的原理是 React 组件的 context 属性，store 放在了上下文对象 context 上面，子组件就可以从 context 拿到 store。
 
 ## 计数器例子
 
@@ -548,7 +568,6 @@ class Counter extends Component {
     );
   }
 }
-
 // Reducer state->老装填，action->动作
 function counter(state = { count: 0 }, action) {
   switch (action.type) {
@@ -559,30 +578,24 @@ function counter(state = { count: 0 }, action) {
       return state;
   }
 }
-
 // Store
 const store = createStore(counter);
-
 // Action
 const increaseAction = { type: 'increase' };
-
 // Map Redux state to component props
 function mapStateToProps(state) {
   return {
     value: state.count,
   };
 }
-
 // Map Redux actions to component props
 function mapDispatchToProps(dispatch) {
   return {
     onIncreaseClick: () => dispatch(increaseAction),
   };
 }
-
 // Connected Component  状态映射 mapStateToProps  派发事件映射 mapDispatchToProps
 const App = connect(mapStateToProps, mapDispatchToProps)(Counter);
-
 ReactDOM.render(
   <Provider store={store}>
     <App />
@@ -613,6 +626,13 @@ export function bindActionCreators(creators, dispatch) {
     ret[item] = bindActionCreator(creators[item], dispatch);
     return ret;
   }, {});
+  // for in
+  // let boundActionCreators = {};
+  // for (const key in creators) {
+  //   const actionCreator = creators[key];
+  //   boundActionCreators[key] = bindActionCreator(actionCreator, dispatch);
+  // }
+  // return boundActionCreators;
 }
 ```
 
@@ -652,6 +672,13 @@ export default connect(
     res = bindActionCreators(res, dispatch);
     return { dispatch, ...res };
   },
+
+  // 常规
+  // (dispatch, ownProps) => ({
+  //    add: (mount) => dispatch({ type: 'ADD', payload: mount + ownProps.payload }),
+  //    minus: () => dispatch({ type: 'MINUS' }),
+  // })
+
   // mergeProps Function
   // 如果指定了这个参数，`mapStateToProps()` 与`mapDispatchToProps()` 的执⾏结果和组件⾃身的`props` 将传到这个回调函数中。
   (stateProps, dispatchProps, ownProps) => {
@@ -677,15 +704,30 @@ export default connect(
   }
 );
 ```
+## useSelector、useDispatch
+
+```js
+
+import { useContext } from 'react';
+import ReactReduxContext from '../ReactReduxContext';
+
+export const useDispatch = () => {
+  const { store } = useContext(ReactReduxContext);
+  return store.dispatch;
+};
+
+const useSelector = (selector) => {
+  const { store } = useContext(ReactReduxContext);
+  return selector(store.getState());
+};
+export default useSelector;
+
+```
 
 ## 实现 react-redux
 
 1. 实现高阶函数工厂 connect 可以根据传入状态映射规则函数 和派发映射规则函数映射需要的属性 可以处理变更检测
 2. 实现一个 Provider 组件可以传递 store
-
-```js
-//  实现bindActionCreators
-```
 
 ```js
 import React from 'react';
@@ -696,7 +738,7 @@ export const connect = (
   mapDispatchToProps = {}
 ) => (WrapComponent) => {
   return class ConnectComponent extends React.Component {
-    // class组件中声明静态 contextTypes 可以获取上下文 context 一定是从上级组件中传递下来的上下文
+    // class组件中声明静态 contextTypes 可以获取上下文 context ,内部实现一定是从上级组件中传递下来的上下文
     <!-- 如果是类组件的话 会作为 构造函数的第二个参数 通过this.context访问 -->
     static contextTypes = { store: PropTypes.object };
     constructor(props, context) {
@@ -744,6 +786,51 @@ export class Provider extends React.Component {
   render() {
     return this.props.children;
   }
+}
+```
+
+## connect 实现 hook 版
+
+```js
+import React, { useState, useMemo, useLayoutEffect, useReducer } from 'react';
+
+import ReactReduxContext from './ReactReduxContext';
+import { bindActionCreators } from 'redux';
+/**
+ * HOC
+ * @param {*} mapStateToProps 把仓库的状态映射为组件的属性对象
+ * @param {*} mapDispatchToProps 把 dispatch 映射为组件的属性对象
+ */
+export default function connect(mapStateToProps, mapDispatchToProps) {
+  return function (OldComponent) {
+    return function (props) {
+      // 组件props
+      const { store } = React.useContext(ReactReduxContext);
+      const { dispatch, getState, subscribe } = store;
+      let prevState = getState(); // 获取最新状态
+      const stateProps = useMemo(() => mapStateToProps(prevState), [prevState]);
+      const dispatchProps = useMemo(() => {
+        let dispatchProps;
+        if (typeof mapDispatchToProps === 'object') {
+          dispatchProps = bindActionCreators(mapDispatchToProps, dispatch);
+        } else if (typeof mapDispatchToProps === 'function') {
+          dispatchProps = mapDispatchToProps(dispatch, props);
+        } else {
+          dispatchProps = { dispatch };
+        }
+        return dispatchProps;
+      }, [props, dispatch]);
+      // 订阅
+      // js代码执行，并非浏览器的渲染
+      // const [state, forceUpdate] = useReducer((x) => x + 1, 0); // 会让组件刷新
+      const [, setState] = useState(0);
+      useLayoutEffect(() => {
+        // return subscribe(() => forceUpdate(state + 1)); // 如果状态发生变更的话，就执行forceUpdate
+        return subscribe(() => setState((x) => x + 1)); // 如果状态发生变更的话，就执行forceUpdate
+      }, [subscribe]);
+      return <OldComponent {...props} {...stateProps} {...dispatchProps} />;
+    };
+  };
 }
 ```
 
