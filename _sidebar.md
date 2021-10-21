@@ -3,9 +3,6 @@
 - HTML
 <!-- https://yingchenit.github.io/base/generator/#generator%E7%9A%84%E5%9F%BA%E7%A1%80%E7%94%A8%E6%B3%95 -->
 
-- Egg
-- [概念理解](/Egg/1.md)
-
 * JavaScript
 
   - [JS 基础-变量类型计算](/javascript/base_1.md)
@@ -46,6 +43,9 @@
 * [MVVM 理解](/vue/1.md)
 * [面试题小结](/vue/face.md)
 
+* 模块化概念
+* [](/module/1.md)
+
 * 前端架构
 * [前端架构](/homework/1.md)
 
@@ -81,6 +81,8 @@
   - [egg](/node/6.md)
 
 - 数据库
+- Egg
+- [概念理解](/Egg/1.md)
 
 - 服务端相关
 

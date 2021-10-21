@@ -226,7 +226,8 @@ reducer 计算 state 是同步，如何实现异步操作呢？这就需要用�
 先执行中间件函数 然后再去执行我们的 reducer
 
 thunk 增加了处理函数型 action 的能力
-
+![中间件](./imgs/middle.png)
+![中间件](./imgs/middle2.png)
 ```js
 // 异步的返回的是函数
 export const asyncAdd = (dispatch, getState) => (dispatch) => {
@@ -239,14 +240,20 @@ export const asyncAdd = (dispatch, getState) => (dispatch) => {
 // thunk实现
 const thunk =
   ({ dispatch, getState }) =>
-  (dispatch) =>
+  (next) =>
   (action) => {
-    // thunk逻辑：处理函数action
+    // thunk逻辑：处理函数action 或者 promise
     if (typeof action == 'function') {
       return action(dispatch, getState);
     }
+    if(typeof action.then === 'function'){
+      action.then(()=>{
+        // 重新派发
+        dispatch(action)
+      })
+    }
     // 不是函数直接跳过
-    return dispatch(action);
+    return next(action);
   };
 ```
 
@@ -300,7 +307,11 @@ store.dispatch(fetchPosts('reactjs')).then(() =>
    3. 仓库收到动作后会把动作和老的状态传给 reducer(处理器或者计算器) 来计算新状态
 
 一般来说，在组件挂载成功之后，会进行订阅，当组件卸载的之前会取消订阅
-
+const store = createStore(
+  combineReducers({ counter: counterReducer }),
+  applyMiddleware(logger, thunk)
+);
+applyMiddleware(logger)(createStore)(combineReducers)
  * */
 
 export function createStore(reducer, enhancer) {
@@ -354,10 +365,11 @@ export function applyMiddleware(...middlewares) {
       // 传递给中间件函数的参数
       const midApi = {
         getState: store.getState,
-        dispatch: (...args) => dispatch(...args), // args action
+        // args action 让midApi里面的 dispatch 方法指向改造后的  dispatch 方法
+        dispatch: (...args) => dispatch(...args),  // 刚开始 默认 undefined
       };
-      // 将来中间件函数签名如下： funtion ({}) {}   使中间件可以获取状态值派发action
-      //[fn1(dispatch),fn2(dispatch)] => fn(diaptch)
+      // 将来中间件函数签名如下： function ({}) {}   使中间件可以获取状态值派发action
+      //[fn1(dispatch),fn2(dispatch)] => fn(dispatch)
       const chain = middlewares.map((mw) => mw(midApi));
       // 强化dispatch,让他可以按顺序执行中间件函数  最终还是要执行dispatch compose可以chain函数数组合成一个函数
       dispatch = compose(...chain)(store.dispatch);
@@ -383,7 +395,7 @@ export function compose(...funcs) {
         right(left(...args))
   );
 }
-// 1. 能结构出  dispatch,getState
+// 1. 能结构出  dispatch,getState 通过logger去改造我们的store
 function logger({ dispatch, getState }) {
   // 返回真正中间件任务执行函数
   return (dispatch) => (action) => {
@@ -394,6 +406,10 @@ function logger({ dispatch, getState }) {
     return dispatch(action);
   };
 }
+--------简写--------
+function
+
+
 ```
 
 ## 异步
@@ -704,10 +720,10 @@ export default connect(
   }
 );
 ```
+
 ## useSelector、useDispatch
 
 ```js
-
 import { useContext } from 'react';
 import ReactReduxContext from '../ReactReduxContext';
 
@@ -716,12 +732,30 @@ export const useDispatch = () => {
   return store.dispatch;
 };
 
+import { useContext, useLayoutEffect, useReducer } from 'react';
+
+import ReactReduxContext from '../ReactReduxContext';
+const equality = (a, b) => a === b; //可以自定义比较
+function useSelectorWithState(selector, equality, store, subscription) {
+  let storeState = store.getState();
+  let selectedState = selector(storeState);
+  const [, forceRender] = useReducer((x) => x + 1, 0); //更新状态，使用setState需要传参数，不方便
+  useLayoutEffect(() => {
+    subscription.subscribe(forceRender);
+  });
+  return selectedState;
+}
 const useSelector = (selector) => {
-  const { store } = useContext(ReactReduxContext);
-  return selector(store.getState());
+  const { store, subscription } = useContext(ReactReduxContext);
+  const selectedState = useSelectorWithState(
+    selector,
+    equality,
+    store,
+    subscription
+  );
+  return selectedState;
 };
 export default useSelector;
-
 ```
 
 ## 实现 react-redux
