@@ -27,7 +27,8 @@ import { isFunc } from './util';
  */
 export const updateQueue = {
   updaters: [], // 更新器数组
-  isBatchingUpdate: false, // 是否处于批量更新模式 默认 非批量更新 粗暴比如点击事件之前设置为true结束设置为false 手动指定 源码 自动指定
+  // 是否处于批量更新模式 默认 非批量更新 粗暴比如点击事件之前设置为true结束设置为false 手动指定 源码 自动指定
+  isBatchingUpdate: false,
   add(updater) {
     // 增加一个更细器
     this.updaters.push(updater);
@@ -431,48 +432,120 @@ function createSyntheticEvent(nativeEvent) {
 1. refs 提供了一种方式，允许我们访问 dom 节点或者在 render 方法中创建的 react 元素
 2. 在 react 渲染声明周期时，表单上的 value 值将会覆盖 dom 节点中的值，在非受控组件中，我们希望 react 能赋予组件一个初始值，但是不去控制后续的更新，在这种情况下，可以指定一个 defaultValue，而不是 value
 
- * ref的值是一个字符串
- * 
+- ref 的值是一个字符串
+-
 
 # setState 原理
 
 1. setState 批量行为：React 会合并多次 setState 操作为一次执行
 
 ```js
-   getState() {
-        // 实例， 待更新状态  pendingStates要更新的状态
-        let {instance, pendingStates} = this
-        // 从组件实例中拿出现有之前的 state和props
-        let {state, props} = instance
-        if (pendingStates.length) {
-            state = {...state}
-            // setState({foo:'bla', bar:'lala'})
-            // setState({foo:'dfdf', bar:'dfdfdf'})
-            // setState((ns)=>({foo:ns.foo+'dfdf', bar:'dfdfdf'}))
-            pendingStates.forEach(nextState => {
-                // 如果是数组则做替换
-                let isReplace = _.isArr(nextState)
-                if (isReplace) {
-                    nextState = nextState[0]
-                }
-                // 如果传递的是函数
-                if (_.isFn(nextState)) {
-                    nextState = nextState.call(instance, state, props)
-                }
-                // replace state 替换操作
-                if (isReplace) {
-                    state = {...nextState}
-                } else {
-                    state = {...state, ...nextState}
-                }
-            })
-            pendingStates.length = 0
-        }
-        return state
+getState() {
+    // 实例， 待更新状态  pendingStates要更新的状态
+    let {instance, pendingStates} = this
+    // 从组件实例中拿出现有之前的 state和props
+    let {state, props} = instance
+    if (pendingStates.length) {
+        state = {...state}
+        // setState({foo:'bla', bar:'lala'})
+        // setState({foo:'dfdf', bar:'dfdfdf'})
+        // setState((ns)=>({foo:ns.foo+'dfdf', bar:'dfdfdf'}))
+        pendingStates.forEach(nextState => {
+            // 如果是数组则做替换
+            let isReplace = _.isArr(nextState)
+            if (isReplace) {
+                nextState = nextState[0]
+            }
+            // 如果传递的是函数
+            if (_.isFn(nextState)) {
+                nextState = nextState.call(instance, state, props)
+            }
+            // replace state 替换操作
+            if (isReplace) {
+                state = {...nextState}
+            } else {
+                state = {...state, ...nextState}
+            }
+        })
+        pendingStates.length = 0
     }
+    return state
+}
 ```
 
 2. 异步：setState 调用后，会调用其 updater.addState，最终调用 updateQueue.add 将任务添加到队列等待系统批量更新 batchUpdate
+
+# react 事务的理解
+
+![react事务的理解](./imgs/transction.png)
+
+```js
+// 先执行一个开始的逻辑，再执行这个函数体，然后再执行结束的逻辑，这个步骤，所以说
+// react在底层执行函数的时候，都是按照这个机制去执行的，结合我们的 batchUpdate 思考
+class Transaction {
+  // 对一个方法进行多次改造 在方法之前之后增加一些逻辑
+  perform(anyMethod, wrappers) {
+    wrappers.forEach((wrapper) => wrapper.initialize());
+    anyMethod();
+    wrappers.forEach((wrapper) => wrapper.close());
+  }
+}
+let transaction = new Transaction();
+let oldFunc = () => {
+  console.log('原有的方法');
+};
+// 当然也可以增加数组 增加好几层条件 wrapper1 wrapper2
+transaction.perform(oldFunc, [
+  {
+    initialize() {
+      console.log('初始化');
+    },
+    // close() {
+    //   console.log('关闭');
+    // },
+  },
+  {
+    // initialize() {
+    //   console.log('初始化');
+    // },
+    close() {
+      console.log('关闭');
+    },
+  },
+]);
+```
+
+# 组件渲染和更新过程
+
+- props、state
+- 执行 render -> 返回 vnode
+- 执行 patch 函数 patch(container,vnode)
+- setState(newState) -> dirtyComponent(可能有子组件)
+- 遍历所有的 dirtyComponent render 生成一个新的 newVnode,再执行更新 patch(vnode,newVnode)
+
+# batchUpdate 机制 - isBatchingUpdate
+
+![batchUpdate](./imgs/batch.png)
+![batchUpdate](./imgs/demo.png)
+
+react 内部的机制，在函数开始执行的时候，设置 isBatchingUpdate 为 true，结束会置为 false，这个设置不是在函数中的，你可以理解人认为是在函数中，同步更新的时候看图，执行定时器的时候已经是 false 了。异步更新的时候，会去 更新 DC 中的所有组件，重新更新和渲染
+
+1.  同步还是异步呢？
+
+- setState 无所谓异步还是同步
+- 主要是看是否能命中 batchUpdate 机制，依据就是判断 isBatchingUpdate
+
+2.  哪些能命中 batchUpdate 机制呢？
+
+- 生命周期(和调用他的函数)
+- react 中注册的事件，和它调用的函数
+- react 可以管理的入口 - 比如生命周期，onClick,onChange 事件等都可以命中
+
+3.  哪些不能命中 batchUpdate 机制呢？
+
+- setTimeout、setInterval(和它调用的函数)
+- 自定义 dom 事件(和它调用的函数)
+- react 管不到的入口
 
 # 虚拟 DOM 原理剖析
 
@@ -505,6 +578,3 @@ generateComponentChildren 已调用 receiveComponent，这种情况下 prevChild
 
 8. REMOVE_NODE，老 component 类型，在新集合里也有，但对应的 element 不同则不能直接复用和更新，
    需要执行删除操作，或者老 component 不在新集合里的，也需要执行删除操作。
-
-
- 
