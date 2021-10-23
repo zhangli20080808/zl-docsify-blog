@@ -186,6 +186,12 @@ vue create vue-test-app --force -r https://registry.npm.taobao.org
 
 7. 全局 lib 库地址 <code> /usr/local/lib/node_modules</code>
 
+# npx init
+
+思考：为什么 npm init egg 可以初始化 egg 项目？ - 也就是执行 create-egg 这个脚手架，带上参数
+其实当我们执行 npm init + 项目名/脚手架名 的时候，npm 会去调用 create-项目名/脚手架名 的
+一个 npm 包
+
 # 面试总结
 
 - 熟悉 Yargs 脚手架开发框架
