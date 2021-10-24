@@ -205,13 +205,13 @@ cdn 单独的域名，浏览器并发获取
   - 媒体文件 - 图片视频
   - javascript css
 - 加载资源的过程
-  - 浏览器通过 DNS 把url地址解析成 ip 的过程(如果有缓存直接返回缓存,否则递归解析)  
+  - 浏览器通过 DNS 把 url 地址解析成 ip 的过程(如果有缓存直接返回缓存,否则递归解析)  
     域名 -> ip (dns 可以理解成一种网络协议或者服务)
-  - 通过DNS解析得到了目标服务器的IP地址后，与服务器建立TCP连接
-    * ip协议： 选择传输路线,负责找到
-    * tcp协议： 三次握手，分片，可靠传输，重新发送的机制
-  - 浏览器通过http协议发送请求 (增加http的报文信息) 头 体 行  
-  - 服务器接受请求后，查库，读文件，拼接好返回的http响应 
+  - 通过 DNS 解析得到了目标服务器的 IP 地址后，与服务器建立 TCP 连接
+    - ip 协议： 选择传输路线,负责找到
+    - tcp 协议： 三次握手，分片，可靠传输，重新发送的机制
+  - 浏览器通过 http 协议发送请求 (增加 http 的报文信息) 头 体 行
+  - 服务器接受请求后，查库，读文件，拼接好返回的 http 响应
 - 渲染页面的过程
 
   - 浏览器收到首屏 html,开始渲染 解析 html 为 DOM Tree
@@ -220,7 +220,7 @@ cdn 单独的域名，浏览器并发获取
   - 根据 Render Tree 渲染页面
   - 遍历渲染树开始布局，计算每个节点的位置大小信息
   - 将渲染树每个节点绘制到屏幕
-  - 加载js文件,运行js脚本 ,如果遇到 script 则暂停渲染，优先加载并执行 js 代码，完成再继续 (因为 js 的进程和渲染进是共用一个进程)
+  - 加载 js 文件,运行 js 脚本 ,如果遇到 script 则暂停渲染，优先加载并执行 js 代码，完成再继续 (因为 js 的进程和渲染进是共用一个进程)
 
     因为我们的 js 中有可能会改变 dom 结构,改变我们当前渲染的结果 你再渲染的话就没用了
 
@@ -267,8 +267,8 @@ window.addEventListener('DOMContentLoaded', function () {
 1. 让加载更快 减少资源体积：压缩代码 服务器 gzip 图片格式和压缩 少加载文件
    少执行代码
 2. 减少访问次数
-   * 合并代码(打包后的一个 js(webpack output->fileName :'bundle.[contenthash].js')) 
-   * ssr 服务端渲染 缓存(命中) 比如雪碧图 很多图合称为一个，css 定位展示
+   - 合并代码(打包后的一个 js(webpack output->fileName :'bundle.[contenthash].js'))
+   - ssr 服务端渲染 缓存(命中) 比如雪碧图 很多图合称为一个，css 定位展示
 3. 使用更快的网络：cdn (是根据区域来做一个服务器的处理) 用户与内容之间的物理距离缩短，用户的等待时间也得以缩短
 4. 长列表(对内存做优化 针对移动端 比如淘宝首页无限滚动 如果直接渲染)
 
@@ -491,3 +491,83 @@ favicon.ico 要⼩⽽且可缓存
 # 浏览器渲染
 
 ![流程图](../static/img/render4.png)
+
+## 浏览器是如何渲染 UI 的
+
+1. 浏览器获取 HTML ⽂件，然后对⽂件进⾏解析，形成 DOM Tree
+2. 与此同时，进⾏ CSS 解析，⽣成 Style Rules
+3. 接着将 DOM Tree 与 Style Rules 合成为 Render Tree
+4. 接着进⼊布局（Layout）阶段，也就是为每个节点分配⼀个应出现在屏幕上的确切坐标
+5. 随后调⽤ GPU 进⾏绘制（Paint），遍历 Render Tree 的节点，并将元素呈现出来
+
+![流程图](./img/paint.png)
+
+## 浏览器如何解析 css 选择器？
+
+浏览器会『从右往左』解析 CSS 选择器。 我们知道 DOM Tree 与 Style Rules 合成为 Render Tree，实际上是需要将 Style Rules 附着到 DOM Tree 上，因此需要根 据选择器提供的信息对 DOM Tree 进⾏遍历，才能将样式附着到对应的 DOM 元素上。 以下这段 css 为例
+
+```js
+.mod-nav h3 span {font-size: 16px;}
+```
+
+我们对应的 DOM Tree 如下
+![流程图](./img/css.png)
+
+## DOM Tree 是如何构建的？
+
+1. 转码: 浏览器将接收到的⼆进制数据按照指定编码格式转化为 HTML 字符串
+2. ⽣成 Tokens: 之后开始 parser，浏览器会将 HTML 字符串解析成 Tokens
+3. 构建 Nodes: 对 Node 添加特定的属性，通过指针确定 Node 的⽗、⼦、兄弟关系和所属 treeScope
+4. ⽣成 DOM Tree: 通过 node 包含的指针确定的关系构建出 DOM Tree
+
+## 浏览器重绘与重排的区别？
+
+- 重排: 部分渲染树（或者整个渲染树）需要重新分析并且节点尺⼨需要重新计算，表现为重新⽣成布局，重新排列 元素
+- 重绘: 由于节点的⼏何属性发⽣改变或者由于样式发⽣改变，例如改变元素背景⾊时，屏幕上的部分内容需要更 新，表现为某些元素的外观被改变
+
+单单改变元素的外观，肯定不会引起⽹⻚重新⽣成布局，但当浏览器完成重排之后，将会重新绘制受到此次重排影响的 部分
+
+重排和重绘代价是⾼昂的，它们会破坏⽤户体验，并且让 UI 展示⾮常迟缓，⽽相⽐之下重排的性能影响更⼤，在两者⽆ 法避免的情况下，⼀般我们宁可选择代价更⼩的重绘。 『重绘』不⼀定会出现『重排』，『重排』必然会出现『重绘』。
+
+## 如何触发重排和重绘？
+
+任何改变⽤来构建渲染树的信息都会导致⼀次重排或重绘：
+
+- 添加、删除、更新 DOM 节点
+- 通过 display: none 隐藏⼀个 DOM 节点-触发重排和重绘
+- 通过 visibility: hidden 隐藏⼀个 DOM 节点-只触发重绘，因为没有⼏何变化
+- 移动或者给⻚⾯中的 DOM 节点添加动画 添加⼀个样式表，调整样式属性
+- ⽤户⾏为，例如调整窗⼝⼤⼩，改变字号，或者滚动。
+
+## 如何避免重绘或者重排？
+
+1. 集中改变样式
+   我们往往通过改变 class 的⽅式来集中改变样式
+
+```js
+// 判断是否是⿊⾊系样式 const theme = isDark ? 'dark' : 'light'
+// 根据判断来设置不同的class ele.setAttribute('className', theme)
+```
+
+2. 使⽤ DocumentFragment
+   我们可以通过 createDocumentFragment 创建⼀个游离于 DOM 树之外的节点，然后在此节点上批量操作，最后插⼊ DOM 树中，因此只触发⼀次重排
+
+```js
+var fragment = document.createDocumentFragment();
+for (let i = 0; i < 10; i++) {
+  let node = document.createElement('p');
+  node.innerHTML = i;
+  fragment.appendChild(node);
+}
+document.body.appendChild(fragment);
+```
+3. 提升为合成层
+将元素提升为合成层有以下优点： 
+* 合成层的位图，会交由 GPU 合成，⽐ CPU 处理要快 
+* 当需要 repaint 时，只需要 repaint 本身，不会影响到其他的层 
+* 对于 transform 和 opacity 效果，不会触发 layout 和 paint
+
+提升合成层的最好⽅式是使⽤ CSS 的 will-change 属性：
+```js
+#target { will-change: transform; }
+```

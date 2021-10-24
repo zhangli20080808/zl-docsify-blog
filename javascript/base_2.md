@@ -110,8 +110,27 @@ console.log(ValidateStr[Symbol.hasInstance]('hello'));
 console.log('hello' instanceof ValidateStr);
 ```
 
-# 原型和原型链
+# 谈谈你对原型链的理解
 
+这个问题关键在于两个点，⼀个是原型对象是什么，另⼀个是原型链是如何形成的
+
+## 原型对象
+
+绝⼤部分的函数(少数内建函数除外)都有⼀个 prototype 属性,这个属性是原型对象⽤来创建新对象实例,⽽所有被创建的 对象都会共享原型对象,因此这些对象便可以访问原型对象的属性。
+
+例如 hasOwnProperty() ⽅法存在于 Obejct 原型对象中,它便可以被任何对象当做⾃⼰的⽅法使⽤
+
+```js
+var person = { name: 'Messi', age: 29, profession: 'football player' };
+console.log(person.hasOwnProperty('name')); //true
+console.log(person.hasOwnProperty('hasOwnProperty')); //false
+console.log(Object.prototype.hasOwnProperty('hasOwnProperty')); //true
+// 由以上代码可知, hasOwnProperty() 并不存在于 person 对象中,但是 person 依然可以拥有此⽅法
+// 所以 person 对象是如何找到 Object 对象中的⽅法的呢?靠的是原型链。
+```
+## 原型链
+原因是每个对象都有 __proto__ 属性，此属性指向该对象的构造函数的原型。
+对象可以通过 __proto__ 与上游的构造函数的原型对象连接起来，⽽上游的原型对象也有⼀个 __proto__ ，这样就形成 了原型链。
 ```js
 1. class 实际上是函数，可见是语法糖 typeof Student;  //function
 2. 隐式原型 __proto__ 和 显式原型 prototype

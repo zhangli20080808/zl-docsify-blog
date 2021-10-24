@@ -573,8 +573,7 @@ element diff
 
 7. MOVE_EXISTING，在老集合有新 component 类型，且 element 是可更新的类型，
 
-generateComponentChildren 已调用 receiveComponent，这种情况下 prevChild=nextChild，就需要做移
-动操作，可以复用以前的 DOM 节点。
+generateComponentChildren 已调用 receiveComponent，这种情况下 prevChild=nextChild，就需要做移动操作，可以复用以前的 DOM 节点。
 
 8. REMOVE_NODE，老 component 类型，在新集合里也有，但对应的 element 不同则不能直接复用和更新，
    需要执行删除操作，或者老 component 不在新集合里的，也需要执行删除操作。
