@@ -72,23 +72,40 @@ react 版 -> https://github.com/StructureBuilder/react-keep-alive
 - action 可以整个多个 mutation
 
 # 如何配置 vue-route 异步加载
-# 请用vnode描述一个DOM结构
-# 监听data变化的核心api
-# vue如何监听数组变化
+
+# 请用 vnode 描述一个 DOM 结构
+
+# 监听 data 变化的核心 api
+
+# vue 如何监听数组变化
+
 # 描述响应式原理
-- 监听data变化
+
+- 监听 data 变化
 - 更新渲染过程
-# diff算法的事件复杂度
+
+# diff 算法的事件复杂度
+
 - o(n)
-- 在o(n^3)上面做了调整，同tag，同key，等
+- 在 o(n^3)上面做了调整，同 tag，同 key，等
 - patch、patchNode、addVnodes、removeVnodes
-# vue常见性能优化
-- 合理使用v-show,v-if
-- 合理使用computed
-- v-for时加key，以及避免和v-if同时使用，因为v-for优先级更高，每次循环都要v-if，是对性能的一种浪费
-- 自定义事件，dom事件即时销毁
+
+# vue 常见性能优化
+
+- 合理使用 v-show,v-if
+- 合理使用 computed
+- v-for 时加 key，以及避免和 v-if 同时使用，因为 v-for 优先级更高，每次循环都要 v-if，是对性能的一种浪费
+- 自定义事件，dom 事件即时销毁
 - 合理使用异步组件，keep-alive
-- data层级不要太深
-- webpack层面优化
+- data 层级不要太深
+- webpack 层面优化
 - 通用优化，图片懒加载
 - ssr
+
+# Vue中的key到底有什么⽤？
+* key 是为Vue中的vnode标记的唯⼀id,通过这个key,我们的diff操作可以更准确、更快速
+* diff算法的过程中,先会进⾏新旧节点的⾸尾交叉对⽐,当⽆法匹配的时候会⽤新节点的 key 与旧节点进⾏⽐对,然后超出差异.
+
+diff程可以概括为：oldCh和newCh各有两个头尾的变量StartIdx和EndIdx，它们的2个变量相互⽐较，⼀共有4种 ⽐较⽅式。如果4种⽐较都没匹配，如果设置了key，就会⽤key进⾏⽐较，在⽐较的过程中，变量会往中间靠， ⼀旦StartIdx>EndIdx表明oldCh和newCh⾄少有⼀个已经遍历完了，就会结束⽐较,这四种⽐较⽅式就是⾸、尾、 旧尾新头、旧头新尾.
+
+![](./img/key.png)

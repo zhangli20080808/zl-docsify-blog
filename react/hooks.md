@@ -1,6 +1,23 @@
 # Hooks 学习总结
 
-[源码简单实现](https://github.com/zhangli20080808/react-summary/tree/master/src/components/hooks)
+1. 优点
+
+- 简洁: React Hooks 解决了 HOC 和 Render Props 的嵌套问题,更加简洁
+- 解耦: React Hooks 可以更⽅便地把 UI 和状态分离,做到更彻底的解耦
+- 组合: Hooks 中可以引⽤另外的 Hooks 形成新的 Hooks,组合变化万千
+- 函数友好: React Hooks 为函数组件⽽⽣,从⽽解决了类组件的⼏⼤问题:
+  - this 指向容易错误
+  - 分割在不同声明周期中的逻辑使得代码难以理解和维护
+  - 代码复⽤成本⾼（⾼阶组件容易使代码量剧增）
+    [源码简单实现](https://github.com/zhangli20080808/react-summary/tree/master/src/components/hooks)
+
+2. 缺陷
+* 额外的学习成本（Functional Component 与 Class Component 之间的困惑） 
+* 写法上有限制（不能出现在条件、循环中），并且写法限制增加了重构成本 
+* 破坏了PureComponent、React.memo浅⽐较的性能优化效果（为了取最新的props和state，每次render()都要重新 创建事件处函数） 
+* 在闭包场景可能会引⽤到旧的state、props值
+* 内部实现上不直观（依赖⼀份可变的全局状态，不再那么“纯”）
+* React.memo并不能完全替代shouldComponentUpdate（因为拿不到 state change，只针对 props change）
 
 ### 解决的问题
 
@@ -74,7 +91,7 @@ function Count() {
 
 ## 惰性初始 state
 
-initialState 之会在组件初始渲染的时候被调用 后续渲染会被忽略,跟类组件的 setState 不同、这里的状态不会自动合并,更新的时候要传入完整的值
+initialState 之后 会在组件初始渲染的时候被调用 后续渲染会被忽略,跟类组件的 setState 不同、这里的状态不会自动合并,更新的时候要传入完整的值
 
 ```js
 function count1() {
@@ -121,7 +138,7 @@ function count1() {
 2. 类实例成员变量如何映射到 hooks
 3. hooks 中如何获取历史 props 和 state
    因为 ref，不受渲染的影响，我们可以在下次渲染中取到上一次的值
-4. 如何强制更新一个 hooks 组件,使用中间变量间接去更新
+4. 如何强制更新一个 hooks 组件,使用中间变量间接去更新,最好是使用 useReducer
 5. useState 适合用于单个的状态，useReducer 适合定义一群互相影响的状态
 
 ## hook 依赖问题
@@ -135,7 +152,7 @@ function count1() {
 const [obj, setObj] = useState({ name: 'jack' });
 // const obj = {name:'1'}
 // 当 obj 是基本数据类型的时候，不会无限循环
-// 当obj 是对象的时候，会无限循环
+// 当 obj 是对象的时候，会无限循环
 const [num, setNum] = useState(0);
 useEffect(() => {
   setNum(num + 1);
@@ -1131,7 +1148,7 @@ export const useAsync = <D>(initialState?: State<D>) => {
 ```
 
 # Hooks 原理
-
+## 链表概念
 1. 将函数组件状态保存在外部作用域，类似链表的实现原理，由于有严格的顺序关系，所以函数组件中 useState 这些
    api 不能出现条件、循环语句中
 
@@ -1150,7 +1167,18 @@ hook2.next=>hook3
 state3 === hook2.memoizedState
 ```
 
-2. Fibter
+## Fibter
+React Fiber 是⼀种基于浏览器的单线程调度算法.
+
+React 16之前 ， reconcilation 算法实际上是递归，想要中断递归是很困难的，React 16 开始使⽤了循环来代替之前 的递归.
+
+### 概念
+
+Fiber ：⼀种将 recocilation （递归 diff），拆分成⽆数个⼩任务的算法；它随时能够停⽌，恢复。停⽌恢复的时机 取决于当前的⼀帧（16ms）内，还有没有⾜够的时间允许计算。
+
+### fiber(并发渲染) 出现的原因
+
+  把整个任务拆分成一个个小任务，全部放在浏览器空闲的时候执行(绘制页面，响应用户操作)，这样就不会阻塞高优先级任务了，在 16 以前都是一把梭，同步的比较和更新 dom 一起，中间不能打断，任务多，会卡 fiber 把比较同步差异和同步 dom 的操作做了拆分，变成一个可中断的任务
 
 1. 为什么需要 fiber
 1. 任务分解的意义
@@ -1159,3 +1187,31 @@ state3 === hook2.memoizedState
 1. 给不同类型的更新赋予优先级
 1. 并发方面新的基础能力
 1. 更流畅
+
+### 对 Time Slice的，时间分片的理解
+时间分⽚
+
+* React 在渲染（render）的时候，不会阻塞现在的线程 
+* 如果你的设备⾜够快，你会感觉渲染是同步的 
+* 如果你设备⾮常慢，你会感觉还算是灵敏的 
+* 虽然是异步渲染，但是你将会看到完整的渲染，⽽不是⼀个组件⼀⾏⾏的渲染出来 
+* 同样书写组件的⽅式
+
+也就是说，这是React背后在做的事情，对于我们开发者来说，是透明的，具体是什么样的效果呢
+时间分⽚正是基于可随时打断、重启的Fiber架构,可打断当前任务,优先处理紧急且重要的任务,保证⻚⾯的流畅运⾏.
+
+### 更新的两个阶段
+* 上述的patch被拆分为两个阶段
+* recocilation 阶段- 执行diff算法，纯js计算
+* commit阶段 - 将diff结果渲染DOM
+
+1. fiber出现的原因？可能有性能问题？
+
+* js是单线程，且和dom渲染公用一个线程
+* 当组件足够复杂，组件更新时，计算和渲染压力大
+* 同时再有DOM操作需求，比如动画、拖拽，将卡顿
+
+2. 解决方案就是fiber
+* 将 recocilation 阶段进行任务拆分(commit无法拆分)
+* DOM需要渲染时，则暂停，空闲时恢复
+* 什么时候知道dom需要渲染呢？ -> 依靠这个api，window.requestIdleCallback，当浏览器需要渲染的时候，我们将 recocilation 暂停，都是可以控制的

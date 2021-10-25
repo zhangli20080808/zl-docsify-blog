@@ -4,13 +4,14 @@
 
 > [黄老师](https://github.com/ustbhuangyi/)，曾任职百度、滴滴，现担任 Zoom 前端架构师，《Vue.js 权威指南》主要作者。这本书也是我的第一本 vue 书籍。
 
-# 原理 
-* 组件化
-* 模板编译
-* 响应式
-* 渲染过程
-* vdom和diff
-* 前端路由
+# 原理
+
+- 组件化
+- 模板编译
+- 响应式
+- 渲染过程
+- vdom 和 diff
+- 前端路由
 
 # vue 设计架构
 
@@ -500,13 +501,12 @@ export default function create(Component, props) {
   document.body.appendChild(vm.$el);
   // 销毁方法
   const comp = vm.$children[0];
-  comp.remove = function() {
+  comp.remove = function () {
     document.body.removeChild(vm.$el);
     vm.$destroy();
   };
   return comp;
 }
-
 ```
 
 # vuex 实现
@@ -521,60 +521,62 @@ export default function create(Component, props) {
 
 let Vue;
 class Store {
-	constructor(options) {
-		this.state = new Vue({
-			data: options.state
-		})
-		this.mutations = options.mutations
-		this.actions = options.actions
+  constructor(options) {
+    this.state = new Vue({
+      data: options.state,
+    });
+    this.mutations = options.mutations;
+    this.actions = options.actions;
 
-		options.getters && this.handleGetters(options.getters)
-	}
+    options.getters && this.handleGetters(options.getters);
+  }
 
-	// 生命为箭头函数  保证this 永远指向 store实例 dispatch不需要
-	commit = (type, args) => {
-		this.mutations[type](this.state, args)
-	}
+  // 生命为箭头函数  保证this 永远指向 store实例 dispatch不需要
+  commit = (type, args) => {
+    this.mutations[type](this.state, args);
+  };
 
-	dispatch(type, args) {
-		this.actions[type]({
-			commit: this.commit,
-			state: this.state
-		}, args)
-	}
+  dispatch(type, args) {
+    this.actions[type](
+      {
+        commit: this.commit,
+        state: this.state,
+      },
+      args
+    );
+  }
 
-	handleGetters(getters) {
-		// Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性，并返回此对象。
-		this.getters = {}
-		// 遍历 getters 所以的 key
-		Object.keys(getters).forEach(key => {
-			// 为 getters 定义 若干属性 这些属性是只读的  通过 defineProperty 可以约束他的只读性
-			// $store.getters.score
-			Object.defineProperty(this.getters, key, {
-				get: () => {
-					return getters[key](this.state)
-				}
-			})
-		})
-	}
+  handleGetters(getters) {
+    // Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性，并返回此对象。
+    this.getters = {};
+    // 遍历 getters 所以的 key
+    Object.keys(getters).forEach((key) => {
+      // 为 getters 定义 若干属性 这些属性是只读的  通过 defineProperty 可以约束他的只读性
+      // $store.getters.score
+      Object.defineProperty(this.getters, key, {
+        get: () => {
+          return getters[key](this.state);
+        },
+      });
+    });
+  }
 }
 
 function install(_Vue) {
-	Vue = _Vue
-	Vue.mixin({
-		beforeCreate() {
-			if (this.$options.store) {
-				Vue.prototype.$store = this.$options.store
-			}
-		}
-	})
+  Vue = _Vue;
+  Vue.mixin({
+    beforeCreate() {
+      if (this.$options.store) {
+        Vue.prototype.$store = this.$options.store;
+      }
+    },
+  });
 }
 
 export default {
-	Store,
-	install
-}
-
+  Store,
+  install,
+};
 ```
 
 # vue-router 实现
@@ -601,96 +603,102 @@ export default {
  *  component 选项里面 由于是在根里面做的配置 所以所有子组件能都访问到
  * */
 import Vue from 'vue';
-import Home from "./views/Home";
-import About from "./views/About";
+import Home from './views/Home';
+import About from './views/About';
 
 class VueRouter {
-	constructor(options) {
-		this.options = options
-		this.routeMap = {}
-		// 路由响应式  一旦路由发生变化,凭什么让重新渲染组件呢？所以说一定是一个响应式的数据变化，才能让我们的
-		// 全局组件重新 render 如何实现呢 ？ 利用vue提供的数据响应式机制
-		this.app = new Vue({
-			data: {
-				current: '/'
-			}
-		})
-	}
-	init() {
-		this.bindEvent() // 监听url变化
-		this.createRouteMap(this.options) // 路由配置解析
-		this.initComponent() // 实现两个组件
-	}
-	bindEvent() {
-		// 页面加载完成的时候 走一次 hashChange  注意 this 指向
-		window.addEventListener('load', this.onHashChange.bind(this))
-		window.addEventListener('hashchange', this.onHashChange.bind(this))
-	}
-	onHashChange() {
-		// current 值得变化 会使我们  initComponent创建的两个组件 刷新 重新徐然 换一套新的
-		this.app.current = window.location.hash.slice(1) || '/'
-	}
-	createRouteMap(options) {
-		// console.log(options)
-		options.routes.map(item => {
-			this.routeMap[item.path] = item.component
-		})
-	}
-	initComponent() {
-		// router-link  router-view 利用vue全局组件配置
-		// <router-link to='/'>fff</router-link>
-		Vue.component('router-link', {
-			props: {
-				to: String
-			},
-			// 这个地方不能用 template 这种方式运行时打包的方式 根本没有编译器 只能写render
-			render(h) {
-				// h(tag,data,children)
-				return h('a', {
-					attrs: {
-						href: '#' + this.to
-					}
-				}, [this.$slots.default])
-			}
-		})
+  constructor(options) {
+    this.options = options;
+    this.routeMap = {};
+    // 路由响应式  一旦路由发生变化,凭什么让重新渲染组件呢？所以说一定是一个响应式的数据变化，才能让我们的
+    // 全局组件重新 render 如何实现呢 ？ 利用vue提供的数据响应式机制
+    this.app = new Vue({
+      data: {
+        current: '/',
+      },
+    });
+  }
+  init() {
+    this.bindEvent(); // 监听url变化
+    this.createRouteMap(this.options); // 路由配置解析
+    this.initComponent(); // 实现两个组件
+  }
+  bindEvent() {
+    // 页面加载完成的时候 走一次 hashChange  注意 this 指向
+    window.addEventListener('load', this.onHashChange.bind(this));
+    window.addEventListener('hashchange', this.onHashChange.bind(this));
+  }
+  onHashChange() {
+    // current 值得变化 会使我们  initComponent创建的两个组件 刷新 重新徐然 换一套新的
+    this.app.current = window.location.hash.slice(1) || '/';
+  }
+  createRouteMap(options) {
+    // console.log(options)
+    options.routes.map((item) => {
+      this.routeMap[item.path] = item.component;
+    });
+  }
+  initComponent() {
+    // router-link  router-view 利用vue全局组件配置
+    // <router-link to='/'>fff</router-link>
+    Vue.component('router-link', {
+      props: {
+        to: String,
+      },
+      // 这个地方不能用 template 这种方式运行时打包的方式 根本没有编译器 只能写render
+      render(h) {
+        // h(tag,data,children)
+        return h(
+          'a',
+          {
+            attrs: {
+              href: '#' + this.to,
+            },
+          },
+          [this.$slots.default]
+        );
+      },
+    });
 
-		Vue.component('router-view', {
-			// 这个地方不能用 template 这种方式运行时打包的方式 根本没有编译器 只能写render
-			// 这个地方我们使用 箭头函数保留当前this 指向这个 router 实例 正好也不需要使用组件内部的props之类
-			render: h => {
-				console.log(this.routeMap[this.app.current]);
-				const comp = this.routeMap[this.app.current]
-				return h(comp)
-			}
-		})
-	}
+    Vue.component('router-view', {
+      // 这个地方不能用 template 这种方式运行时打包的方式 根本没有编译器 只能写render
+      // 这个地方我们使用 箭头函数保留当前this 指向这个 router 实例 正好也不需要使用组件内部的props之类
+      render: (h) => {
+        console.log(this.routeMap[this.app.current]);
+        const comp = this.routeMap[this.app.current];
+        return h(comp);
+      },
+    });
+  }
 }
 
-VueRouter.install = function(Vue) {
-	//  vue.mixin 常用语组件开发的拓展
-	Vue.mixin({
-		// 这块会和组件创建生命周期的时候一块执行  this  当前组件的实例(根组件执行一次) 在每个组件都能使用真是因为这个
-		beforeCreate() {
-			if (this.$options.router) {
-				Vue.prototype.$router = this.$options.router
-				this.$options.router.init()
-			}
-		}
-	});
+VueRouter.install = function (Vue) {
+  //  vue.mixin 常用语组件开发的拓展
+  Vue.mixin({
+    // 这块会和组件创建生命周期的时候一块执行  this  当前组件的实例(根组件执行一次) 在每个组件都能使用真是因为这个
+    beforeCreate() {
+      if (this.$options.router) {
+        Vue.prototype.$router = this.$options.router;
+        this.$options.router.init();
+      }
+    },
+  });
 };
 
 Vue.use(VueRouter);
 
 export default new VueRouter({
-	routes: [{
-		path: '/',
-		component: Home
-	}, {
-		path: '/about',
-		component: About
-	}]
-})
-
+  routes: [
+    {
+      path: '/',
+      component: Home,
+    },
+    {
+      path: '/about',
+      component: About,
+    },
+  ],
+});
 ```
 
 # vue 简单源码
@@ -775,14 +783,14 @@ vnode 为什么 2.0 需要 1.0 不需要呢？
    实现 Vue 构造函数，实现若干实例方法和属性
 
 ```js
-  function Vue (options) {
-    this._init(options); // 构造函数仅执行了_init
-  }
-  initMixin(Vue); // 实现init函数
-  stateMixin(Vue); // 状态相关api $data,$props,$set,$delete,$watch
-  eventsMixin(Vue); // 事件相关api $on,$once,$off,$emit
-  lifecycleMixin(Vue); // 生命周期api _update,$forceUpdate,$destroy
-  renderMixin(Vue);// 渲染api _render,$nextTick
+function Vue(options) {
+  this._init(options); // 构造函数仅执行了_init
+}
+initMixin(Vue); // 实现init函数
+stateMixin(Vue); // 状态相关api $data,$props,$set,$delete,$watch
+eventsMixin(Vue); // 事件相关api $on,$once,$off,$emit
+lifecycleMixin(Vue); // 生命周期api _update,$forceUpdate,$destroy
+renderMixin(Vue); // 渲染api _render,$nextTick
 ```
 
 2. src\platforms\web\entry-runtime-with-compiler.js
@@ -804,14 +812,14 @@ vnode 为什么 2.0 需要 1.0 不需要呢？
    实现 vue 初始化函数\_init
 
 ```js
-  initLifecycle(vm); // $parent,$root,$children,$refs 的声明
-  initEvents(vm); // 处理父组件传递的事件和回调
-  initRender(vm);  //和渲染相关的一些事情 vnode
-  callHook(vm, 'beforeCreate');
-  initInjections(vm); // 给组件注入数据呀
-  initState(vm);   // 初始化props，methods，data，computed，watch
-  initProvide(vm) // 提供数据注入
-  callHook(vm, 'created');
+initLifecycle(vm); // $parent,$root,$children,$refs 的声明
+initEvents(vm); // 处理父组件传递的事件和回调
+initRender(vm); //和渲染相关的一些事情 vnode
+callHook(vm, 'beforeCreate');
+initInjections(vm); // 给组件注入数据呀
+initState(vm); // 初始化props，methods，data，computed，watch
+initProvide(vm); // 提供数据注入
+callHook(vm, 'created');
 ```
 
 - mountComponent core/instance/lifecycle.js
@@ -847,9 +855,9 @@ vnode 为什么 2.0 需要 1.0 不需要呢？
    update vm.\$el = vm.**patch**(prevnode,vnode)
 
 ```js
- Vue.prototype._update = function (vnode, hydrating) {}
- Vue.prototype.$forceUpdate = function (vnode, hydrating) {}
- Vue.prototype.$destroy = function (vnode, hydrating) {}
+Vue.prototype._update = function (vnode, hydrating) {};
+Vue.prototype.$forceUpdate = function (vnode, hydrating) {};
+Vue.prototype.$destroy = function (vnode, hydrating) {};
 ```
 
 9. renderMixin(Vue)
@@ -860,10 +868,10 @@ vnode 为什么 2.0 需要 1.0 不需要呢？
    return nextTick(fn, this)
   };
 
-Vue.prototype.\_render = function () {
+Vue.prototype._render = function () {
 var vm = this;
 // render 就是我们传入的那个 也有可能是编译器
-const { render, \_parentVnode } = vm.\$options;
+const { render, _parentVnode } = vm.$options;
 
    if (_parentVnode) {
      vm.$scopedSlots = normalizeScopedSlots(
@@ -875,7 +883,7 @@ const { render, \_parentVnode } = vm.\$options;
    // set parent
    vnode.parent = _parentVnode;
    return vnode
-
+}
 ```
 
 # 初始化过程
@@ -893,7 +901,6 @@ vm.$root = parent ? parent.$root : vm;
 vm.$children = [];
 vm.$refs = {};
 vm._watcher = null;
-
 ```
 
 # initEvents
@@ -935,9 +942,8 @@ vm.$scopedSlots = emptyObject;
 vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false);
 // 用户编写渲染函数使用这个 render functions. 这个 createElement 就是 render(h)
 vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true);
-
-
 ```
+
 - initInjections
   注入数据 注入的数据是不会做响应化的 转义一下 有可能传递给别人
 
@@ -1012,7 +1018,6 @@ src\core\instance\state.jsinitData 核心代码是将 data 数据响应化
 observe 方法返回一个 Observer 实例，core/observer/index.js
 
 ```js
-
 // 已经存在 直接返回 负责创建新的实例
 function observe(value, asRootData) {
   // value: 待响应化数据对象
@@ -1034,7 +1039,6 @@ function observe(value, asRootData) {
   }
   return ob;
 }
-
 ```
 
 Observer 对象根据数据类型执行对应的响应化操作，core/observer/index.js
@@ -1044,9 +1048,10 @@ Observer 对象根据数据类型执行对应的响应化操作，core/observer/
 class Observer {
   constructor(value) {
     this.value = value;
-    // 保存数组类型数据的依赖  什么要在 Observer 设置 dep？  比如给对象新增了属性，如何去通知页面做更新呢？
-    // 1.如果 obj有新增或者删除属性
-    // 2.arr中有变更方法   通过obj上面挂载的这个dep去通知，obj变了，我们让这个组件对应的watcher去做更新
+    // 保存数组类型数据的依赖  
+    // 为什么要在 Observer 设置 dep？  比如给对象新增了属性，如何去通知页面做更新呢？
+    // 1.如果 obj 有新增或者删除属性
+    // 2.arr中有变更方法，通过obj上面挂载的这个dep去通知，obj变了，我们让这个组件对应的watcher去做更新
     this.dep = new Dep();
     this.vmCount = 0;
     // 设置一个__ob__属性引用当前 Observer 实例
@@ -1073,14 +1078,12 @@ class Observer {
     }
   }
 }
-
 ```
 
 - defineReactive
-  defineReactive 定义对象属性的 getter/setter，getter 负责添加依赖，setter 负责通知更新
+  defineReactive定义对象属性的 getter/setter，getter 负责添加依赖，setter 负责通知更新
 
 ```js
-
 export function defineReactive(
   obj: Object,
   key: string,
@@ -1125,33 +1128,32 @@ export function defineReactive(
     },
   });
 }
-
 ```
 
 # 数量理解
 
 ```js
-  /*
-  * 思考？
-  * 有几个 Observer
-  * 有几个 Dep
-  * 有几个 Watcher
-  * 一个对象一个Observer  data本身是个对象 obj是个对象  所以有两个
-  * 因为key 两个 所以 dep 是两个
-  * 一个组件一个watcher  这个地方 obj foo对应的watcher都是根组件
-  * */
+/*
+ * 思考？
+ * 有几个 Observer
+ * 有几个 Dep
+ * 有几个 Watcher
+ * 一个对象一个Observer  data本身是个对象 obj是个对象  所以有两个
+ * 因为key 两个 所以 dep 是两个
+ * 一个组件一个watcher  这个地方 obj foo对应的watcher都是根组件
+ * */
 
-  const app = new KVue({
-    el:'#app',
-    data: {
-      obj: {foo:'foo'},
+const app = new KVue({
+  el: '#app',
+  data: {
+    obj: { foo: 'foo' },
+  },
+  methods: {
+    add() {
+      this.counter++;
     },
-    methods: {
-      add() {
-        this.counter++
-      }
-    }
-  })
+  },
+});
 ```
 
 # Dep
@@ -1196,13 +1198,12 @@ export default class Dep {
 Watcher 解析一个表达式并收集依赖，当数值变化时触发回调函数，常用于\$watch API 和指令中。
 每个组件也会有对应的 Watcher，数值变化会触发其 update 函数导致重新渲染
 什么时候会创建一个新的 watcher？
-每当我有一个组价生成的时候 就会创建一个 watcher 或者我们手动的创建 通过 this.\$watch 这种方式也会创建 watcher
+每当我有一个组件生成的时候 就会创建一个 watcher 或者我们手动的创建 通过 this.\$watch 这种方式也会创建 watcher
 
 页面初始化的时候 首次会创建一个明文的 watcher \$mount 的时候创建 相当于是给根组件创建了一个 watcher
 如果页面中又出现了自定义的组件 这个时候就又会生成 watcher 这就是一个组件 一个 watcher
 
 ```js
-
 export default class Watcher {
   constructor(
     vm: Component,
@@ -1283,7 +1284,6 @@ export default class Watcher {
     }
   }
 }
-
 ```
 
 # 数组响应化
@@ -1503,6 +1503,4 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     setTimeout(flushCallbacks, 0);
   };
 }
-
-
 ```
