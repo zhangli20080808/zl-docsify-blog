@@ -21,7 +21,7 @@
 
 default 关键字 说白了，就是别名(as)的语法糖
 
-```
+```js
 function a(){}
 export {a}
 ----------
@@ -45,7 +45,7 @@ import {default as a} from './d'
 
 require 和 require.default...当在 node 中处理 ES6 模块(export default mycomponent)导入的时候，导出的模块格式为
 
-```
+```js
 {
   "default": mycomponent
 }
@@ -56,7 +56,7 @@ import 语句正确地为你处理了这个问题，然而你必须自己执行 
 上文提到过，export 关键字是导出一个对象，对象内存在一个属性(我们要暴露的)，export default 则是 export 语法糖，import 一个 export default 暴露出来的模块包含了解构赋值的步骤，所以在 node 中使用 require 去请求一个 export default 的模块需要我们通过.语法去取出对象中的属性(因为 require 木有解构赋值)，清晰明了。
 换个说法，如果 require 的 commonjs 规范的模块，即：
 
-```
+```js
 // a.js 导出
 module.exports = {
   a:'helloworld'

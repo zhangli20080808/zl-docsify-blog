@@ -50,7 +50,7 @@ var mid = function () {
 
 3. 中间价有什么特点？
 
-- 在中间件函数中 处理封装公共的属性和逻辑 添加方法和属性 ctx.request.body
+- 在中间件函数中,处理封装公共的属性和逻辑,添加方法和属性 ctx.request.body
 - 决定是否向下执行，不掉用当前操作就结束了(权限校验，有权限继续向下，没有，直接返回) 也就是 提前处理请求，给 koa 提前处理静态资源
 - 封装公共逻辑
 
@@ -204,6 +204,7 @@ module.exports = {
 ## 模拟的 kkb 可以对复杂的对象进行简单的封装
 
 [Object.create()和 new object()和{}的区别](https://www.cnblogs.com/bug-jin/p/10388672.html)
+[学习地址](https://github.com/zhangli20080808/framework_zl/blob/master/koa2/lib/context.js)
 
 ```js
 var test = Object.create({ x: 123, y: 345 }); // __proto__ 上面有{x:123,y:345}

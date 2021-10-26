@@ -2,7 +2,7 @@
 
 1. cookie
 
-- cookie 是 http 协议下，服务端或者脚本可以维护客户端信息的一种方式。本身用来浏览器和server通信，被借用到本地存储来
+- cookie 是 http 协议下，服务端或者脚本可以维护客户端信息的一种方式。本身用来浏览器和 server 通信，被借用到本地存储来
 
 - koa 中 cookie 的使用
 
@@ -73,14 +73,14 @@
 
   - 获取 cookie
 
-  ```
+  ```js
   //获取Cookie
   function getCookie(name) {
     let arr = document.cookie.split('; ');
     for (let i = 0; i < arr.length; i++) {
-      let items = arr[i].split('=');
-      if (items[0] == name) {
-        return items[1];
+      let [key, value] = arr[i].split('=');
+      if (cur == name) {
+        return value;
       }
     }
     return '';

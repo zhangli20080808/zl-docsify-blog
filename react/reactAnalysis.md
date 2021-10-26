@@ -500,14 +500,14 @@ transaction.perform(oldFunc, [
     initialize() {
       console.log('初始化');
     },
-    // close() {
-    //   console.log('关闭');
-    // },
+    close() {
+      console.log('关闭');
+    },
   },
   {
-    // initialize() {
-    //   console.log('初始化');
-    // },
+    initialize() {
+      console.log('初始化');
+    },
     close() {
       console.log('关闭');
     },

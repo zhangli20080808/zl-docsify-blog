@@ -447,12 +447,12 @@ redux 每次都重新调用 render 和 getState 太 low 了 使用 react 方式 
 
 ## UI 组件和容器组件
 
-React-Redux 将所有组件分成两大类：UI 组件和容器组件。  
+React-Redux 将所有组件分成两大类：UI 组件和 容器组件。  
 UI 组件特点：
 
 - 只负责 UI 的呈现，不带有任何业务逻辑
 - 没有状态（即不使用 this.state 这个变量）
-- 所有数据都由参数（this.props）提供
+- 所有数据都由参数（props）提供
 - 不使用任何 Redux 的 API
 
 容器组件特点（与 UI 组件相反）：
@@ -462,7 +462,8 @@ UI 组件特点：
 - 使用 Redux 的 API
 
 总之，只要记住一句话就可以了：UI 组件负责 UI 的呈现，容器组件负责管理数据和逻辑。  
-React-Redux 规定，所有的 UI 组件都由用户提供，_容器组件则是由 React-Redux 自动生成_。也就是说，用户负责视觉层，状态管理则是全部交给它。
+React-Redux 规定，所有的 UI 组件都由用户提供，_容器组件则是由 React-Redux 自动生成_。
+也就是说，用户负责视觉层，状态管理则是全部交给它。
 
 ## connect
 

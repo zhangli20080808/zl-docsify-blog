@@ -1,5 +1,5 @@
 #
-
+[参考前端面试](https://blog.csdn.net/weixin_44157964/article/details/107945951)
 # 为何在 v-for 中使用 key
 
 - 必须用 key，且不能是 random 和 index
@@ -36,6 +36,9 @@
 
 export default 看上去是一个对象，实质上我们的.vue 文件是一个 class，在每个地方使用这个组件的时候，
 是对这个组件进行实例化，实例化的时候执行这个 data，如果 data 不是函数，每个组件的实例都一样了，就共享了
+
+这是由于JavaScript的特性导致的，在component中，data必须是以函数的形式存在，不可以是对象。
+在组件中的data写出一个函数，数据以函数返回值的形式定义，这样每次复用组件的时候，都会返回一份新的data，相当于每个组件实例都有自己私有的数据空间，他们只需要负责维护各自的数据，不会造成混乱。而单纯写成对象形式的话，就是所有的组件实例共用一个data，这样改一个全都改了。
 
 # ajax 请求应该放在哪个生命周期
 
@@ -109,3 +112,18 @@ react 版 -> https://github.com/StructureBuilder/react-keep-alive
 diff程可以概括为：oldCh和newCh各有两个头尾的变量StartIdx和EndIdx，它们的2个变量相互⽐较，⼀共有4种 ⽐较⽅式。如果4种⽐较都没匹配，如果设置了key，就会⽤key进⾏⽐较，在⽐较的过程中，变量会往中间靠， ⼀旦StartIdx>EndIdx表明oldCh和newCh⾄少有⼀个已经遍历完了，就会结束⽐较,这四种⽐较⽅式就是⾸、尾、 旧尾新头、旧头新尾.
 
 ![](./img/key.png)
+
+
+# vue react 怎么检测数据变化的
+## vue
+vue.js 则是采用数据劫持结合发布者-订阅者模式的方式，通过Object.defineProperty()来劫持各个属性的setter，getter，在数据变动时发布消息给订阅者，触发相应的监听回调
+
+## react
+react状态变化只能通过setState,调用setState就会更新状态重新渲染dom
+
+
+## 请说下封装 vue 组件的过程？
+首先建立组件的模板，先把架子搭起来，然后考虑好组件的样式和基本逻辑结构。
+准备好组件的数据输入，即分析好逻辑，确定好 props里面的数据、类型
+准备好组件的数据输出，即根据组件逻辑，做好要暴露出来的方法
+封装完毕后，直接调用即可。
