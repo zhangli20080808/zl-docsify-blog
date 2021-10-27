@@ -772,7 +772,7 @@ vnode 为什么 2.0 需要 1.0 不需要呢？
 
 # 总体把握
 
-0. 入口
+##  入口文件
 
    - commonjs -- main -> require vue.runtime.common.js
    - esm -> 现代打包方式 ES 模块，用于 webpack2+ vue.runtime.esm.js
@@ -794,15 +794,19 @@ renderMixin(Vue); // 渲染api _render,$nextTick
 ```
 
 2. src\platforms\web\entry-runtime-with-compiler.js
-   扩展\$mount
-   扩展默认\$mount 方法：能够编译 template 或 el 指定的模板 在浏览器中
-
+   * 扩展\$mount,执行模板解析和编译函数
+   * 扩展默认\$mount 方法：能够编译 template 或 el 指定的模板 在浏览器中
+   * 优先级：render > template > el，注意  template需要mount挂载
    compile vs runtime
    带 compile 版本支持 template 选项，可以实时编译模板
    仅 runtime 不支持 template 体积小 需要借助 webpack 把 template 编译成 render 函数
 
 3. src\platforms\web\runtime\index.js
-   实现\$mount，核心就一个 mountComponent；定义一个**patch**方法 这个 patch 就是将来真正做 dom 操作的
+
+   实现\$mount，核心就一个 mountComponent；定义一个**patch**方法 这个 patch 就是将来真正做 dom 操作的(传入虚拟dom，转换为真实dom)
+   ```js
+   123
+   ```
    mountComponent
 
 4. mountComponent
