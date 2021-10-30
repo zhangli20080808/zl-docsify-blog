@@ -1378,16 +1378,24 @@ vue2
 - Watcher 的角色相当于观察者 Observer 执行更新
 - 但是 vue 中的 Observer 不是上面说的观察者 它和 data 中的对象一一对应 有内嵌的对象 就会有 child Observer 与之对应
 
-* vue 异步更新队列
-  (开始队列 去重计算 丢到异步事件中去执行)
-  Vue 在更新 DOM 时是异步执行的。只要侦听到数据变化，Vue 将开启一个队列，并缓冲在同一事件循环中发生的
-  所有数据变更。如果同一个 watcher 被多次触发(数据改变多次，队列执行前也会进行一次去重)，只会被推入到队列中一次。这种在缓冲时去除重复数据对于避免
-  不必要的计算和 DOM 操作是非常重要的。然后，在下一个的事件循环“tick”中，Vue 刷新队列并执行实际 (已去重
-  的) 工作。Vue 在内部对异步队列尝试使用原生的 Promise.then 、 MutationObserver 和 setImmediate ，
+# vue 异步更新队列
+## vue中的具体实现
+1. 异步：只要侦听到数据变化，Vue 将开启一个队列，并缓冲在同一事件循环中发生的所有数据变更。
+
+2. 批量：如果同一个 watcher 被多次触发，只会被推入到队列中一次。去重对于避免不必要的计算和 DOM 操作是非常重要的。然后，在下一个的事件循环“tick”中，Vue 刷新队列执行实际工作。
+
+3. 异步策略：Vue 在内部对异步队列尝试使用原生的 Promise.then 、 MutationObserver 和 setImmediate ，
   如果执行环境不支持，则会采用 setTimeout(fn, 0) 代替。
 
-  如果想获取更新后的 Dom 状态，可以在数据变化之后使用 Vue.nextTick(callback) 这样回调函数将在 dom 更新完成后被调用
-  用 setTimeout 也可以拿到这个值 相当于有搞了一个红任务挂到队列后面了，等到更新结束在去拿那个值
+  如果想获取更新后的 Dom 状态，可以在数据变化之后使用 Vue.nextTick(callback)，这样回调函数将在 dom 更新完成后被调用。
+  用 setTimeout 也可以拿到这个值，相当于又搞了一个宏任务挂到队列后面了，等到更新结束在去拿那个值
+### update() core\observer\watcher.js
+dep.notify()之后watcher执行更新，执行入队操作
+### queueWatcher(watcher) core\observer\scheduler.js
+执行watcher入队操作
+### nextTick(flushSchedulerQueue) core\util\next-tick.js
+nextTick按照特定异步策略执行队列操作
+比如：watcher中update执行三次，但run仅执行一次
 
 * queueWatcher
   执行 watcher 入队操作，若存在重复 id 则跳过
@@ -1508,3 +1516,55 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   };
 }
 ```
+
+# 虚拟dom
+必要性
+vue 1.0中有细粒度的数据变化侦测，它是不需要虚拟DOM的，但是细粒度造成了大量开销，这对于大
+型项目来说是不可接受的。因此，vue 2.0选择了中等粒度的解决方案，每一个组件一个watcher实例，
+这样状态变化时只能通知到组件，再通过引入虚拟DOM去进行比对和渲染
+## 整体流程
+```js
+// mountComponent() core/instance/lifecycle.js
+1. 渲染、更新组件
+// 定义更新函数 
+const updateComponent = () => { 
+  // 实际调用是在lifeCycleMixin中定义的_update和renderMixin中定义的_render 
+  vm._update(vm._render(), hydrating) 
+}
+// _render core/instance/render.js
+2. 生成虚拟dom
+
+// _update core\instance\lifecycle.js
+3. update负责更新dom，转换vnode为dom
+
+// __patch__() platforms/web/runtime/index.js
+// __patch__是在平台特有代码中指定的
+4. __patch__是在平台特有代码中指定的
+Vue.prototype.__patch__ = inBrowser ? patch : noop 
+```
+## patch获取
+```js
+patch是createPatchFunction的返回值，传递nodeOps和modules是web平台特别实现
+export const patch: Function = createPatchFunction({ nodeOps, modules })
+
+platforms\web\runtime\node-ops.js
+定义各种原生dom基础操作方法
+
+platforms\web\runtime\modules\index.js
+modules 定义了属性更新实现
+
+watcher.run() => componentUpdate() => render() => update() => patch()
+```
+## patch实现
+```js
+// patch core\vdom\patch.js
+1. patch函数式怎么获取的？
+2. 节点属性是如何更新的
+3. 组件化机制是如何实现的
+4. 口述diff
+```
+![patch实现](./img/diff1.png)
+![patch实现](./img/diff2.png)
+![patch实现](./img/diff3.png)
+![patch实现](./img/diff4.png)
+![patch实现](./img/diff5.png)

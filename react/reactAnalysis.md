@@ -2,19 +2,162 @@
 
 [react 原理解析](https://yuchengkai.cn/react/)
 
-# jsx
+# 什么是虚拟 dom？说一下 diff 算法
 
-不能说 jsx 就是 react 元素？
-jsx= react.createElement
-在浏览器执行的时候，createElement 的返回值才是 react 元素=虚拟 DOM
-是一种语法，打包的时候会进行编译，编译成 react.createElement,createElement 只是创建 react 元素的方法，
-react 元素=虚拟 dom，也就是一个普通的 jsx 对象，描述了 dom 真实的样子
+1. what
+
+⽤ JavaScript 对象表示 DOM 信息和结构，当状态变更的时候，重新渲染这个 JavaScript 的对象结构。这个
+JavaScript 对象称为 virtual dom。
+
+虚拟DOM（Virtual DOM）是对DOM的JS抽象表示，它们是JS对象，能够描述DOM结构和关系。应用
+的各种状态变化会作用于虚拟DOM，最终映射到DOM上。
+
+2. why？
+
+DOM 操作很慢，轻微的操作都可能导致⻚⾯重新排
+版，⾮常耗性能。相对于 DOM 对象，js 对象处理起来更快，
+⽽且更简单。通过 diff 算法对⽐新旧 vdom 之间的差异，可以
+批量的、最⼩化的执⾏ dom 操作，从⽽提⾼性能。
+
+3. where？
+
+react 中⽤ JSX 语法描述视图，通过 babel-loader 转译
+后它们变为 React.createElement(...)形式，该函数将⽣成
+vdom 来描述真实 dom。将来如果状态变化，vdom 将作出相
+应变化，再通过 diff 算法对⽐新⽼ vdom 区别从⽽做出最终
+dom 操作。
+
+<!-- ![虚拟dom](./imgs/dom.png) -->
+# 虚拟 DOM 原理剖析
+
+1. diff 策略
+
+同级比较，Web UI 中 DOM 节点跨层级的移动操作特别少，可以忽略不计。
+
+2. 拥有相同类的两个组件将会生成相似的树形结构，拥有不同类的两个组件将会生成不同的树形结构。
+   例如：div->p, CompA->CompB
+
+3. 对于同一层级的一组子节点，通过唯一的 key 进行区分。
+
+element diff
+
+差异类型：
+
+1. 替换原来的节点，例如把 div 换成了 p，Comp1 换成 Comp2
+2. 移动、删除、新增子节点， 例如 ul 中的多个子节点 li 中出现了顺序互换。
+3. 修改了节点的属性，例如节点类名发生了变化。
+4. 对于文本节点，文本内容可能会改变。
+
+5. 重排（reorder）操作：INSERT_MARKUP（插入）、MOVE_EXISTING（移动）和 REMOVE_NODE（删除）。
+
+6. INSERT_MARKUP，新的 component 类型不在老集合里， 即是全新的节点，需要对新节点执行插入操作。
+
+7. MOVE_EXISTING，在老集合有新 component 类型，且 element 是可更新的类型，
+
+generateComponentChildren 已调用 receiveComponent，这种情况下 prevChild=nextChild，就需要做移动操作，可以复用以前的 DOM 节点。
+
+8. REMOVE_NODE，老 component 类型，在新集合里也有，但对应的 element 不同则不能直接复用和更新，
+   需要执行删除操作，或者老 component 不在新集合里的，也需要执行删除操作。
+
+![](./imgs/comp.png)
+
+# JSX 概念
+
+JSX 是一种 看起来很像 xml 的 JavaScript 的语法扩展，其格式比较像模版语言，但事实上完全是在 JavaScript 内部实现的。
+是一种语法糖
+
+1. 为什么需要 jsx？
+
+- 开发效率：使用 jsx 编写模板简单快速
+- 执行效率：jsx 编译为 JavaScript 代码后进行了优化，执行更快
+- 类型安全：在编译过程中就能发现错误
+
+2. 原理
+
+- babel-loader 会预编译 jsx 为 React.createElement('div',{id:'app'},ch1,ch2,ch3)
+- 相当于 h 函数 子元素传递参数和 h 函数有点不同->vNode 真正在浏览器跑的时候就是 createElement 在浏览器运行的时候，才会执行 createElement 得到 vNode
+
+3. 与 vue 的不同：
+
+- react 中的 vNode+jsx 一开始就有，vue 则是演进过程中出现的
+- jsx 本来就是 js 拓展，转义过程直接的多，vue 把 template 编译成 render 函数的过程需要复杂的编译器，转换字符串为 ast-js 函数字符串-js 函数-引入到代码里面
+
+联想？响应化的实现为什么需要一个 watcher？一个组件一个 watcher 为什么
+
+我们每个组件在创建的时候，会创建一个 render watcher 渲染 watcher 这个 render watcher 和组件就是一对一的关系 主要是和我们的更新函数挂钩 更新函数会直接传入到 watcher 中 将来 任何一个值得变化会导致 watcher 会入队 render 函数执行的时候会访问这个组件里面所有的依赖 data 中的所有值都会被访问到 意味着我哪些值得变化会调用我当前的 watcher 所以说为什么需要 vNode diff 算法呢 就是因为一个组件中那么多的值 我怎么知道哪个改变了呢 我怎么知道哪一个变了呢 我们 watcher 管理这这个组件 所以只能在组件的级别 做一个 diff 通过 diff 得出变化的点 从而做出更新
+
+- React 负责逻辑控制，数据 -> vDom
+- React 使用 JSX 来描述 UI
+- babel-loader 可以转换 jsx -> html -vNode,也就是 react 元素，一个普通 js 对象，描述了我们在界面上想看到的 dom 元素的样式, 会编译成 React.createElement(此时呢还是静态) 在浏览器执行
+- jsx 基本上也是 vNode, 基本结构和我们以前用 js 对象模拟 dom 结构是一个意思 打包的时候会，编译成 React.createElement React.createElement 执行的结果才是虚拟 dom，不能说 jsx 就是 react 元素
+- React 元素 = 虚拟 dom 也就是一个普通 jsx 对象，描述了 dom 真实的样子
+- 把 react 元素给了 ReactDom.render, 在浏览器执行的时候，会将 vNode 转化的 Dom，并插入到 root 容器中去，如果换到移动端，可能用别的库来渲染
+
+```js
+let element1 = React.createElement('h1', 'null', 'hello') //普通的js对象
+{
+  type: 'h1'
+  key: null,
+  ref:null,
+  props:{
+    children: 'hello'
+  },
+}
+// React.Dom
+let element = (
+  <h1 className="title" style={{ color: 'red' }}>
+    <span>hello</span>
+    world
+  </h1>
+);
+----编译后----;
+// 参数1  标签的类型 div span h1
+// 参数2  属性的js对象
+// 参数3... 往后面的都是子元素 儿子们
+// React.createElement 的返回值 element 就是一个虚拟dom vNode
+let element = React.createElement(
+  'h1',
+  {
+    className: 'title',
+    style: {
+      color: 'red',
+    },
+  },
+  React.createElement('span', null, 'hello'),
+  'world'
+);
+ {
+    type: 'h1',
+    key: null,
+    ref: null,
+    props: {
+      children: [{
+        key: null,
+        props: { children: 'hello' },
+        ref: null,
+        type: 'span'
+      }, 'world'],
+      className: 'title',
+      style: { color: 'red' }
+    },
+    // 内置属性
+    '_owner': null,
+    '_store': {}
+  }
+```
 
 # 核心 api
 
 createElement、Component、render 三个 api
 
-## 创建 kreact：实现 createElement 并返回 vdom
+1. webpack+babel 编译时，替换 JSX 为 React.createElement(type,props,...children)
+2. 所有 React.createElement()执⾏结束后得到⼀个 JS 对象即 vdom，它能够完整描述 dom 结构
+3. ReactDOM.render(vdom, container)可以将 vdom 转换为 dom 并追加到 container 中
+4. 实际上，转换过程需要经过⼀个 diff 过程，⽐对出实际更新补丁操作 dom
+
+## createElement
+
+创建 kreact：实现 createElement 并返回 vdom
 
 ```js
 import initVNode from './kdom';
@@ -91,7 +234,17 @@ class Updater {
 }
 
 /**
- *
+ * 注意节点类型
+    ⽂本节点
+    HTML标签节点
+    function组件
+    class组件
+    fragment
+    其他如portal等节点
+1. createElement被调⽤时会传⼊标签类型type，标签属性props及若⼲⼦元素children
+2. index.js中从未使⽤React类或者其任何接⼝，为何需要导⼊它？
+3. JSX编译后实际调⽤React.createElement⽅法，所以只要出现JSX的⽂件中都需要导⼊React
+
  * @param type 元素的类型 可能是一个字符串(原生组件)，也可能是函数
  * @param config 配置的对象,一般来说是属性对象
  * @param children 第一个儿子
@@ -173,11 +326,15 @@ function updateClassComponent(classInstance, renderVNode) {
 }
 ```
 
-## 创建 kreact-dom：实现 render，能够将 kvdom 返回的 dom 追加至 container
+## ReactDOM.render
+
+创建 kreact-dom：实现 render，能够将 kvdom 返回的 dom 追加至 container
 
 ```js
+// ReactDOM.render(element, container[, callback])
 import initVNode from './kdom';
 /**
+ * vnode->node
  * 虚拟Dom转换为真实Dom,并插入到容器里
  * @param vNode 虚拟dom
  * @param container 插入的容器
@@ -185,7 +342,7 @@ import initVNode from './kdom';
 function render(vNode, container) {
   // container.innerHTML = `<pre>${JSON.stringify(vNode, null, 2)}</pre>`
   const dom = initVNode(vNode);
-  container.appendChild(dom);
+  dom && container.appendChild(dom);
 }
 
 export default { render };
@@ -547,33 +704,71 @@ react 内部的机制，在函数开始执行的时候，设置 isBatchingUpdate
 - 自定义 dom 事件(和它调用的函数)
 - react 管不到的入口
 
-# 虚拟 DOM 原理剖析
 
-1. diff 策略
+# fiber
 
-同级比较，Web UI 中 DOM 节点跨层级的移动操作特别少，可以忽略不计。
+React Fiber 是⼀种基于浏览器的单线程调度算法.
+reconcilation协调算法 - 比如第二次更新，我们不可能再次执行render，需要diff，虚拟dom的核心呢，就是要复用节点。比如当前页面已经有了，下次局部某个地方更新的时候，在原来节点的基础上进行操作，这就是协调做的事情。
+如何做到的呢？主要通过diff
+React 16 之前,reconcilation(协调)  算法实际上是递归，想要中断递归是很困难的，React 16 开始使⽤了循环来代替之前 的递归.
 
-2. 拥有相同类的两个组件将会生成相似的树形结构，拥有不同类的两个组件将会生成不同的树形结构。
-   例如：div->p, CompA->CompB
+### 概念
 
-3. 对于同一层级的一组子节点，通过唯一的 key 进行区分。
+Fiber ：⼀种将 recocilation （递归 diff），拆分成⽆数个⼩任务的算法；它随时能够停⽌，恢复。停⽌恢复的时机 取决于当前的⼀帧（16ms）内，还有没有⾜够的时间允许计算。
+1. vdom从树变成，链表
+2. 利用浏览器渲染的间隔时间，requestIdleCallback
+以前的vdom {type,children,props}
+现在的vdom {type,child,return,slibing,props}
+16.6ms 一桢 任何占用主进程超过这个时间，可能就会卡顿，这种任务，基本都可以用fibre来解决
 
-element diff
+### fiber(并发渲染) 出现的原因
 
-差异类型：
+把整个任务拆分成一个个小任务，全部放在浏览器空闲的时候执行(绘制页面，响应用户操作)，这样就不会阻塞高优先级任务了，在 16 以前都是一把梭，同步的比较和更新 dom 一起，中间不能打断，任务多，会卡 ，iber 把比较同步差异和同步 dom 的操作做了拆分，变成一个可中断的任务
 
-1. 替换原来的节点，例如把 div 换成了 p，Comp1 换成 Comp2
-2. 移动、删除、新增子节点， 例如 ul 中的多个子节点 li 中出现了顺序互换。
-3. 修改了节点的属性，例如节点类名发生了变化。
-4. 对于文本节点，文本内容可能会改变。
+[参考](https://segmentfault.com/a/1190000039081912)
+[参考](https://segmentfault.com/a/1190000020737069)
 
-5. 重排（reorder）操作：INSERT_MARKUP（插入）、MOVE_EXISTING（移动）和 REMOVE_NODE（删除）。
 
-6. INSERT_MARKUP，新的 component 类型不在老集合里， 即是全新的节点，需要对新节点执行插入操作。
+1. 为什么需要 fiber (大型项目-组件树-递归)
+  对于⼤型项⽬，组件树会很⼤，这个时候递归遍历的
+  成本就会很⾼，会造成主线程被持续占⽤，结果就是
+  主线程上的布局、动画等周期性任务就⽆法⽴即得到
+  处理，造成视觉上的卡顿，影响⽤户体验。
+1. 任务分解的意义- 解决上⾯的问题
 
-7. MOVE_EXISTING，在老集合有新 component 类型，且 element 是可更新的类型，
+1. 增量渲染（把渲染任务拆分成块，匀到多帧）
+1. 更新时能够暂停(有优先级更高的 )，终止，复用渲染任务
+1. 给不同类型的更新赋予优先级
+1. 并发方面新的基础能力
+1. 更流畅
 
-generateComponentChildren 已调用 receiveComponent，这种情况下 prevChild=nextChild，就需要做移动操作，可以复用以前的 DOM 节点。
+### 对 Time Slice 的，时间分片的理解
 
-8. REMOVE_NODE，老 component 类型，在新集合里也有，但对应的 element 不同则不能直接复用和更新，
-   需要执行删除操作，或者老 component 不在新集合里的，也需要执行删除操作。
+时间分⽚
+
+- React 在渲染（render）的时候，不会阻塞现在的线程
+- 如果你的设备⾜够快，你会感觉渲染是同步的
+- 如果你设备⾮常慢，你会感觉还算是灵敏的
+- 虽然是异步渲染，但是你将会看到完整的渲染，⽽不是⼀个组件⼀⾏⾏的渲染出来
+- 同样书写组件的⽅式
+
+也就是说，这是 React 背后在做的事情，对于我们开发者来说，是透明的，具体是什么样的效果呢
+时间分⽚正是基于可随时打断、重启的 Fiber 架构,可打断当前任务,优先处理紧急且重要的任务,保证⻚⾯的流畅运⾏.
+
+### 更新的两个阶段
+
+- 上述的 patch 被拆分为两个阶段
+- recocilation 阶段- 执行 diff 算法，纯 js 计算
+- commit 阶段 - 将 diff 结果渲染 DOM
+
+1. fiber 出现的原因？可能有性能问题？
+
+- js 是单线程，且和 dom 渲染公用一个线程
+- 当组件足够复杂，组件更新时，计算和渲染压力大
+- 同时再有 DOM 操作需求，比如动画、拖拽，将卡顿
+
+2. 解决方案就是 fiber
+
+- 将 recocilation 阶段进行任务拆分(commit 无法拆分)
+- DOM 需要渲染时，则暂停，空闲时恢复
+- 什么时候知道 dom 需要渲染呢？ -> 依靠这个 api，window.requestIdleCallback，当浏览器需要渲染的时候，我们将 recocilation 暂停，都是可以控制的

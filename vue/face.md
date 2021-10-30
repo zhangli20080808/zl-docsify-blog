@@ -127,3 +127,30 @@ react状态变化只能通过setState,调用setState就会更新状态重新渲�
 准备好组件的数据输入，即分析好逻辑，确定好 props里面的数据、类型
 准备好组件的数据输出，即根据组件逻辑，做好要暴露出来的方法
 封装完毕后，直接调用即可。
+
+## koa-body的原理
+[参考](https://zhuanlan.zhihu.com/p/54972937)
+
+## 介绍pm
+PM2是node进程管理工具，可以利用它来简化很多node应用管理的繁琐任务，如性能监控、自动重启、负载均衡等，而且使用非常简单。
+[参考](https://www.jianshu.com/p/3de4e8f15621)
+
+## master挂了的话pm2怎么处理?
+* 使用pm2方便开启node集群模式 - 简单来说，就是复制一些可以共享TCP连接的工作线程。
+* 集群模块会创建一个master主线程，然后复制任意多份程序并启动，这叫做工作线程。
+* node多线程支持 - (https://blog.csdn.net/flytam/article/details/86608646)
+
+## 移动端1px问题 
+[移动端1px问题](https://www.jianshu.com/p/3a262758abcf)
+
+## webpack-dev-server 运行原理
+https://blog.csdn.net/LuckyWinty/article/details/109507412
+
+## 前端安全
+[参考](https://www.jianshu.com/p/544bb4bccd82)
+
+## 如何深拷贝this
+[参考](https://www.wangt.cc/2021/03/js%E9%9D%A2%E8%AF%95%E9%A2%98/)
+
+## redux主要解决了哪些问题？
+[redux主要解决了哪些问题？](https://zhuanlan.zhihu.com/p/57409008)

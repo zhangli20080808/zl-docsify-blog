@@ -12,12 +12,13 @@
     [源码简单实现](https://github.com/zhangli20080808/react-summary/tree/master/src/components/hooks)
 
 2. 缺陷
-* 额外的学习成本（Functional Component 与 Class Component 之间的困惑） 
-* 写法上有限制（不能出现在条件、循环中），并且写法限制增加了重构成本 
-* 破坏了PureComponent、React.memo浅⽐较的性能优化效果（为了取最新的props和state，每次render()都要重新 创建事件处函数） 
-* 在闭包场景可能会引⽤到旧的state、props值
-* 内部实现上不直观（依赖⼀份可变的全局状态，不再那么“纯”）
-* React.memo并不能完全替代shouldComponentUpdate（因为拿不到 state change，只针对 props change）
+
+- 额外的学习成本（Functional Component 与 Class Component 之间的困惑）
+- 写法上有限制（不能出现在条件、循环中），并且写法限制增加了重构成本
+- 破坏了 PureComponent、React.memo 浅⽐较的性能优化效果（为了取最新的 props 和 state，每次 render()都要重新 创建事件处函数）
+- 在闭包场景可能会引⽤到旧的 state、props 值
+- 内部实现上不直观（依赖⼀份可变的全局状态，不再那么“纯”）
+- React.memo 并不能完全替代 shouldComponentUpdate（因为拿不到 state change，只针对 props change）
 
 ### 解决的问题
 
@@ -228,6 +229,10 @@ function Demo7() {
 
 ## useReducer 实现 useState
 
+- useState 和 useReducer 的区别？
+  实际上，在 React 内部，useState 就是用 useReducer 实现的，useState 返回的函数内部封装了一个 dispatch。
+- useReducer：低成本的数据流。useReducer 更适合拿来做简单场景下的数据流
+
 ```js
 let memoizedState;
 
@@ -274,7 +279,8 @@ function StateDemo() {
 # useCallback/useMemo
 
 useCallback 解决的是传入子组件的函数参数过度变化导致子组件过度渲染的问题
-
+* 第一次执行时候，会将依赖保存起来
+* 当依赖发生变更的时候，会去对比每一项的改变 every，进而返回 true或者false
 ```js
 let lastCallback;
 let lastCallbackDependencies;
@@ -723,8 +729,7 @@ export default StateDemo;
 
 - useRef -- 如果和获取最新的值
 - useRef 会返回一个可变的 ref 对象 {current}
-- ref 对象在组件的整个生命周期内保持不变
--
+- ref对象在组件的整个生命周期内保持不变
 
 ```js
 import React, { useEffect } from 'react';
@@ -736,7 +741,7 @@ import { render } from '../../index';
  * ref对象在组件的整个生命周期内保持不变
  *
  * 注意区分 React.createRef 和 useRef
- * 为什么需要转发? React.forwardRef() 因为函数组件没有实例 不能使用ref
+ * 为什么需要转发? React.forwardRef() 因为函数组件没有实例，不能使用ref
  * forwardRef
  * 1. 将ref从父组件转发到子组件中的dom元素上
  * 2. 子组件接受props和ref作为参数
@@ -832,6 +837,7 @@ export default Index;
 
  现在通过ref和forwardRef，可以在父组件中随意改变元素。
  但是我们可能只希望父组件只能对子组件进行有限操作，也就是限制父组件的自由度。
+ 
  1. 直接暴露给父组件带来的问题是某些情况的不可控
  2. 父组件可以拿到DOM后进行任意的操作
  3. 我们只是希望父组件可以操作的focus，其他并不希望它随意操作其他方法
@@ -1148,7 +1154,9 @@ export const useAsync = <D>(initialState?: State<D>) => {
 ```
 
 # Hooks 原理
+
 ## 链表概念
+
 1. 将函数组件状态保存在外部作用域，类似链表的实现原理，由于有严格的顺序关系，所以函数组件中 useState 这些
    api 不能出现条件、循环语句中
 
@@ -1166,52 +1174,3 @@ state2 === hook2.memoizedState
 hook2.next=>hook3
 state3 === hook2.memoizedState
 ```
-
-## Fibter
-React Fiber 是⼀种基于浏览器的单线程调度算法.
-
-React 16之前 ， reconcilation 算法实际上是递归，想要中断递归是很困难的，React 16 开始使⽤了循环来代替之前 的递归.
-
-### 概念
-
-Fiber ：⼀种将 recocilation （递归 diff），拆分成⽆数个⼩任务的算法；它随时能够停⽌，恢复。停⽌恢复的时机 取决于当前的⼀帧（16ms）内，还有没有⾜够的时间允许计算。
-
-### fiber(并发渲染) 出现的原因
-
-  把整个任务拆分成一个个小任务，全部放在浏览器空闲的时候执行(绘制页面，响应用户操作)，这样就不会阻塞高优先级任务了，在 16 以前都是一把梭，同步的比较和更新 dom 一起，中间不能打断，任务多，会卡 fiber 把比较同步差异和同步 dom 的操作做了拆分，变成一个可中断的任务
-
-1. 为什么需要 fiber
-1. 任务分解的意义
-1. 增量渲染（把渲染任务拆分成块，匀到多帧）
-1. 更新时能够暂停，终止，复用渲染任务
-1. 给不同类型的更新赋予优先级
-1. 并发方面新的基础能力
-1. 更流畅
-
-### 对 Time Slice的，时间分片的理解
-时间分⽚
-
-* React 在渲染（render）的时候，不会阻塞现在的线程 
-* 如果你的设备⾜够快，你会感觉渲染是同步的 
-* 如果你设备⾮常慢，你会感觉还算是灵敏的 
-* 虽然是异步渲染，但是你将会看到完整的渲染，⽽不是⼀个组件⼀⾏⾏的渲染出来 
-* 同样书写组件的⽅式
-
-也就是说，这是React背后在做的事情，对于我们开发者来说，是透明的，具体是什么样的效果呢
-时间分⽚正是基于可随时打断、重启的Fiber架构,可打断当前任务,优先处理紧急且重要的任务,保证⻚⾯的流畅运⾏.
-
-### 更新的两个阶段
-* 上述的patch被拆分为两个阶段
-* recocilation 阶段- 执行diff算法，纯js计算
-* commit阶段 - 将diff结果渲染DOM
-
-1. fiber出现的原因？可能有性能问题？
-
-* js是单线程，且和dom渲染公用一个线程
-* 当组件足够复杂，组件更新时，计算和渲染压力大
-* 同时再有DOM操作需求，比如动画、拖拽，将卡顿
-
-2. 解决方案就是fiber
-* 将 recocilation 阶段进行任务拆分(commit无法拆分)
-* DOM需要渲染时，则暂停，空闲时恢复
-* 什么时候知道dom需要渲染呢？ -> 依靠这个api，window.requestIdleCallback，当浏览器需要渲染的时候，我们将 recocilation 暂停，都是可以控制的

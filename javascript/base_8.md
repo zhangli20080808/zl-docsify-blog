@@ -103,6 +103,9 @@
 ![](../static/img/http-cache.png)
 
 # 浏览器缓存机制
+ [memory cache和DiskCache](https://blog.csdn.net/baidu_38742725/article/details/77181078)
+ * 它与memoryCache最大的区别在于，当退出进程时，内存中的数据会被清空，而磁盘的数据不会，所以，当下次再进入该进程时，该进程仍可以从diskCache中获得数据，而memoryCache则不行
+ * 一般图片会用disk cache, js文件用memory cache
 
 缓存策略基本上都是有浏览器自动发起的 基本都是服务端配置的 用 node 可以设置 res header 控制缓存
 

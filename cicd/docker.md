@@ -15,3 +15,6 @@
 # 查看 nginx 容器的挂载目录
 
 docker inspect tarodocker_nginx_1
+
+# pm2+nginx
+

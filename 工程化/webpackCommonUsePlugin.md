@@ -110,7 +110,7 @@ webpack 是⼀个模块打包⼯具，可以识别出引⼊模块的语法 ，�
 # 性能优化
 
 开发环境 -- 开发体验和效率，优化打包构建速度
-
+[参考](https://blog.csdn.net/weixin_34406061/article/details/91456076)
 1.  优化 babel-loader //开启缓存 只要 es6 代码没改 就不重新编译
 
 ```js
