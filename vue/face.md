@@ -1,5 +1,6 @@
 #
 [参考前端面试](https://blog.csdn.net/weixin_44157964/article/details/107945951)
+[面试题答案](https://juejin.cn/post/6844904147045580813)
 # 为何在 v-for 中使用 key
 
 - 必须用 key，且不能是 random 和 index
@@ -154,3 +155,60 @@ https://blog.csdn.net/LuckyWinty/article/details/109507412
 
 ## redux主要解决了哪些问题？
 [redux主要解决了哪些问题？](https://zhuanlan.zhihu.com/p/57409008)
+
+## 观察者模式 vs 发布订阅模式
+[观察者模式 vs 发布订阅模式](https://zhuanlan.zhihu.com/p/51357583)
+![观察者模式](./img/observe.png)
+
+## http1.1时如何复⽤tcp连接
+HTTP/1.0 引入了 keep-alive 长连接，HTTP/1.0 中是默认关闭的，可以通过 Connection: keep-alive; 开启 ，HTTP/1.1 默认是开启的，无论加没加 Connection: keep-alive;
+[http1.1时如何复⽤tcp连接](https://jishuin.proginn.com/p/763bfbd5a2d7)
+
+## 介绍css3中position:sticky
+设置了sticky的元素，在屏幕范围（viewport）时该元素的位置并不受到定位影响（设置是top、left等属性无效），当该元素的位置将要移出偏移范围时，定位又会变成fixed，根据设置的left、top等属性成固定位置的效果。
+
+[sticky](https://www.cnblogs.com/s1nker/p/4835079.html)
+
+## 事件委托的原理以及优缺点
+原理 : 利用事件冒泡的机制
+优点
+* 提高Javascript性能,减少内存消耗
+* 动态添加DOM元素
+缺点
+* 事件委托基于冒泡 , 对于不冒泡的事件不支持
+* 层级过多,冒泡过程中,可能会被某层阻止掉
+* 把所有事件都用代理就可能会出现事件误判,好比把不应该触发事件的 绑上了事件.
+
+## React怎么做数据的检查和变化
+[React怎么做数据的检查和变化](https://github.com/zlx362211854/daily-study/issues/82)
+
+## import { Button } from 'antd'，打包的时候只打包button， 分模块加载，是怎么做到的
+```js
+// 通过 babel-plugin-import 配置处理。
+{
+  "plugins": [
+    ["import", {
+      "libraryName": "antd",
+      "libraryDirectory": "es",
+      "style": "css"
+    }]
+  ]
+}
+```
+
+## 使⽤import时，webpack对node_modules⾥的依赖会做什么
+* 首先说import，他只是一个引用,在你没有用到它得时候它不会执行。
+* 需要执行的时候，再到模块里面取值，webpack则是根据你的引入方式去判断模块的类型，然后进行相关的转译，import引入，babel会默认把ES6的模块转译为ComminJS规范，然后把node_modules里面的依赖打包成IIFE（自执行函数(function(modules){})([])）,模块会传入到数组里面，函数经过运行之后最终将模块通过module.exports导出
+
+## cookie是什么，有什么作用？
+* cookie是以小的文本文件形式（即纯文本），完全存在于客户端；
+* cookie保存了登录的凭证，有了它，只需要在下次请求时带着cookie发送，就不必再重新输入用户名、密码等重新登录了
+* 是设计用来在服务端和客户端进行信息传递的
+缺点
+1. 每个特定域名下的cookie数量有限
+2. 存储量太小，只有4KB；
+3. 每次HTTP请求都会发送到服务端，影响获取资源的效率；
+4. 需要自己封装获取、设置、删除cookie的方法
+
+## fiber
+![fiber](./img/fiber2.png)

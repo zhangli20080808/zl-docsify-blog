@@ -531,6 +531,8 @@ import { updateQueue } from './kreact';
 
 /**
  * 给哪个dom元素绑定哪种类型的事件
+ * 1. 给dom增加一个store属性，值是一个空对象
+ * 2. 向document上绑定响应的事件，实现 dispatchEvent(合成事件，自己的事件冒泡)
  * @param dom 给哪个dom元素绑定事件 button 真实dom元素
  * @param eventType 事件类型 onClick
  * @param listener 事件处理函数 fn

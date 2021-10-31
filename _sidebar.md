@@ -1,4 +1,52 @@
-<!-- [HTML](/) -->
+- 工程化
+
+  - babel
+    - [babelrc 文件简单分析](/工程化/babelrc.md)
+    - [babel 工作原理](/工程化/babelPrinciple.md)
+  - webpack
+    - [构建配置](/工程化/config.md)
+    - [webpack 常用插件](/工程化/webpackCommonUsePlugin.md)
+    - [webpack 性能优化](/工程化/performanceOptimize.md)
+    - [Webpack 编译流程的简单实现](/工程化/webpackCompilerRealize.md)
+    - [Webpack 原理分析](/工程化/1.md)
+  - rollup
+  - [前端项目启动本地服务器的几种方法](/工程化/devServer.md)
+  - [实现本地 mock 数据的几种方法](/工程化/mock.md)
+  - [开源一个 npm 包组件](/工程化/npmComp.md)
+
+- [**React**](/react/index.md)
+
+  - [基础使用](/react/baseUse/1.md)
+  - [高级使用](/react/advanceUse/1.md)
+  - [合成事件](/react/composeEvent.md)
+  - [HOC](/react/hoc.md)
+  - [从 redux 到 react-redux 再到 dva](/react/reduxFlows.md)
+  - [hooks](/react/hooks.md)
+  - [react 原理解析](/react/reactAnalysis.md)
+
+* Vue
+* [基本使用](/vue/3.md)
+* [高级使用总结](/vue/2.md)
+* [vue 源码分析](/vue/vueAnalysis.md)
+* [MVVM 理解](/vue/1.md)
+* [面试题小结](/vue/face.md)
+
+* 模块化概念
+* [](/module/1.md)
+
+- [**Promise 学习总结**](/promise总结/1.md)
+
+* Node
+  - [node 基础](/node/1.md)
+  - [node 进阶](/node/2.md)
+  - [koa2](/node/koa2.md)
+  - [express](/node/express.md)
+  - [浑仪系统后端技术栈回顾总结](/node/hyxt.md)
+  - [网络编程](/node/4.md)
+  - [HTTP 协议详解](/node/http.md)
+  - [持久化](/node/5.md)
+  - [鉴权](/node/auth.md)
+  - [egg](/node/6.md)
 
 - HTML
 <!-- https://yingchenit.github.io/base/generator/#generator%E7%9A%84%E5%9F%BA%E7%A1%80%E7%94%A8%E6%B3%95 -->
@@ -24,28 +72,6 @@
   - [proxy代理响应式比较总结](/es6/5.md)
   - [模块-类](/es6/6.md)
 
-- [**React**](/react/index.md)
-
-  - [基础使用](/react/baseUse/1.md)
-  - [高级使用](/react/advanceUse/1.md)
-  - [合成事件](/react/composeEvent.md)
-  - [HOC](/react/hoc.md)
-  - [从 redux 到 react-redux 再到 dva](/react/reduxFlows.md)
-  - [hooks](/react/hooks.md)
-  - [react 原理解析](/react/reactAnalysis.md)
-
-
-- [**Promise 学习总结**](/promise总结/1.md)
-
-* Vue
-* [基本使用](/vue/3.md)
-* [高级使用总结](/vue/2.md)
-* [vue 源码分析](/vue/vueAnalysis.md)
-* [MVVM 理解](/vue/1.md)
-* [面试题小结](/vue/face.md)
-
-* 模块化概念
-* [](/module/1.md)
 
 * 前端架构
 * [前端架构](/homework/1.md)
@@ -69,18 +95,6 @@
 
   - [性能优化](/javascript/base_8.md)
 
-* Node
-  - [node 基础](/node/1.md)
-  - [node 进阶](/node/2.md)
-  - [koa2](/node/koa2.md)
-  - [express](/node/express.md)
-  - [浑仪系统后端技术栈回顾总结](/node/hyxt.md)
-  - [网络编程](/node/4.md)
-  - [HTTP 协议详解](/node/http.md)
-  - [持久化](/node/5.md)
-  - [鉴权](/node/auth.md)
-  - [egg](/node/6.md)
-
 - 数据库
 - Egg
 - [概念理解](/Egg/1.md)
@@ -91,21 +105,6 @@
   - [nginx 安装和启动](/service/nginx01.md)
   - [nginx 常用功能](/service/nginx02.md)
 
-- 工程化
-
-  - babel
-    - [babelrc 文件简单分析](/工程化/babelrc.md)
-    - [babel 工作原理](/工程化/babelPrinciple.md)
-  - webpack
-    - [构建配置](/工程化/config.md)
-    - [webpack 常用插件](/工程化/webpackCommonUsePlugin.md)
-    - [webpack 性能优化](/工程化/performanceOptimize.md)
-    - [Webpack 编译流程的简单实现](/工程化/webpackCompilerRealize.md)
-    - [Webpack 原理分析](/工程化/1.md)
-  - rollup
-  - [前端项目启动本地服务器的几种方法](/工程化/devServer.md)
-  - [实现本地 mock 数据的几种方法](/工程化/mock.md)
-  - [开源一个 npm 包组件](/工程化/npmComp.md)
 
 - Git
   - [git 使用规范](/git/useStandard.md)
