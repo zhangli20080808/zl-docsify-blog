@@ -30,6 +30,7 @@
 * [vue 源码分析](/vue/vueAnalysis.md)
 * [MVVM 理解](/vue/1.md)
 * [面试题小结](/vue/face.md)
+* [vue3](/vue/vue3.md)
 
 * 模块化概念
 * [](/module/1.md)

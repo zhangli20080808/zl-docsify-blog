@@ -130,9 +130,9 @@ public可以允许中间代理做一些缓存
 
 资源标识 在 res header 中 Last-Modified 资源最后修改时间 Etag(资源唯一标识，一个字符串，类似指纹)
 
-- 服务器⼩⽼弟。浏览器⼤佬需要 main.js 这个⽂件上次修改 会使用下面的 header 问一下后台 从这个时间点开始这个文件有没有被修改 请求头带上 If-Modified-Since
+- 服务器⼩⽼弟。浏览器⼤佬需要 main.js 这个⽂件上次修改 会使用下面的 header 问一下后台 从这个时间点开始这个文件有没有被修改 请求头带上 If-Modified-Since，如果匹配，走缓存
 
-```
+```js
 If-Modified-Since: Fri, 27 Oct 2017 06:35:57 GMT
 ```
 
@@ -143,6 +143,8 @@ If-Modified-Since: Fri, 27 Oct 2017 06:35:57 GMT
 ETag: W/"2aaa-129892f459"
 If-None-Match: W/"2aaa-129892f459"
 ```
+
+- 没有上述header，或者缓存已经过期，或者etag、last-modified不匹配的时候，浏览器直接去服务器下载资源
 
 2. memory Cache
    内存缓存，短命 ⽐如常⽤数据存 js ⾥，浏览器也有⾃⼰的策略， base64 图⽚，体积⼩的静态资
