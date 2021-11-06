@@ -33,9 +33,9 @@
 * [vue3](/vue/vue3.md)
 
 * 模块化概念
-* [](/module/1.md)
+  - [模块化概念](/module/1.md)
 
-- [**Promise 学习总结**](/promise总结/1.md)
+* [Promise 学习总结](/promise总结/1.md)
 
 * Node
   - [node 基础](/node/1.md)
@@ -70,9 +70,8 @@
 
   - [常用命令](/es6/1.md)
   - [概念理解](/es6/4.md)
-  - [proxy代理响应式比较总结](/es6/5.md)
+  - [proxy 代理响应式比较总结](/es6/5.md)
   - [模块-类](/es6/6.md)
-
 
 * 前端架构
 * [前端架构](/homework/1.md)
@@ -105,7 +104,6 @@
   - [ssr](/service/ssr.md)
   - [nginx 安装和启动](/service/nginx01.md)
   - [nginx 常用功能](/service/nginx02.md)
-
 
 - Git
   - [git 使用规范](/git/useStandard.md)

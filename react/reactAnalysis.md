@@ -717,11 +717,6 @@ React 16 之前,reconcilation(协调)  算法实际上是递归，想要中断�
 ### 概念
 
 Fiber ：⼀种将 recocilation （递归 diff），拆分成⽆数个⼩任务的算法；它随时能够停⽌，恢复。停⽌恢复的时机 取决于当前的⼀帧（16ms）内，还有没有⾜够的时间允许计算。
-1. vdom从树变成，链表
-2. 利用浏览器渲染的间隔时间，requestIdleCallback
-以前的vdom {type,children,props}
-现在的vdom {type,child,return,slibing,props}
-16.6ms 一桢 任何占用主进程超过这个时间，可能就会卡顿，这种任务，基本都可以用fibre来解决
 
 ### fiber(并发渲染) 出现的原因
 
