@@ -68,8 +68,8 @@ function getImage(src) {
 ```
 
 3. 前端使用异步场景
-   网路请求，如 ajax 加载图片
-   定时任务 如果没有定时任务，js 读不需要异步了
+* 网路请求，如 ajax 加载图片
+* 定时任务 如果没有定时任务，js 读不需要异步了
 
 ```js
 console.log(1);
@@ -88,7 +88,11 @@ console.log(5); // 1 3 5 4 2
 [微任务和宏任务](https://segmentfault.com/a/1190000014940904?utm_source=tag-newest)
 [基础](https://www.cnblogs.com/leftJS/p/11070104.html)
 
+- 定义：本质上是(user agent 浏览器端)用于协调用户交互(鼠标，键盘)，脚本(js)，渲染(如html dom,css样式),网络
+等行为的一个机制。
+- 与其说 js提供了事件循环，不如说是嵌入 js的 user agent，需要通过事件循环来与多种事件源交互。
 - 事件循环中分为宏任务队列和微任务队列
+- 各种浏览器事件同时触发时，肯定有一个先来后到的排序问题，决定这些事件如何排队的机制，就是事件循环
 - JS 是单线程语言：顺序执行
   先执行宏任务里面的 js 栈中的所有代码 console.log 什么的 再开始微任务 再开始红任务
   我们需要知道 浏览器什么时候会渲染？ 其实是在一个宏任务之后去渲染 promise 会有一个很好的体验 赶在浏览器渲染之前
@@ -96,6 +100,7 @@ console.log(5); // 1 3 5 4 2
 
 - 任务队列
   ![](../static/img/js-event.jpg)
+  ![](./img/event1.png)
 
 ```js
 //sleep为一个同步任务，10000为执行时间 执行的同时 task先被放到了event table 等三秒之后才会把他放到事件队列里面，因为是异步的
@@ -112,8 +117,14 @@ sleep(10000);
   Promise 新建后就会立即执行。
   Promise 本身是同步的立即执行函数， 当在 executor 中执行 resolve 或者 reject 的时候, 此时是异步操作， 会先执行 then/catch 等，当主栈完成后，才会去调用 resolve/reject 中存放的方法执行，打印 p 的时候，是打印的返回结果，一个 Promise 实例。
 
-  1. macro-task(宏任务)：整体代码 script，setTimeout，setInterval
-  2. micro-task(微任务)： Promise
+  1. macro-task(宏任务 - 内部控制不了，主要是协调浏览器的各类事件的队列)：
+    * dom操作(页面渲染)
+    * 用户交互(鼠标、键盘)
+    * 网络请求 -ajax
+    * History Api操作
+    * 定时器 - js内部是不处理时间逻辑的，事时间逻辑是交给浏览器去处理的
+    整体代码 script，setTimeout，setInterval
+  2. micro-task(微任务 - js内部执行的任务队列)： Promise
      注：在事件循环中，永远先执行可执行的微任务
 
   - settimeout 的回调函数放到宏任务队列里，等到执行栈清空以后执行
@@ -122,6 +133,7 @@ sleep(10000);
     ![](../static/img/js-event2.jpg)
 
   ```js
+  <!-- 不如，有两个 setTimeout 注意，一次只会执行一个外部事件，如果 setTimeout中有微任务，那会优先先插入到内部队列，这个是比后续的setTimeout优先 -->
   console.log('11');
   setTimeout(function () {
     console.log('1');
@@ -191,6 +203,10 @@ sleep(10000);
   promise1 是 resolved 或 rejected: 那这个 task 就会放入当前事件循环回合的 microtask queue
   promise1 是 pending: 这个 task 就会放入 事件循环的未来的某个(可能下一个)回合的 microtask queue 中
   setTimeout 的回调也是个 task ，它会被放入 macrotask queue 即使是 0ms 的情况
+
+# node事件循环
+![](./img/event1.png)
+![](./img/out.png)
 
 # 函数柯里化
 

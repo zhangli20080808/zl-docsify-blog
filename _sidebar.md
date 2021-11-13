@@ -33,6 +33,7 @@
 * [vue3](/vue/vue3.md)
 
 * 模块化概念
+
   - [模块化概念](/module/1.md)
 
 * [Promise 学习总结](/promise总结/1.md)
@@ -74,7 +75,9 @@
   - [模块-类](/es6/6.md)
 
 * 前端架构
-* [前端架构](/homework/1.md)
+
+- [前端架构](/homework/1.md)
+- [监控运维](/homework/2.md)
 
 * CLI
 
@@ -112,10 +115,9 @@
 * 前端架构
 
   - [业务分析之登录态](/前端架构/loginStatus.md)
-  - 业务分析之图片上传
   - [业务分析之文件流下载](/前端架构/businessFileDown.md)
-  - 微前端
   - [工具网址](/前端架构/utilSites.md)
+  - [工具链](/前端架构/1.md)
 
 * CI/CD
 

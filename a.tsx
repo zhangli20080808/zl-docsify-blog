@@ -1,16 +1,13 @@
-interface Bird {
-  fly: Boolean;
-  sing: () => {};
-}
+setTimeout(() => {
+ console.log(1);
+ Promise.resolve().then(()=>{
+   console.log('Promise1');
+ })
+});
 
-interface Dog {
-  fly: Boolean;
-  dark: () => {};
-}
-function trainAnamial(animal: Bird | Dog) {
-  if (animal.fly) {
-    (animal as Bird).sing;
-  } else {
-    (animal as Dog).dark;
-  }
-}
+setTimeout(() => {
+  console.log(2);
+  Promise.resolve().then(()=>{
+    console.log('Promise2');
+  })
+ });
