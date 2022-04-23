@@ -97,8 +97,8 @@ initialState 之后 会在组件初始渲染的时候被调用 后续渲染会�
 ```js
 function count1() {
   let [state, setNum] = useState(() => {
-    console.log('初始状态');
-    return { num: 0, name: 'zl' };
+    console.log("初始状态");
+    return { num: 0, name: "zl" };
   });
   return (
     <div>
@@ -150,7 +150,7 @@ function count1() {
 // 自定义hooks 如果要返回函数，基本上需要使用 useCallback
 // 当obj是对象的state时，不会无限循环，不会像下面这样直接取对比，而是只有显示刻意的去调用setObj
 // 的时候 react才会认为这个obj改变了，其他时候都不认为这个obj是改变的
-const [obj, setObj] = useState({ name: 'jack' });
+const [obj, setObj] = useState({ name: "jack" });
 // const obj = {name:'1'}
 // 当 obj 是基本数据类型的时候，不会无限循环
 // 当 obj 是对象的时候，会无限循环
@@ -167,7 +167,7 @@ useEffect(() => {
 
 ```js
 function count5() {
-  let [state, setState] = useState({ num: 0, name: 'zl' });
+  let [state, setState] = useState({ num: 0, name: "zl" });
   return (
     <div>
       <div>
@@ -190,7 +190,7 @@ function count5() {
 
 ```js
 function Child(props) {
-  console.log('child render');
+  console.log("child render");
   return (
     <div>
       <button onClick={props.addClick}>{props.data.num}</button>
@@ -203,7 +203,7 @@ let lastFlag;
 let lastData;
 function Demo7() {
   let [num, setNum] = useState(0);
-  let [name, setName] = useState('zl');
+  let [name, setName] = useState("zl");
 
   // 如果这样每次都会重新创建一个 addClick 重新生成一个变量 每次 addClick 都不一样
   // deps 表示此函数依赖的变量 如果变量变了 会重新生成函数
@@ -212,7 +212,7 @@ function Demo7() {
   lastFlag = addClick;
   // 每一次执行的时候 都会生成一个 data 所以永远是false  使用 useMemo 这样我们的data就缓存下来了
   const data = useMemo(() => ({ num }), [num]);
-  console.log(lastData === data, 'data', lastData, data);
+  console.log(lastData === data, "data", lastData, data);
   lastData = data;
   return (
     <div>
@@ -239,7 +239,7 @@ let memoizedState;
 function useReducer(reducer, initialArg, init) {
   let initialState = void 0; // // void 跟上任意表达式返回的都是 undefined
 
-  if (typeof init !== 'undefined') {
+  if (typeof init !== "undefined") {
     initialState = init(initialArg);
   } else {
     initialState = initialArg;
@@ -279,8 +279,10 @@ function StateDemo() {
 # useCallback/useMemo
 
 useCallback 解决的是传入子组件的函数参数过度变化导致子组件过度渲染的问题
-* 第一次执行时候，会将依赖保存起来
-* 当依赖发生变更的时候，会去对比每一项的改变 every，进而返回 true或者false
+
+- 第一次执行时候，会将依赖保存起来
+- 当依赖发生变更的时候，会去对比每一项的改变 every，进而返回 true 或者 false
+
 ```js
 let lastCallback;
 let lastCallbackDependencies;
@@ -325,7 +327,7 @@ function useMemo(callback, dependencies) {
 }
 
 function Child({ data, addClick }) {
-  console.log('Child render');
+  console.log("Child render");
   return <button onClick={addClick}>{data.number}</button>;
 }
 
@@ -334,7 +336,7 @@ Child = memo(Child);
 
 function App() {
   let [number, setNumber] = useState(0);
-  let [name, setName] = useState('zhufeng');
+  let [name, setName] = useState("zhufeng");
   let addClick = useCallback(() => setNumber(number + 1), [number]); //每次也是新的
   let data = useMemo(() => ({ number }), [number]); //data 每次都是新的
   return (
@@ -386,19 +388,19 @@ function App() {
  */
 
 function EffectDemo2() {
-  console.log('FuncEffectDemo2 render');
+  console.log("FuncEffectDemo2 render");
   let [state, setState] = useState({ number: 0 });
   // useEffect 会在组件挂载后执行  没有给第二个参数 没次渲染都会执行调用 同时 会返回一个清理函数 当组件将要卸载的时候 执行清理函数
   // render 添加 useEffect 函数
   // re-render 替换 useEffect 函数  内部的函数也会重新定义
   useEffect(() => {
-    console.log('开启定时器');
+    console.log("开启定时器");
     let timer = setInterval(() => {
       setState((x) => ({ number: x.number + 2 }));
     }, 1000);
     return () => {
       // 每次渲染的时候 如果有清理函数 都会先执行 只有render之后才知道有哪些销毁函数
-      console.log('销毁定时器');
+      console.log("销毁定时器");
       clearInterval(timer);
     };
   }, []);
@@ -414,8 +416,8 @@ function EffectDemo2() {
 ## 自定义实现 useEffect、useState
 
 ```js
-import React from 'react';
-import { render } from '../../index';
+import React from "react";
+import { render } from "../../index";
 
 // StateDemo 多次渲染 组件执行的时候 我们的状态需要保留  ——> memoizedState
 let memoizedStates = [];
@@ -427,7 +429,7 @@ function useState(initialState) {
 
   function setState(newState) {
     memoizedStates[currentIndex] =
-      typeof newState === 'function'
+      typeof newState === "function"
         ? newState(memoizedStates[index])
         : newState;
     // 每次渲染的时候清0  不然会累加
@@ -477,16 +479,16 @@ function StateDemo() {
    * 第一轮  memoizedStates=['计数器',0]  重置了index
    * 第二轮  memoizedStates=['计数器',1]
    * */
-  const [name, setName] = useState('计数器');
+  const [name, setName] = useState("计数器");
   //  多个state
   const [number, setNumber] = useState(0);
 
   // 但是存在多个 useEffect 就失败了
   useEffect(() => {
-    console.log('useEffect1');
+    console.log("useEffect1");
   }, [name]);
   useEffect(() => {
-    console.log('useEffect2');
+    console.log("useEffect2");
   }, [number]);
 
   return (
@@ -494,7 +496,7 @@ function StateDemo() {
       <p>UseStateDemo</p>
       <p>{number}</p>
       <p>{name}</p>
-      <button onClick={() => setName('计数器' + Date.now())}>改name</button>
+      <button onClick={() => setName("计数器" + Date.now())}>改name</button>
       <button onClick={() => setNumber(number + 1)}>+</button>
     </div>
   );
@@ -511,13 +513,13 @@ useState 的替代方案 ，接受一个 形如 (state,action)=>newState 的 red
 2. 使用场景 改变状态的逻辑比较复杂的时候 或者 下一个状态依赖前一个状态的时候可以使用 useReducer
 
 ```js
-import React from 'react';
-import { render } from '../../index';
+import React from "react";
+import { render } from "../../index";
 
 // StateDemo 多次渲染 组件执行的时候 我们的状态需要保留  ——> memoizedState
 let initialArg = 0;
-const INCREASE = 'INCREASE';
-const DECREASE = 'DECREASE';
+const INCREASE = "INCREASE";
+const DECREASE = "DECREASE";
 
 function reducer(state, action) {
   switch (action.type) {
@@ -554,7 +556,7 @@ let memoizedState;
 function useReducer(reducer, initialArg, init) {
   let initialState = void 0; // void 跟上任意表达式返回的都是 undefined
 
-  if (typeof init !== 'undefined') {
+  if (typeof init !== "undefined") {
     initialState = init(initialArg);
   } else {
     initialState = initialArg;
@@ -591,8 +593,8 @@ export default StateDemo;
 # useContext
 
 ```js
-import React, { useContext, useReducer } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useContext, useReducer } from "react";
+import ReactDOM from "react-dom";
 /**
  * 1. 接受一个 context 的值(React.createContext()的返回值)，并返回该context的当前值
  * 2. 当前context值由上层组件中距离当前组件最近的<MyContent.Provider>的value props决定
@@ -630,7 +632,7 @@ function App() {
   );
 }
 function render() {
-  ReactDOM.render(<App />, document.getElementById('root'));
+  ReactDOM.render(<App />, document.getElementById("root"));
 }
 render();
 
@@ -705,7 +707,7 @@ function useState(initialState) {
 // 我们将 state和effect的依赖项都放入 memoizedStates 中
 function StateDemo() {
   // useState2 就是一个hooks 第一个值是当前的状态 第二个值是改变状态的函数
-  const [name, setName] = useState('计数器');
+  const [name, setName] = useState("计数器");
   //  多个state
   const [number, setNumber] = useState(0);
   return (
@@ -714,7 +716,7 @@ function StateDemo() {
       <p>
         {name}: {number}
       </p>
-      <button onClick={() => setName('计数器' + Date.now())}>改name</button>
+      <button onClick={() => setName("计数器" + Date.now())}>改name</button>
       <button onClick={() => setNumber(number + 1)}>+</button>
     </div>
   );
@@ -729,11 +731,11 @@ export default StateDemo;
 
 - useRef -- 如果和获取最新的值
 - useRef 会返回一个可变的 ref 对象 {current}
-- ref对象在组件的整个生命周期内保持不变
+- ref 对象在组件的整个生命周期内保持不变
 
 ```js
-import React, { useEffect } from 'react';
-import { render } from '../../index';
+import React, { useEffect } from "react";
+import { render } from "../../index";
 
 /**
  * useRef -- 如果和获取最新的值
@@ -755,7 +757,7 @@ function useState(initialState) {
 
   function setState(newState) {
     memoizedStates[currentIndex] =
-      typeof newState === 'function'
+      typeof newState === "function"
         ? newState(memoizedStates[index])
         : newState;
     // 每次渲染的时候清0  不然会累加
@@ -775,7 +777,7 @@ function useRef(current) {
 function forwardRef(Comp) {
   return class extends React.Component {
     render() {
-      console.log(this, 'this');
+      console.log(this, "this");
       // ref 属性很特殊 是一个内部保护的变量
       return Comp(this.props, this.props.ref2);
     }
@@ -837,7 +839,7 @@ export default Index;
 
  现在通过ref和forwardRef，可以在父组件中随意改变元素。
  但是我们可能只希望父组件只能对子组件进行有限操作，也就是限制父组件的自由度。
- 
+
  1. 直接暴露给父组件带来的问题是某些情况的不可控
  2. 父组件可以拿到DOM后进行任意的操作
  3. 我们只是希望父组件可以操作的focus，其他并不希望它随意操作其他方法
@@ -849,7 +851,7 @@ export default Index;
 ### useImperativeHandle
 
 ```js
-import React, { useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, forwardRef, useImperativeHandle } from "react";
 
 /**
  * 可以让我们在使用ref时自定义暴露给父组件的实例值
@@ -898,8 +900,8 @@ export default function ImperativeHandleDemo() {
 # useLayoutEffect
 
 ```js
-import React from 'react';
-import { render } from '../../index';
+import React from "react";
+import { render } from "../../index";
 
 /**
  * useLayoutEffect
@@ -954,13 +956,13 @@ function useLayoutEffect(cb, dependencies) {
 function Animate() {
   let divRef = React.createRef();
   let style = {
-    width: '100px',
-    height: '100px',
-    background: 'red',
+    width: "100px",
+    height: "100px",
+    background: "red",
   };
   useLayoutEffect(() => {
-    divRef.current.style.transform = 'translate(500px)';
-    divRef.current.style.transition = 'all 0.5';
+    divRef.current.style.transform = "translate(500px)";
+    divRef.current.style.transition = "all 0.5";
   });
 
   return <div style={style} ref={divRef} />;
@@ -1043,20 +1045,20 @@ export const useArray = <T>(initialArray: T[]) => {
 ## useAsync
 
 ```js
-import { useState, useReducer, useCallback } from 'react';
-import { useMountedRef } from '@/utils/index';
+import { useState, useReducer, useCallback } from "react";
+import { useMountedRef } from "@/utils/index";
 
 interface State<D> {
   error?: Error | null;
   data: D | null;
-  stat?: 'idle' | 'loading' | 'error' | 'success';
+  stat?: "idle" | "loading" | "error" | "success";
   // 处理数据
   workDataFn?: (key: any) => any;
   config?: () => void;
 }
 
 const defaultInitialState: State<null> = {
-  stat: 'idle',
+  stat: "idle",
   data: null,
   error: null,
 };
@@ -1090,7 +1092,7 @@ export const useAsync = <D>(initialState?: State<D>) => {
     (data: D) =>
       safeDispatch({
         data,
-        stat: 'success',
+        stat: "success",
         error: null,
       }),
     [safeDispatch]
@@ -1100,7 +1102,7 @@ export const useAsync = <D>(initialState?: State<D>) => {
     (error: Error) =>
       safeDispatch({
         error,
-        stat: 'error',
+        stat: "error",
         data: null,
       }),
     [safeDispatch]
@@ -1116,14 +1118,14 @@ export const useAsync = <D>(initialState?: State<D>) => {
   const run = useCallback(
     (promise: Promise<D>, runConfig?: { retry: () => Promise<D> }) => {
       if (!promise || !promise.then) {
-        throw new Error('请传入 Promise 类型的数据');
+        throw new Error("请传入 Promise 类型的数据");
       }
       setRetry(() => () => {
         if (runConfig?.retry) {
           run(runConfig.retry(), runConfig);
         }
       });
-      safeDispatch({ stat: 'loading' });
+      safeDispatch({ stat: "loading" });
       return promise
         .then((data) => {
           setData(data);
@@ -1139,10 +1141,10 @@ export const useAsync = <D>(initialState?: State<D>) => {
   );
 
   return {
-    isIdle: state.stat === 'idle',
-    isLoading: state.stat === 'loading',
-    isError: state.stat === 'error',
-    isSuccess: state.stat === 'success',
+    isIdle: state.stat === "idle",
+    isLoading: state.stat === "loading",
+    isError: state.stat === "error",
+    isSuccess: state.stat === "success",
     run,
     setData,
     setError,
@@ -1176,15 +1178,16 @@ state3 === hook2.memoizedState
 ```
 
 # 封装公共行为
+
 - 渲染函数的输入是属性
-- 输出是JSX
-- 行为是Hooks
+- 输出是 JSX
+- 行为是 Hooks
 
 那么对于多个组件公共行为（副作用）应该如何封装呢？
 
-## 公共Scroll事件的封装
+## 公共 Scroll 事件的封装
 
-可以通过Hooks封装公共的行为，例如滑动、触摸等复杂的事件处理，可以用hooks封装，从而简化使用。
+可以通过 Hooks 封装公共的行为，例如滑动、触摸等复杂的事件处理，可以用 hooks 封装，从而简化使用。
 
 ```js
 import { UIEventHandler, useEffect, useRef } from "react"
@@ -1194,12 +1197,12 @@ class ScrollDescriptor {
   private top: number = 0
   private scrollHeight: number = 0
   private offsetHeight: number = 0
-  
+
   private scrollToBottomHandlers : Function[] = []
   public onScrollToBottom(handler : Function){
       this.scrollToBottomHandlers.push(handler)
       return () => {
-          this.scrollToBottomHandlers = 
+          this.scrollToBottomHandlers =
               this.scrollToBottomHandlers.filter(x => x !== handler)
       }
   }
@@ -1219,7 +1222,7 @@ class ScrollDescriptor {
     this.offsetHeight = offsetHeight
     if(this.bottomReached()) {
         this.triggerScrollToBottom()
-    }        
+    }
   }
   public bottomReached() {
     return this.top + this.offsetHeight >= this.scrollHeight
@@ -1285,9 +1288,10 @@ export const ScrollerExample = () => {
   )
 }
 ```
+
 ## 状态封装
 
-可以使用hooks进行状态的封装，例如之前我们实现的`受控` 组件和`非受控`组件的公共逻辑。
+可以使用 hooks 进行状态的封装，例如之前我们实现的`受控` 组件和`非受控`组件的公共逻辑。
 
 ```js
 import { ChangeEventHandler, useEffect, useState } from "react"
@@ -1298,7 +1302,7 @@ export function useValue<T>({
 }: {
   value?: T
   defaultValue?: T
-  onChange?: (val : T) => void 
+  onChange?: (val : T) => void
 }): [T, (val: T) => void] {
   const controlled = typeof value !== "undefined"
   const [_value, setValue] = useState<T>(
@@ -1325,5 +1329,47 @@ export function useValue<T>({
   }
   return [_value, setHandler]
 }
+// 简化问题 目的 专注渲染 复杂度由hook来做
+const Input = ({value,defaultValue}):{ value: string, defaultValue: string } => {
+  const [_value, setValue] = useValue({
+    value,
+    defaultValue
+  })
+  return (
+    <input value={value} onChange={e=>setValue(e.target.value)}>
+  )
+}
 ```
 
+## 封装业务逻辑
+
+Hooks 也可以对于业务逻辑进行封装。
+例子：封装分页逻辑
+注意用`useEffect` 让 page 变化成为数据变化的因子，而不是将 page 看做单纯的一个请求数据。
+
+```jsx
+async function request(path, page) {
+  const resp = await fetch(path + "?" + qs.stringify({ page }));
+  const data = await resp.json();
+  return data;
+}
+function usePaging(path) {
+  const [page, setPage] = useState(0);
+  const [list, setList] = useState([]);
+  useEffect(() => {
+    request(path, page).then((json) => {
+      setList(json.data.list);
+    });
+  }, [page]);
+  return {
+    list,
+    next: () => setPage((x) => x + 1),
+    prev: () => setPage((x) => Math.max(0, x - 1)),
+  };
+}
+
+const SomeComponent = () => {
+  const { list, next, prev } = usePaging("/products");
+  // 绘制逻辑
+};
+```
