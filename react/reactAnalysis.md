@@ -9,8 +9,8 @@
 ⽤ JavaScript 对象表示 DOM 信息和结构，当状态变更的时候，重新渲染这个 JavaScript 的对象结构。这个
 JavaScript 对象称为 virtual dom。
 
-虚拟DOM（Virtual DOM）是对DOM的JS抽象表示，它们是JS对象，能够描述DOM结构和关系。应用
-的各种状态变化会作用于虚拟DOM，最终映射到DOM上。
+虚拟 DOM（Virtual DOM）是对 DOM 的 JS 抽象表示，它们是 JS 对象，能够描述 DOM 结构和关系。应用
+的各种状态变化会作用于虚拟 DOM，最终映射到 DOM 上。
 
 2. why？
 
@@ -28,6 +28,7 @@ vdom 来描述真实 dom。将来如果状态变化，vdom 将作出相
 dom 操作。
 
 <!-- ![虚拟dom](./imgs/dom.png) -->
+
 # 虚拟 DOM 原理剖析
 
 1. diff 策略
@@ -706,17 +707,255 @@ react 内部的机制，在函数开始执行的时候，设置 isBatchingUpdate
 - 自定义 dom 事件(和它调用的函数)
 - react 管不到的入口
 
-
 # fiber
 
+## Element
+
+```js
+// 具体来说，React渲染函数的执行，会产生一个树状结构：`createElement` 后形成一个VirtualDOM节点
+class ReactElement {
+    type : SomeComponent
+    props : {
+        children
+    }
+}
+// Element可以看做“数据”的描述，也就是元数据。 Element可以看做是虚拟DOM，代表了真实的DOM结构。因为每次渲染函数调用都生成一个新的Element，因此在Element之上还需要一个封装。
+class FiberNode {
+    type : SomeComponent
+    props : ...
+
+    update(...)
+}
+// 思考？为什么 更新方法不能放在 元数据中呢？很简单，比如人可以喝水，但是喝水这个动作不应该放在人里面，因为人可以做很多事情
+// 设计？
+// 1.描述数据的class，去维护所有数据的完整性，真正去做事情的时候，不会去维护数据的场景中去做，
+// 而是会创建一个场景，比如  FiberNode 在具体的某一个场景下去更新组件
+// 2.组件要更新，并不是简单的更新，涉及到算法，比如fiber，下一代更新算法
+
+// FiberNode 是可以更新自己的
+// 同一个渲染函数的两次执行，究竟产生哪些DOM操作，需要由DOM-DIFF模块确定
+// 具体来说，对于某个给定的组件：
+function SomeComponent(...) {
+    return <div>...</div>
+}
+// 当组件`SomeComponent`触发更新的时候，`react` 会这样处理：
+... Fiber Context {
+
+    let vDOMOld  // 上一次调用SomeComponent产生的virtualDOM
+    ……
+    update() {
+        const vdomNext = SomeComponent(...)
+        const updates = domDiff(vDOMOld, vDOMNext)
+        vDOMOld = vDOMNext
+        apply(updates)
+    }
+}
+// React更新产生虚拟DOM节点，然后通过diff算法比较两个DOM节点的差异，决定更新步骤，最后再向DOM应用这些更新。
+// 在上面的程序中，箭头函数的返回值会被React记录下来，下次更新会尝试使用这个值继续比较。
+// 这里有一个要求，domDiff算法的效率必须足够高，因为所有的更新都依赖它。
+```
+
+## DOM-DIFF 细节
+
+1. 对于类型相同的节点 - 只需要替换属性即可，React 遇到这种情况，会帮用户替换掉属性。 innerHtml
+2. 不同类型的节点 - React 会直接替换
+3. 子节点的处理
+
+```jsx
+// React会只insert第三个li。
+<ul>
+  <li>first</li>
+  <li>second</li>
+</ul>
+// 到
+<ul>
+  <li>first</li>
+  <li>second</li>
+  <li>third</li>
+</ul>
+// 但是对于下面这种乱序的情况，React会逐一替换：
+<ul>
+  <li>Duke</li>
+  <li>Villanova</li>
+</ul>
+
+<ul>
+  <li>Connecticut</li>
+  <li>Duke</li>
+  <li>Villanova</li>
+</ul>
+// 这是因为DOM-DIFF会用简单的算法，顺序比较，而不是用动态规划。在比较一个列表的时候，用最短编辑距离（动态规划）后，仍然有昂贵的DOM操作（插入、删除）等。而动态规划算法的复杂度有O(n^2)。
+// 为了解决比较慢的问题，React引入了key来解决：
+<ul>
+  <li key="2015">Duke</li>
+  <li key="2016">Villanova</li>
+</ul>
+//  到
+<ul>
+  <li key="2014">Connecticut</li>
+  <li key="2015">Duke</li>
+  <li key="2016">Villanova</li>
+</ul>
+上面程序中，React会用key来进行比较，上面程序会考虑到key相同的情况，认为key相同的是同一个节点。 因此2014会是一个插入的节点。
+```
+
+## 伪代码
+
+```js
+function* domDIFF(vDOM1, vDOM2) {
+  if (!vDOM1) {
+    yield new InsertUpdate(vDOM1, vDOM2);
+    return;
+  }
+  if (vDOM1.type === vDOM2.type) {
+    if (vDOM1.key === vDOM2.key) {
+      yield new AttributeUpdate(vDOM1, vDOM2); // 属性的update
+      yield* domDIFFArray(vDOM1.children, vDOM2.children);
+    } else {
+      yield new ReplaceUpdate(vDOM1, vDOM2);
+    }
+    return;
+  } else {
+    yield new ReplaceUpdate(vDOM1, vDOM2);
+  }
+}
+function toMap(arr) {
+  const map = new Map();
+  arr.forEach((item) => {
+    if (item.key) map.set(item.key, item);
+  });
+  return map;
+}
+function* domDiffArray(arr1, arr2) {
+  if (!arr1 || !arr2) {
+    yield new ReplaceUpdate(vDOM1, vDOM2);
+    return;
+  }
+  const m1 = toMap(arr1);
+  const m2 = toMap(arr2);
+  // 需要删除的VDOM
+  const deletes = arr1.filter((item, i) => {
+    return item.key ? !m2.has(item.key) : i >= arr2.length;
+  });
+
+  for (let item of deletes) {
+    yield new ReplaceUpdate(item, null);
+  }
+  // 需要Replace的VDOM
+  for (let i = 0; i < arr1.length; i++) {
+    const a = arr1[i];
+    if (a.key) {
+      if (m2.has(a.key)) {
+        yield* domDIFF(a, m2.get(a.key));
+      }
+    } else {
+      if (i < arr2.length) {
+        yield* domDIFF(a, arr2[i]);
+      }
+    }
+  }
+  // 需要Insert的VDOM
+  for (let i = 0; i < arr2.length; i++) {
+    const b = arr2[i];
+
+    if (b.key) {
+      if (!m1.has(b.key)) {
+        yield new InsertUpdate(i, b);
+      }
+    } else {
+      if (i >= arr1.length) {
+        yield new InsertUpdate(i, arr[2]);
+      }
+    }
+  }
+}
+
+class InsertUpdate {
+  constructor(pos, to) {
+    this.pos = pos;
+    this.to = to;
+  }
+}
+class ReplaceUpdate {
+  constructor(from, to) {
+    this.form = from;
+    this.to = to;
+  }
+}
+```
+
 React Fiber 是⼀种基于浏览器的单线程调度算法.
-reconcilation协调算法 - 比如第二次更新，我们不可能再次执行render，需要diff，虚拟dom的核心呢，就是要复用节点。比如当前页面已经有了，下次局部某个地方更新的时候，在原来节点的基础上进行操作，这就是协调做的事情。
-如何做到的呢？主要通过diff
-React 16 之前,reconcilation(协调)  算法实际上是递归，想要中断递归是很困难的，React 16 开始使⽤了循环来代替之前 的递归.
+reconcilation 协调算法 - 比如第二次更新，我们不可能再次执行 render，需要 diff，虚拟 dom 的核心呢，就是要复用节点。比如当前页面已经有了，下次局部某个地方更新的时候，在原来节点的基础上进行操作，这就是协调做的事情。
+如何做到的呢？主要通过 diff
+React 16 之前,reconcilation(协调) 算法实际上是递归，想要中断递归是很困难的，React 16 开始使⽤了循环来代替之前 的递归.
 
 ### 概念
 
 Fiber ：⼀种将 recocilation （递归 diff），拆分成⽆数个⼩任务的算法；它随时能够停⽌，恢复。停⽌恢复的时机 取决于当前的⼀帧（16ms）内，还有没有⾜够的时间允许计算。
+
+### 基础结构映射
+
+```jsx
+const jsx = (
+  <div className='box border'>
+    <h1>omg</h1>
+    <h2>ooo</h2>
+    <FunctionComponent name='函数组件' />
+    <ClassComponent name='class组件' />
+  </div>
+);
+const jsxfiberNode = {
+  child: {
+    stateNode: 'div.box.border',
+    tag: 5, // 原生标签 HostComponent
+    child: {
+      // 第一个子节点，此处是h1,之前传统的子节点都是存储在数组中
+      // 如果后面还有节点，就通过 sibling
+      stateNode: 'h1',
+      tag: 5,
+      sibling: {
+        stateNode: 'h2',
+        tag: 5,
+        // 还有兄弟 函数组件
+        sibling: {
+          stateNode: null, // 函数组件本身没有dom节点
+          tag: 0,
+          sibling: {
+            stateNode: 'ClassComponent', // 指向类组件的实力
+            tag: 1,
+            sibling: null, // 没有兄弟节点啦
+            return: {
+              // 父节点
+              stateNode: 'div.box.border',
+              tag: 5,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+function createFiber(vnode, returnFiber) {
+  const fiber = {
+    type: vnode.type,
+    key: vnode.key, // 常规key值
+    props: vnode.props,
+    stateNode: null, // 原生标签，指dom节点，类组件的时候，指向实例
+    child: null, // 第一个子 fiber，也就是第一个子节点
+    sibling: null, // 下一个兄弟fiber
+    return: null, // 父fiber
+    flags: null, // 标记是什么类型的,比如后续 插入，末尾移动等，标记
+    alternate: null, // 老节点
+    deletions: null, // 要删除子节点，null或者[]
+    index: null, // 当前层级下的下标，从0开始，即 在当前层级下是第几个子节点，记录位置。主要是为了，比如上次更新在某个位置，下次更新在什么地方，位置有没有发生变化，需不需要移动，都是根据index来判断
+
+    memoizedProps: {}, // 更新到组件上的值,
+  };
+  return fiber;
+}
+```
+
+![fiber](./imgs/fiber-base.png)
 
 ### fiber(并发渲染) 出现的原因
 
@@ -725,12 +964,11 @@ Fiber ：⼀种将 recocilation （递归 diff），拆分成⽆数个⼩任务�
 [参考](https://segmentfault.com/a/1190000039081912)
 [参考](https://segmentfault.com/a/1190000020737069)
 
-
 1. 为什么需要 fiber (大型项目-组件树-递归)
-  对于⼤型项⽬，组件树会很⼤，这个时候递归遍历的
-  成本就会很⾼，会造成主线程被持续占⽤，结果就是
-  主线程上的布局、动画等周期性任务就⽆法⽴即得到
-  处理，造成视觉上的卡顿，影响⽤户体验。
+   对于⼤型项⽬，组件树会很⼤，这个时候递归遍历的
+   成本就会很⾼，会造成主线程被持续占⽤，结果就是
+   主线程上的布局、动画等周期性任务就⽆法⽴即得到
+   处理，造成视觉上的卡顿，影响⽤户体验。
 1. 任务分解的意义- 解决上⾯的问题
 
 1. 增量渲染（把渲染任务拆分成块，匀到多帧）
